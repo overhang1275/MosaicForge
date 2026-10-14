@@ -1,3 +1,4 @@
+pub mod appearance;
 pub mod contract;
 pub mod generate;
 pub mod rng;

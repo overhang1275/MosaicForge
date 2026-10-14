@@ -41,12 +41,13 @@
 - [x] ~~Fase 1, tarea 3: importación SVG segura y normalización.~~
 - [x] ~~Tarea 4, submódulo 4.1: muestreo geométrico determinista.~~
 - [x] ~~Tarea 4, submódulo 4.2: aplicación geométrica segura al SVG.~~
-- [ ] Confirmación del usuario para empezar 4.3: apariencia y composición.
+- [x] ~~Tarea 4, submódulo 4.3: apariencia, orden de capas y recorte; pruebas con test.svg.~~
+- [ ] Confirmación del usuario para empezar 4.4: distorsión y restricciones.
 - [ ] Fase 1, resto de tarea 4 y tareas 5–6: generación, PNG y CLI.
 - [ ] Evidencia de una variante SVG/PNG, determinismo y perfil CPU.
 - [ ] Confirmación explícita para pasar a fase 2.
 
-Existen muestreo y aplicación geométrica a SVG, además de contratos, PRNG e importador seguro. Todavía faltan apariencia, restricciones e integración del generador de variantes, renderer, CLI, web, Java e infraestructura.
+Existen muestreo, aplicación geométrica, paleta, opacidad, orden de capas y recorte SVG, además de contratos, PRNG e importador seguro. Todavía faltan distorsión, restricciones e integración del generador de variantes, renderer, CLI, web, Java e infraestructura.
 
 ## Evidencia técnica
 
@@ -61,6 +62,7 @@ Existen muestreo y aplicación geométrica a SVG, además de contratos, PRNG e i
 - Tarea 3: quince tests SVG nuevos; RED inicial y reproducciones de revisión comprobadas, GREEN total 32 tests. fmt/Clippy --locked -D warnings pasan. Revisión por lectura: todos los hallazgos originales corregidos, último P2 local/acumulado confirmado resuelto. Sin medir RAM o throughput.
 - Submódulo 4.1: cinco pruebas transforms añadidas, RED observado y GREEN total 37 tests, cero fallos/omitidos; fmt y Clippy pasan. Revisión local, sin subagente por este paso pequeño. Graphify consultado con budget 800 y resultado truncado; se verificó código actual directamente por snapshot antiguo.
 - Submódulo 4.2: siete pruebas geométricas añadidas; RED observado y GREEN total 44 tests, cero fallos/omitidos; fmt, Clippy y diff --check pasan. Identidad, orden, centro del viewBox, transform previo, clips/capas, repetición y límites comprobados. Revisión local; detalle en tarea-4-submodulos.md.
+- Submódulo 4.3: ocho pruebas añadidas, RED observado y GREEN total 52 tests; fmt/Clippy pasan. Una prueba local omitida en suite normal, ejecutada aparte con test.svg y pasó. Original rechazado explícitamente; copia preparada y tres SVG generados con conservación de paths y repetición por índice. Evidencia y comandos en avance-tarea-4.3.md.
 - No hay benchmarks de render, pruebas CUDA, tests de generación ni pruebas de fronteras Java/web ejecutados todavía. El benchmark de Graphify estima tokens de navegación, no rendimiento del motor.
 
 ## Git y recuperación
@@ -89,4 +91,4 @@ Autor técnico de commits: Codex <codex@localhost>, configuración por comando, 
 
 ## Punto exacto para continuar
 
-Submódulo 4.2 terminado, commit b4b346b. Esperar permiso explícito del usuario para 4.3: color/paleta, opacidad, orden de capas y crop. Consultar tarea-4-submodulos.md y svg-admitido.md. No repetir módulos completados ni pasar a fase 2 sin confirmación. El grafo sigue siendo snapshot anterior a tarea 2.
+Submódulo 4.3 terminado. Esperar permiso explícito del usuario para 4.4: distorsión acotada, restricciones y reintentos con rechazo por índice. Consultar tarea-4-submodulos.md, avance-tarea-4.3.md y svg-admitido.md. No repetir módulos completados ni pasar a fase 2 sin confirmación. El grafo sigue siendo snapshot anterior a tarea 2.
