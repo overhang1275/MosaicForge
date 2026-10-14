@@ -73,6 +73,7 @@ Existen muestreo y aplicación geométrica a SVG, además de contratos, PRNG e i
 | 30ac241 | Philox y dominio de muestreo tarea 2 | 17 tests, fmt, Clippy, revisión sin hallazgos |
 | cf8c819 | Importador SVG seguro y normalización tarea 3 | 32 tests, fmt, Clippy, hallazgos originales resueltos |
 | ff7df4f | Muestreo geométrico submódulo 4.1 | 37 tests, fmt, Clippy, revisión local |
+| b4b346b | Aplicación geométrica submódulo 4.2 | 44 tests, fmt, Clippy, revisión local |
 
 Autor técnico de commits: Codex <codex@localhost>, configuración por comando, sin cambiar identidad global. No se hizo push, merge, reset ni clean. No se versionan target/, dependencias descargadas ni resultados de usuarios.
 
@@ -88,4 +89,4 @@ Autor técnico de commits: Codex <codex@localhost>, configuración por comando, 
 
 ## Punto exacto para continuar
 
-Submódulo 4.2 terminado. Esperar permiso explícito del usuario para 4.3: color/paleta, opacidad, orden de capas y crop. Consultar tarea-4-submodulos.md y svg-admitido.md. No repetir módulos completados ni pasar a fase 2 sin confirmación. El grafo sigue siendo snapshot anterior a tarea 2.
+Submódulo 4.2 terminado, commit b4b346b. Esperar permiso explícito del usuario para 4.3: color/paleta, opacidad, orden de capas y crop. Consultar tarea-4-submodulos.md y svg-admitido.md. No repetir módulos completados ni pasar a fase 2 sin confirmación. El grafo sigue siendo snapshot anterior a tarea 2.
