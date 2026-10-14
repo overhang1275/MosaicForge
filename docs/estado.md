@@ -82,6 +82,7 @@ Existen muestreo, geometría, apariencia/crop, distorsión local, ajuste de encu
 | ff7df4f | Muestreo geométrico submódulo 4.1 | 37 tests, fmt, Clippy, revisión local |
 | b4b346b | Aplicación geométrica submódulo 4.2 | 44 tests, fmt, Clippy, revisión local |
 | 9eeaa95 | Apariencia y recorte submódulo 4.3 | 52 tests CPU + prueba local test.svg, fmt, Clippy |
+| 95da985 | Encuadre, cobertura, distorsión y reintentos 4.4 | 60 tests CPU + tres pruebas locales, fmt, Clippy, revisión visual |
 
 Autor técnico de commits: Codex <codex@localhost>, configuración por comando, sin cambiar identidad global. No se hizo push, merge, reset ni clean. No se versionan target/, dependencias descargadas ni resultados de usuarios.
 
@@ -97,4 +98,4 @@ Autor técnico de commits: Codex <codex@localhost>, configuración por comando, 
 
 ## Punto exacto para continuar
 
-Submódulo 4.4 terminado. Esperar permiso explícito del usuario para 4.5: generate_variant, resultados versionados y determinismo por índices/rangos/hilos/grupos, con revisión independiente global. Consultar tarea-4-submodulos.md, avance-tarea-4.4.md y ADR 0004. No repetir módulos completados ni pasar a fase 2 sin confirmación. El grafo sigue siendo snapshot anterior a tarea 2.
+Submódulo 4.4 terminado, commit 95da985. Esperar permiso explícito del usuario para 4.5: generate_variant, resultados versionados y determinismo por índices/rangos/hilos/grupos, con revisión independiente global. Consultar tarea-4-submodulos.md, avance-tarea-4.4.md y ADR 0004. No repetir módulos completados ni pasar a fase 2 sin confirmación. El grafo sigue siendo snapshot anterior a tarea 2.
