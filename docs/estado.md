@@ -76,6 +76,7 @@ Existen muestreo, aplicación geométrica, paleta, opacidad, orden de capas y re
 | cf8c819 | Importador SVG seguro y normalización tarea 3 | 32 tests, fmt, Clippy, hallazgos originales resueltos |
 | ff7df4f | Muestreo geométrico submódulo 4.1 | 37 tests, fmt, Clippy, revisión local |
 | b4b346b | Aplicación geométrica submódulo 4.2 | 44 tests, fmt, Clippy, revisión local |
+| 9eeaa95 | Apariencia y recorte submódulo 4.3 | 52 tests CPU + prueba local test.svg, fmt, Clippy |
 
 Autor técnico de commits: Codex <codex@localhost>, configuración por comando, sin cambiar identidad global. No se hizo push, merge, reset ni clean. No se versionan target/, dependencias descargadas ni resultados de usuarios.
 
@@ -91,4 +92,4 @@ Autor técnico de commits: Codex <codex@localhost>, configuración por comando, 
 
 ## Punto exacto para continuar
 
-Submódulo 4.3 terminado. Esperar permiso explícito del usuario para 4.4: distorsión acotada, restricciones y reintentos con rechazo por índice. Consultar tarea-4-submodulos.md, avance-tarea-4.3.md y svg-admitido.md. No repetir módulos completados ni pasar a fase 2 sin confirmación. El grafo sigue siendo snapshot anterior a tarea 2.
+Submódulo 4.3 terminado, commit 9eeaa95. Esperar permiso explícito del usuario para 4.4: distorsión acotada, restricciones y reintentos con rechazo por índice. Consultar tarea-4-submodulos.md, avance-tarea-4.3.md y svg-admitido.md. No repetir módulos completados ni pasar a fase 2 sin confirmación. El grafo sigue siendo snapshot anterior a tarea 2.
