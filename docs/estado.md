@@ -96,6 +96,7 @@ Autor técnico de commits: Codex <codex@localhost>, configuración por comando, 
 - .graphify-cli/ es herramienta de sesión anterior, excluida del producto. Grafo en graphify-out/: 143 nodos, 248 relaciones, diez comunidades; snapshot anterior a tarea 2. Límites/estimaciones en graphify.md; actualizar antes de consultar relaciones nuevas.
 - Una tolerancia de imagen y una aceleración solo se publican cuando se midan.
 - Requisito de impresión registrado durante la pausa: evitar geometría oculta innecesaria en exportación final, medir complejidad/tamaño y coste RIP/Fiery. Ver requisitos-exportacion-impresion.md. La causa atribuida al PDF de HP es hipótesis del usuario, no diagnóstico medido; crop actual conserva paths y todavía no es optimización final.
+- PDF de referencia inspeccionado durante la pausa: docs/ejemplo_export.pdf, 158.52 MB / 250 páginas; análisis de cuatro páginas y render de la primera confirma Forms invocados con BBox exterior. Fiery no medido. Informe en analisis-ejemplo-export.md; PDF original intacto, no incluido en commit documental.
 
 ## Punto exacto para continuar
 

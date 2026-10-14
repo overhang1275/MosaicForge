@@ -6,6 +6,8 @@ Registrado: 2026-10-14. Requisito aportado por el usuario durante la pausa; no a
 
 El usuario observa PDFs pesados y procesamiento lento en Fiery al exportar con la herramienta de HP, incluso con páginas de 10 × 10 cm. Su hipótesis es que se conserva mucha geometría oculta por máscaras de recorte. No se inspeccionó un PDF ni se midió ese flujo; no presentar esa causa como diagnóstico confirmado.
 
+Actualización: se inspeccionó docs/ejemplo_export.pdf suministrado después. 158.52 MB, 250 páginas de aproximadamente 6 × 6 cm; cuatro páginas muestreadas contienen Forms invocados completamente fuera de página. Esto confirma geometría retenida en esa muestra, pero no mide ni explica por sí solo el coste Fiery. Evidencia y límites en analisis-ejemplo-export.md.
+
 ## Requisito para MosaicForge
 
 La exportación final para impresión debe evitar arrastrar toda la plantilla detrás de un recorte pequeño. Conservar la plantilla original para reproducibilidad y ajustes; generar un artefacto final con la geometría necesaria para representar la página y su sangrado configurado.
