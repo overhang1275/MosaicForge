@@ -11,6 +11,7 @@
 5. superpowers/plans/2026-10-14-motor-cpu.md y avance-tarea-1.md.
 6. avance-tarea-2.md, adr/0003-determinismo.md y graphify.md.
 7. avance-tarea-3.md y svg-admitido.md.
+8. tarea-4-submodulos.md: checklist de ejecución y pausa antes de cada submódulo.
 
 ## Instrucciones vigentes del usuario
 
@@ -21,6 +22,7 @@
 - Orden obligatorio: Rust CPU/CLI → frontend contra ese motor → API Java/trabajos → CUDA medida → Python solo si las reglas no bastan.
 - Justificar cada frontera real entre lenguajes con ADR; no crear puertos/capas para usos hipotéticos.
 - No pasar de fase 1 sin confirmación explícita del usuario.
+- Tarea 4 se ejecuta por submódulos; preguntar antes de avanzar al siguiente para controlar tokens. Esta instrucción prevalece sobre ejecución continua del skill.
 - Usar DuckDB para JSON/TXT/CSV grandes cuando permita consultar/filtrar sin cargar todo; no imponerlo como dependencia del producto.
 - Guardar commits cuando las implementaciones funcionen y pasen checks.
 - Implementar más adelante grupos configurables de N variantes para controlar memoria; incorporado a tarea 6, sin adelantar su código. Mantener reproducibilidad independiente de N y límites de buffers/concurrencia.
@@ -37,11 +39,13 @@
 - [x] ~~Generar grafo del snapshot de tarea 1 y registrar sus límites.~~
 - [x] ~~Fase 1, tarea 2: PRNG determinista.~~
 - [x] ~~Fase 1, tarea 3: importación SVG segura y normalización.~~
-- [ ] Fase 1, tareas 4–6: reglas, PNG y CLI.
+- [x] ~~Tarea 4, submódulo 4.1: muestreo geométrico determinista.~~
+- [ ] Confirmación del usuario para empezar 4.2: aplicación geométrica al SVG.
+- [ ] Fase 1, resto de tarea 4 y tareas 5–6: generación, PNG y CLI.
 - [ ] Evidencia de una variante SVG/PNG, determinismo y perfil CPU.
 - [ ] Confirmación explícita para pasar a fase 2.
 
-Las tareas 1–3 aún no son un generador funcional: existen contratos, validación/hash, PRNG e importador SVG; no hay reglas generativas, renderer, CLI, web, Java ni infraestructura implementados.
+Existe muestreo de parámetros geométricos además de contratos, PRNG e importador SVG. Todavía no se aplican las reglas a SVG ni hay generador de variantes, renderer, CLI, web, Java o infraestructura.
 
 ## Evidencia técnica
 
@@ -54,6 +58,7 @@ Las tareas 1–3 aún no son un generador funcional: existen contratos, validaci
 - Licencias declaradas de dependencias fijadas registradas en dependencias-motor.md; LICENSE del producto pendiente.
 - Tarea 2: siete tests RNG añadidos; RED observado antes de implementación, GREEN total 17 tests; fmt/Clippy también pasan. Revisión independiente por lectura sin hallazgos materiales.
 - Tarea 3: quince tests SVG nuevos; RED inicial y reproducciones de revisión comprobadas, GREEN total 32 tests. fmt/Clippy --locked -D warnings pasan. Revisión por lectura: todos los hallazgos originales corregidos, último P2 local/acumulado confirmado resuelto. Sin medir RAM o throughput.
+- Submódulo 4.1: cinco pruebas transforms añadidas, RED observado y GREEN total 37 tests, cero fallos/omitidos; fmt y Clippy pasan. Revisión local, sin subagente por este paso pequeño. Graphify consultado con budget 800 y resultado truncado; se verificó código actual directamente por snapshot antiguo.
 - No hay benchmarks de render, pruebas CUDA, tests de generación ni pruebas de fronteras Java/web ejecutados todavía. El benchmark de Graphify estima tokens de navegación, no rendimiento del motor.
 
 ## Git y recuperación
@@ -65,6 +70,7 @@ Las tareas 1–3 aún no son un generador funcional: existen contratos, validaci
 | 2f1e6d4 | Contratos y validación Rust tarea 1 | Diez tests, fmt, Clippy, revisión corregida |
 | 30ac241 | Philox y dominio de muestreo tarea 2 | 17 tests, fmt, Clippy, revisión sin hallazgos |
 | cf8c819 | Importador SVG seguro y normalización tarea 3 | 32 tests, fmt, Clippy, hallazgos originales resueltos |
+| ff7df4f | Muestreo geométrico submódulo 4.1 | 37 tests, fmt, Clippy, revisión local |
 
 Autor técnico de commits: Codex <codex@localhost>, configuración por comando, sin cambiar identidad global. No se hizo push, merge, reset ni clean. No se versionan target/, dependencias descargadas ni resultados de usuarios.
 
@@ -80,4 +86,4 @@ Autor técnico de commits: Codex <codex@localhost>, configuración por comando, 
 
 ## Punto exacto para continuar
 
-Tarea 3 terminada. Siguiente: fase 1 tarea 4, reglas y SVG reproducible, a partir del plan ejecutable; consultar svg-admitido.md y propiedades de Template para compatibilidad. La solicitud actual autorizó tarea 3, no iniciar tarea 4 automáticamente. No repetir tareas 1–3 ni pasar a fase 2 sin confirmación explícita. El grafo sigue siendo snapshot anterior a tarea 2.
+Submódulo 4.1 terminado, commit ff7df4f. Esperar permiso explícito del usuario para 4.2. Ese paso compondrá/aplicará matrices alrededor del centro del viewBox y comprobará identidad/orden; todavía no abordar apariencia, distorsión o integración. Consultar tarea-4-submodulos.md y svg-admitido.md. No repetir módulos completados ni pasar a fase 2 sin confirmación. El grafo sigue siendo snapshot anterior a tarea 2.

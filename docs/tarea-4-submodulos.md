@@ -22,7 +22,7 @@ Cada submódulo termina con tests/fmt/Clippy, commit y registro de avance. Pregu
 
 ## Punto de reanudación
 
-4.1 terminado. Esperar respuesta afirmativa antes de empezar 4.2.
+4.1 terminado, commit funcional ff7df4f. Esperar respuesta afirmativa antes de empezar 4.2.
 
 ## Evidencia 4.1
 
