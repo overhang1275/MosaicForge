@@ -1,77 +1,74 @@
 # MosaicForge — Estado y punto de reanudación
 
-Última actualización: 2026-10-14.
+Última actualización: 2026-10-14. Rama: feat/cpu-contracts.
 
 ## Leer al retomar
 
-1. `../AGENTS.md`.
+1. ../AGENTS.md.
 2. Este archivo.
-3. `plan-desarrollo.md`.
-4. `requisitos-fuente.txt` y las decisiones de `adr/` cuando existan.
+3. plan-desarrollo.md (orden vigente actualizado).
+4. adr/0002-orden-incremental.md y diseno-mvp.md.
+5. superpowers/plans/2026-10-14-motor-cpu.md y avance-tarea-1.md.
 
-## Solicitudes y aclaraciones del usuario
+## Instrucciones vigentes del usuario
 
-- Mantener checklist visible y tachar lo completado conforme avance.
+- Checklist visible, marcar y tachar solo lo completado.
+- Planes, documentación y registros de continuidad en docs/.
 - Usar Ponytail, Graphify y Superpowers.
-- Priorizar librerías open source; CUDA es una excepción propietaria permitida, opcional.
-- Preparar el desarrollo por fases.
-- Guardar planes, checklists y documentación de continuidad en `docs/`.
-- Diseño e infraestructura aprobados mediante «ok continua» después de presentar el diseño escrito. LICENSE sigue pendiente.
-- Usar Git para guardar puntos recuperables cuando cada implementación funcione y pase sus checks.
+- Preferir librerías open source; CUDA propietaria es excepción opcional permitida.
+- Orden obligatorio: Rust CPU/CLI → frontend contra ese motor → API Java/trabajos → CUDA medida → Python solo si las reglas no bastan.
+- Justificar cada frontera real entre lenguajes con ADR; no crear puertos/capas para usos hipotéticos.
+- No pasar de fase 1 sin confirmación explícita del usuario.
+- Usar DuckDB para JSON/TXT/CSV grandes cuando permita consultar/filtrar sin cargar todo; no imponerlo como dependencia del producto.
+- Guardar commits cuando las implementaciones funcionen y pasen checks.
+- Se permite investigar documentación pública HP SmartStream Mosaic/PrintOS si sirve para requisitos o flujos; registrar fuentes y mantener originales algoritmos/código/UI/assets.
 
-## Estado actual
+## Avance comprobado
 
-- [x] ~~Leer el documento fuente y AGENTS.md.~~
-- [x] ~~Preparar el plan por fases y el registro de continuidad.~~
-- [x] ~~Inventariar herramientas y GPU disponibles.~~
-- [x] ~~Guardar el diseño propuesto del MVP CPU.~~
-- [x] ~~Confirmar decisiones de fase 0 y revisar el diseño CPU.~~
-- [x] ~~Registrar ADR y crear el plan ejecutable de seis tareas CPU.~~
-- [ ] Usuario revisa el plan ejecutable y confirma ejecución directa.
-- [ ] Iniciar implementación después del diseño y plan del subsistema.
+- [x] ~~Documentación, inventario y baseline Git.~~
+- [x] ~~Diseño inicial aprobado y elecciones tecnológicas registradas.~~
+- [x] ~~Tarea 1: contratos v1, tipos Rust generados, validación de entrada/resultados y hash.~~
+- [x] ~~Revisión independiente y corrección de dos hallazgos P2.~~
+- [x] ~~Plan revisado según las nuevas consideraciones, con criterios medibles.~~
+- [ ] Usuario revisa el plan actualizado.
+- [ ] Fase 1, tarea 2: PRNG determinista.
+- [ ] Fase 1, tareas 3–6: SVG seguro, reglas, PNG y CLI.
+- [ ] Evidencia de una variante SVG/PNG, determinismo y perfil CPU.
+- [ ] Confirmación explícita para pasar a fase 2.
 
-El repositorio no contiene código del producto. Antes de esta planificación contenía AGENTS.md y `.graphify-cli/`, un directorio de herramientas instalado en una sesión anterior. Este directorio no forma parte del producto y debe excluirse de análisis del código, imágenes y entregas. No existe `graphify-out/graph.json`.
+La tarea 1 no es un motor generativo funcional: no hay importador SVG, RNG, renderer, CLI, web, Java ni infraestructura implementados.
 
-## Evidencia de esta sesión
+## Evidencia técnica
 
-- Se leyó `C:/Users/init/Desktop/promt.txt` y se guardó una copia local para continuidad.
-- Se leyó AGENTS.md completo y se comprobó la ausencia de grafo Graphify.
-- Se crearon `plan-desarrollo.md` y este registro; se verificó su existencia y las fases del plan.
-- Se ejecutaron comandos de versión y consultas de hardware; detalles en `inventario-entorno.md`.
-- Se escribió y revisó `diseno-mvp.md`: límites, SVG seguro, determinismo, contratos e integración.
-- No se ejecutaron pruebas del producto: todavía no existe implementación.
+- RED inicial: cinco tests; dos fallan por seed fuera de u64 aceptada y hash vacío.
+- GREEN inicial: cinco tests pasan.
+- Ampliación: diez tests finales pasan, cero fallos/omitidos; incluyen overflow de resultados y opcionales null. Overflow de resultados tuvo RED observado antes de corregir.
+- Hubo un error de sintaxis en una prueba y un warning collapsible_if de Clippy; corregidos, no pendientes.
+- Checks finales con exit code 0: cargo fmt --all -- --check; cargo clippy --workspace --all-targets --locked -- -D warnings; cargo test --workspace --locked.
+- Revisión independiente por lectura: dos P2 corregidos (null/schema y overflow de resultado); revisión posterior sin hallazgos materiales.
+- Licencias declaradas de dependencias fijadas registradas en dependencias-motor.md; LICENSE del producto pendiente.
+- No hay benchmarks, pruebas CUDA, tests de generación ni pruebas de fronteras Java/web ejecutados todavía.
 
-## Decisiones aceptadas y pendientes
+## Git y recuperación
 
-- PostgreSQL: metadatos/estado duradero mediante adaptador.
-- Valkey: caché, coordinación y cola Streams mediante adaptador.
-- Archivos locales para desarrollo; interfaz S3 para almacenamiento desplegado, proveedor pendiente.
-- OpenTelemetry para trazabilidad/observabilidad.
-- Next.js/TypeScript, Java, Rust y Python opcional corresponden a los requisitos de partida.
+| Commit | Propósito | Verificación |
+|---|---|---|
+| b8cc6d8 | Baseline documental | diff --check y herramientas excluidas |
+| 1c8f5ed | Registro de baseline | Commit documental |
+| 2f1e6d4 | Contratos y validación Rust tarea 1 | Diez tests, fmt, Clippy, revisión corregida |
+
+Autor técnico de commits: Codex <codex@localhost>, configuración por comando, sin cambiar identidad global. No se hizo push, merge, reset ni clean. No se versionan target/, dependencias descargadas ni resultados de usuarios.
+
+## Decisiones / límites
+
+- Java 21/Spring Boot/Maven Wrapper, PostgreSQL y Valkey aceptados para fase 3; no introducirlos antes.
+- Web fase 2 requiere diseño y ADR del puente real al motor; HTTP local de preview es una propuesta, no implementada.
+- Rust 1.99, Java 21, Node 24.19, pnpm 11.25 y Python 3.12 comprobados; algunas rutas no están en PATH.
+- Equipo: i5-1235U, 10 núcleos/12 hilos, 7.69 GiB RAM, Intel UHD; NVIDIA no detectada. CUDA real necesita otro entorno.
+- Contenedores no encontrados en las rutas comprobadas; despliegue todavía no probado.
+- .graphify-cli/ es herramienta de sesión anterior, excluida del producto; no existe grafo del código aún.
+- Una tolerancia de imagen y una aceleración solo se publican cuando se midan.
 
 ## Punto exacto para continuar
 
-Revisar `superpowers/plans/2026-10-14-motor-cpu.md` con el usuario; ejecución directa recomendada por el tamaño y dependencia secuencial de las tareas. Luego comenzar tarea 1: contratos y tipos generados. Diseño y adaptadores no requieren pedir aprobación nuevamente. Todavía no se han instalado dependencias de producto ni escrito implementación.
-
-## Política Git
-
-Inicializar repositorio y guardar documentación baseline, sin incluir `.graphify-cli/`, resultados o secretos. No existía configuración de autor Git consultable; usar identidad técnica `Codex <codex@localhost>` solo para cada commit, sin cambiar configuración global. Cada implementación obtiene un commit cuando pasan formato, lint y tests. Registrar hash y evidencia en el siguiente checkpoint documental; no usar reset/clean para descartar cambios sin autorización.
-
-Baseline guardado en commit `b8cc6d8` (`docs: record approved architecture and CPU development plan`). Verificación: `git diff --cached --check` sin errores, `.graphify-cli/` ignorado y `git status --short` vacío después del commit. Solo documentación/reglas; sin pruebas de producto. Rama `main`.
-
-## Bloqueos y límites
-
-- Sin blockers comprobados para la planificación.
-- Java 21, Rust 1.99, Node 24.19, pnpm 11.25 y Python 3.12 comprobados mediante ruta absoluta. Algunas herramientas no están configuradas en PATH.
-- Equipo: i5-1235U, 10 núcleos/12 hilos, 7.69 GiB RAM, Intel UHD. NVIDIA no detectada; pruebas CUDA reales necesitan otro equipo/runner.
-- Herramientas de contenedores no encontradas en PATH/ruta habitual; despliegue local todavía no probado.
-- CUDA requiere mediciones y pruebas en hardware real; no afirmar aceleración antes de ejecutarlas.
-- Antes de tocar LICENSE, CI o contratos publicados, seguir las autorizaciones indicadas por AGENTS.md.
-
-## Registro de cambios
-
-| Fecha | Cambio | Verificación |
-|---|---|---|
-| 2026-10-14 | Hoja de ruta por fases y documentos de continuidad | Lectura de archivos, fases y checklist; sin cambios de producto |
-| 2026-10-14 | Inventario y propuesta de diseño CPU | Versiones/hardware comprobados; diseño revisado para índices, límites y recuperación; pendiente aprobación |
-| 2026-10-14 | Diseño aprobado, ADR y plan ejecutable CPU | Seis tareas con archivos, interfaces, pruebas y commits; implementación pendiente |
+Presentar plan-desarrollo.md actualizado y esperar respuesta. No iniciar otras fases. Cuando el usuario autorice continuar fase 1, empezar tarea 2 desde su checklist; tarea 1 está terminada y no se repite. No volver a pedir aprobación de tecnologías ya aceptadas salvo que cambie la elección.

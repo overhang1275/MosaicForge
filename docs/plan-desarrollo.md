@@ -1,191 +1,147 @@
 # MosaicForge — Plan de desarrollo por fases
 
-Fecha: 2026-10-14. Estado: planificación; implementación pendiente.
+Actualizado: 2026-10-14. Este orden reemplaza el plan anterior por instrucción directa del usuario. La aprobación anterior de tecnologías permanece; su incorporación se difiere a la fase que la necesita.
 
-**Objetivo:** generar variantes originales de plantillas SVG, reproducibles y exportables, desde una interfaz web; completar primero el flujo CPU y añadir CUDA únicamente donde las mediciones demuestren beneficio.
+## Alcance y punto de control
 
-**Fuentes:** `requisitos-fuente.txt`, `../AGENTS.md` y las aclaraciones del usuario registradas en `estado.md`. Las instrucciones del documento fuente se interpretan como requisitos del producto; no sustituyen las solicitudes del usuario.
+Prioridad: una variante válida y reproducible de punta a punta antes de invertir en infraestructura. Desarrollar solo Rust CPU/CLI en fase 1. No pasar a fase 2 sin confirmación explícita del usuario después de presentar evidencia de fase 1.
 
-**Método:** implementación incremental en esta conversación, con tareas pequeñas y verificables. Este documento es la hoja de ruta; cada subsistema necesita diseño y tareas concretas antes de implementarlo. No es una especificación técnica aprobada ni una promesa de rendimiento.
+Cada fase tiene un documento ejecutable propio y termina con checks, evidencia en docs/estado.md y commits recuperables. Una casilla completada se marca [x] y se tacha. Lo omitido por falta de hardware queda pendiente.
 
-## Cómo usar la checklist
+## Preparación ya realizada
 
-- Pendiente: `- [ ] Tarea`.
-- Terminada y verificada: `- [x] ~~Tarea~~`; registrar evidencia en `estado.md`.
-- Una fase termina cuando todos sus entregables y su criterio de salida se verifican.
-- Una prueba omitida por falta de hardware no cuenta como aprobada.
-- Antes de parar: actualizar estado, bloqueos y siguiente tarea. Al retomar: leer `../AGENTS.md`, `estado.md`, este plan y las decisiones aplicables.
+- [x] ~~Leer requisitos y reglas del repositorio.~~
+- [x] ~~Inventariar herramientas y hardware.~~
+- [x] ~~Registrar preferencia open source y excepción CUDA opcional.~~
+- [x] ~~Guardar diseño inicial, checklist, documentación de continuidad y baseline Git.~~
+- [x] ~~Aceptar la corrección de orden: Rust → web → Java → CUDA → Python condicional.~~
+- [ ] Confirmación del usuario sobre esta revisión del plan.
+- [ ] Elegir LICENSE con aprobación explícita antes de distribución.
 
-## Decisiones y restricciones
+## Fase 1 — Motor Rust CPU y CLI
 
-| Componente | Tecnología | Justificación y frontera |
-|---|---|---|
-| Presentación | Next.js App Router, TypeScript estricto | UI y BFF delgado; la validación autoritativa pertenece a Java. |
-| Control | Java | Autenticación, autorización, API, orquestación y puertos de infraestructura. Framework y build se deciden en fase 0. |
-| Motor | Rust | Transformaciones, exportación, rasterización y paralelismo CPU; CUDA aislada tras feature. |
-| Análisis opcional | Python | ML y análisis cuando aporten valor; su ausencia nunca bloquea generación/exportación. |
-| Contratos | OpenAPI, Protobuf y JSON Schema | Clientes generados, mensajes versionados y eventos comunes. Evitar duplicar un contrato en varios formatos sin necesidad. |
-| Persistencia propuesta | PostgreSQL | Metadatos y estado duradero, mediante adaptador. Pendiente de confirmación. |
-| Caché/cola propuesta | Valkey y Streams | Coordinación, caché y trabajos por bloques; pendiente de confirmar e implementar recuperación de pendientes. |
-| Artefactos | Adaptador local; API S3 propuesta para despliegue | Referencias en mensajes y metadatos; SVG/PNG/ZIP en almacenamiento de archivos. Proveedor por decidir. |
-| Observabilidad | OpenTelemetry | Correlación de trazas y métricas entre servicios, junto con logs comunes. |
+**Objetivo:** generar una variante SVG y PNG desde una plantilla original, después comprobar que los mismos índices producen lo mismo al repetir o dividir el lote. No desplegar web, Java, base de datos, broker ni Python.
 
-- Preferir librerías open source; documentar licencia, versión y motivo. CUDA es la excepción propietaria explícitamente permitida y siempre opcional.
-- No fijar proveedor, base de datos ni broker en el dominio.
-- No copiar productos, marcas, assets o algoritmos propietarios.
-- No almacenar secretos ni contenido sensible en logs.
-- No añadir ML, infraestructura distribuida o abstracciones sin una necesidad concreta.
-- No modificar LICENSE, CI ni contratos publicados sin la autorización exigida en AGENTS.md.
+**Entrega:** contratos v1 y tipos generados, SVG seguro, PRNG por contador, transformaciones/validación, raster CPU y CLI. Plan concreto: superpowers/plans/2026-10-14-motor-cpu.md.
 
-## Estructura objetivo
+- [x] ~~Tarea 1: contratos y validación de entrada/resultados; hash de configuración independiente del bloque.~~ Commit 2f1e6d4; diez tests, formato y Clippy pasan.
+- [ ] Tarea 2: PRNG y dominio (seed, índice, regla, intento, muestra) con vectores de referencia.
+- [ ] Tarea 3: importación segura, normalización y límites SVG.
+- [ ] Tarea 4: geometría, color, capas, recorte y distorsión acotada; rechazo explícito por índice.
+- [ ] Tarea 5: SVG vectorial y PNG con resvg/tiny-skia, presupuesto de buffers.
+- [ ] Tarea 6: CLI incremental, cancelación y errores de E/S sin sobrescritura ni artefactos finales incompletos.
+- [ ] Guardar una primera corrida real de una variante SVG y PNG y su manifiesto.
+- [ ] Medir por separado normalización, muestreo/reglas, validación, serialización SVG, raster, codificación PNG y escritura.
+- [ ] Documentar las restricciones de validez y su cobertura de tests antes de diseñar infraestructura.
+- [ ] Presentar resultados y solicitar confirmación para pasar a fase 2.
 
-```text
-apps/web/                     Next.js y TypeScript
-services/api/                 Java: dominio, aplicación y adaptadores
-services/engine/               Rust: core, CPU, worker/CLI; CUDA al llegar a su fase
-services/analysis/             Python opcional, al llegar a su fase
-contracts/openapi/            API pública
-contracts/proto/              Frontera de workers
-contracts/events/             Esquema de logs y eventos
-deploy/                       Contenedores y composición local
-scripts/                      Generación y verificación
-docs/                         Requisitos, diseños, decisiones, planes y avance
-```
+**Terminado medible:**
 
-Crear cada carpeta cuando su entregable la necesite; no llenar el repositorio de esqueletos vacíos.
+1. Fixture SVG original → variante SVG y PNG; PNG decodifica con dimensiones correctas.
+2. Pruebas comparan hashes/bytes de índices 0–199 con 1 y 2 hilos y con bloques reordenados; índices 100–199 aislados coinciden con el rango del lote completo.
+3. Tests rechazan SVG con recursos externos/scripts/entidades/ciclos y entradas que superen los límites aprobados; pruebas en el límite y justo por encima.
+4. Restricciones prueban rangos finitos, límites geométricos, recorte, escalas positivas y aceptación/rechazo reproducibles. Fallar explícitamente después de ocho intentos; no desplazar los índices siguientes.
+5. Cancelación y errores de escritura probados, sin sobrescribir archivos existentes.
+6. cargo fmt, cargo clippy y cargo test pasan; CPU ejecuta sin CUDA ni Python.
+7. Perfil inicial contiene comandos, fixture, versiones, equipo, tamaños, tiempos de etapas y memoria observada. Es una línea base medida; no una promesa de capacidad.
 
-## Fase 0 — Diseño y preparación
+**Validez:** diseñar cobertura visible, área fuera del encuadre, área mínima de elementos, solapamiento y contraste de colores adyacentes relevantes. Implementar primero métricas deterministas comprobables con fixtures analíticos. No prometer detectar texto ilegible o buena estética en arte arbitrario; texto viene convertido a paths y las limitaciones se documentan.
 
-- [x] ~~Leer los requisitos y las reglas del repositorio.~~
-- [x] ~~Registrar la política de licencias y la excepción CUDA.~~
-- [x] ~~Crear la hoja de ruta y el registro para retomar.~~
-- [x] ~~Inventariar Java, Rust, Node, Python, herramientas de contenedores, GPU y driver disponibles.~~
-- [x] ~~Confirmar los adaptadores PostgreSQL, Valkey y almacenamiento local inicial con interfaz S3 posterior.~~
-- [x] ~~Decidir Spring Boot/Maven Wrapper y herramientas web; registrar alternativas descartadas.~~
-- [ ] Elegir licencia del proyecto con aprobación explícita.
-- [x] ~~Proponer el primer flujo CPU: cargar SVG → configurar → previsualizar → generar → descargar.~~
-- [x] ~~Proponer límites de entrada, subconjunto SVG admitido, formatos y resolución iniciales.~~
-- [x] ~~Proponer el modelo de dominio y la política de semillas, versiones y cancelación.~~
-- [x] ~~Guardar el diseño propuesto en `docs/diseno-mvp.md`.~~
-- [x] ~~Registrar decisiones aprobadas en `docs/adr/0001-arquitectura-inicial.md`.~~
-- [x] ~~Revisar el diseño con el usuario y preparar el plan detallado del motor CPU.~~
-- [ ] Revisar con el usuario el plan ejecutable antes de implementar.
+## Fase 2 — Frontend conectado al motor CPU
 
-**Salida:** diseño revisado, decisiones explícitas y una primera entrega acotada con pruebas y archivos concretos.
+**Objetivo:** cargar una plantilla, ajustar reglas/seed y obtener previsualizaciones reales del motor, todavía sin usuarios, proyectos persistentes o cola de producción.
 
-## Fase 1 — Contratos y motor CPU autónomo
+**Frontera mínima propuesta:** añadir transporte HTTP de previsualización al binario Rust, ligado a loopback en desarrollo, para inspect y generación pequeña. Next.js solo sirve UI/BFF proxy. Los contratos JSON Schema de fase 1 generan los tipos web; no implementar una segunda generación en TypeScript. Proponer y aprobar la interfaz exacta en el diseño de esta fase.
 
-- [ ] Definir plantilla, reglas, seed, índice de variante, salida y metadatos de reproducción.
-- [ ] Definir contratos versionados y generación de tipos; probar serialización entre lenguajes.
-- [ ] Implementar importación SVG segura: límites, rechazo de recursos externos y contenido activo, y errores claros.
-- [ ] Implementar PRNG por contador; cada variante depende de seed e índice, sin estado compartido.
-- [ ] Implementar traslación, rotación, escala, espejo, recorte y variaciones de color/opacidad.
-- [ ] Añadir capas, composición, distorsión controlada y restricciones geométricas.
-- [ ] Implementar exportación SVG y raster CPU PNG con límites de memoria.
-- [ ] Implementar CLI CPU y generación por bloques con paralelismo acotado.
-- [ ] Verificar determinismo, cambio del número de hilos, índices reanudados, SVG inválidos y límites.
+- [ ] ADR de frontera Next.js ↔ Rust: coste, despliegue, seguridad, contrato y retirada del proxy directo cuando entre Java.
+- [ ] Incorporar Next.js/TypeScript estricto y cliente generado.
+- [ ] Carga SVG, rangos, seed e índice visibles; máximo 12 previews de 512 × 512.
+- [ ] Mostrar rechazos de reglas con motivo y mantener contexto al ajustar parámetros.
+- [ ] Mostrar PNG seguro generado por Rust; descargar SVG/PNG de una variante.
+- [ ] Probar foco/teclado, errores, cambios rápidos y desconexión del motor.
+- [ ] Exportar Next.js standalone y documentar ejecución local de ambos procesos.
 
-**Salida:** una plantilla y configuración generan un lote reproducible desde CLI, sin Java, Python ni CUDA. La salida no depende del orden de ejecución de variantes.
+**Terminado medible:**
 
-## Fase 2 — API y trabajos duraderos
+1. Prueba de navegador carga fixture, configura seed, pide preview, ajusta una regla y descarga.
+2. La descarga/previsualización corresponde al mismo índice/seed/versión que produce CLI con el mismo contrato.
+3. Respuestas antiguas de previews no sustituyen una solicitud más reciente; errores y rechazos visibles.
+4. Typecheck, lint, tests de componentes y E2E pasan; ningún motor generativo está duplicado en Next.js.
+5. No se exige Java, PostgreSQL, Valkey, CUDA ni Python para demostrar este flujo.
+6. Contrato y ADR de la frontera real registrados; no crear puertos genéricos para transportes que aún no existen.
 
-- [ ] Implementar API Java versionada, validación autoritativa y errores consistentes.
-- [ ] Implementar autenticación y autorización por proyecto y artefacto.
-- [ ] Implementar puertos de persistencia, cola, almacenamiento y caché con los adaptadores confirmados.
-- [ ] Implementar estados: queued, running, succeeded, failed y cancelled; validar transiciones.
-- [ ] Implementar worker Rust por contrato, con reporte de capacidades CPU y estado.
-- [ ] Distribuir bloques de variantes; usar claves de idempotencia y publicar resultados de forma segura.
-- [ ] Implementar recuperación tras caída, reintentos limitados y reconciliación entre persistencia y cola.
-- [ ] Implementar progreso SSE con identificadores de evento y recuperación del estado tras reconexión.
-- [ ] Implementar cancelación cooperativa, límites de concurrencia y limpieza de artefactos parciales.
-- [ ] Probar aislamiento entre usuarios, entrega duplicada, caída del worker, desconexión de cola y reinicio de API.
+## Fase 3 — API Java, usuarios/proyectos y trabajos asíncronos
 
-**Salida:** por API se puede cargar, lanzar, consultar, cancelar y descargar un trabajo CPU; un reinicio no pierde el estado duradero ni publica resultados duplicados.
+**Objetivo:** convertir el flujo demostrado en un producto con permisos, estado duradero, lotes, recuperación y progreso.
 
-## Fase 3 — Interfaz y MVP CPU completo
+- [ ] ADR de la frontera Java ↔ Rust y del paso web → Java; justificar coste frente al flujo local existente.
+- [ ] Introducir Java 21/Spring Boot/Spring Security y Maven Wrapper aquí, no antes.
+- [ ] Diseñar API OpenAPI y trabajo/eventos versionados; generar clientes y probar fronteras.
+- [ ] Autenticación, autorización por proyecto/artefacto, presets y metadatos.
+- [ ] Incorporar PostgreSQL y Valkey aceptados como implementaciones de fronteras reales. No crear capas o puertos para responsabilidades inexistentes.
+- [ ] Estado duradero, outbox/reconciliación, bloques idempotentes, recuperación de pendientes y reintentos limitados.
+- [ ] SSE con reconexión/snapshot, cancelación y límites de concurrencia.
+- [ ] Almacenamiento local real; añadir adaptador S3 cuando se necesite despliegue remoto, con ADR/proveedor por elegir.
+- [ ] Galería paginada/virtualizada, selección e historial; retirar el acceso web directo al transporte de preview Rust.
+- [ ] Integrar trace ID/logs y métricas de fronteras; contenedores CPU, CI y LICENSE con las autorizaciones necesarias.
 
-- [ ] Generar cliente/tipos TypeScript desde OpenAPI y validar respuestas inesperadas en runtime.
-- [ ] Crear flujo de proyecto, carga de plantilla y configuración de reglas con seed visible.
-- [ ] Crear previsualización pequeña que use el mismo motor que el lote final.
-- [ ] Implementar presets, lanzamiento del lote e historial de trabajos.
-- [ ] Mostrar progreso, velocidad, backend y dispositivo; recuperar estado al reconectar.
-- [ ] Crear galería paginada y virtualizada, filtros, selección y descarga.
-- [ ] Aplicar Server Components a lectura y BFF delgado a sesión/proxy/eventos.
-- [ ] Implementar carga diferida; usar Web Worker solo si una tarea local medida bloquea la UI.
-- [ ] Verificar teclado, foco, contraste, errores y estados vacíos.
-- [ ] Probar el flujo navegador → Java → Rust → descarga, con trace ID común.
+**Terminado medible:**
 
-**Salida:** un usuario completa el flujo de ocho pasos descrito en los requisitos sin GPU ni servicios Python. Es el primer MVP utilizable.
+1. E2E web → Java → Rust: usuario autorizado crea proyecto, carga, genera lote, consulta estado y descarga.
+2. Usuario distinto no accede a metadatos ni archivos del primero.
+3. Pruebas de mensaje duplicado, caída del worker/API y reinicio no duplican publicación ni pierden estado confirmado.
+4. Cancelación libera recursos y no publica artefactos incompletos.
+5. Progreso se recupera tras desconexión; misma plantilla/reglas/seed/índice sigue reproduciendo lo generado por CLI.
+6. Tests de contratos, integración y E2E pasan; despliegue CPU reproducible sin CUDA/Python.
+7. Lotes progresivos se miden con memoria/disco/tiempo; capacidad anunciada solo hasta lo ensayado.
 
-## Fase 4 — Operación y escala CPU
+## Fase 4 — CUDA condicionada a evidencia
 
-- [ ] Unificar logs JSON/texto y propagación W3C Trace Context; impedir datos sensibles.
-- [ ] Instrumentar duración por etapa, profundidad de cola, memoria, errores y variantes por segundo.
-- [ ] Añadir caché de previsualizaciones con clave de plantilla/configuración/versión y caducidad.
-- [ ] Añadir rate limiting, cuotas y presión de retorno cuando la capacidad esté agotada.
-- [ ] Completar formato, lint, tipado, contratos y pruebas relevantes en CI autorizada.
-- [ ] Crear contenedores por servicio, health checks, límites y composición CPU portable.
-- [ ] Verificar exportación por streaming y uso acotado de memoria/disco en lotes grandes.
-- [ ] Medir CPU con resolución, complejidad SVG y tamaño de lote registrados; guardar comandos y hardware en `docs/benchmarks/`.
-- [ ] Probar escalado de workers y recuperación bajo carga antes de anunciar capacidad para millones de variantes.
+**Objetivo:** acelerar solo etapas cuyo tiempo total medido mejore frente al CPU. SVG vectorial evita raster; PDF será una exportación separada con diseño/pruebas de impresión cuando se requiera, no rasterizar por defecto.
 
-**Salida:** despliegue CPU reproducible, límites medidos, recuperación probada y evidencia de capacidad. No se promete un volumen que no haya sido ensayado.
+- [ ] Perfilar SVG y PNG de extremo a extremo con varias complejidades, resoluciones y tamaños de lote.
+- [ ] Separar transferencia, lanzamiento, kernels, codificación y E/S; comparar primero la referencia resvg/tiny-skia.
+- [ ] Elegir operaciones candidatas por medición: color por píxel, composición, miniaturas y hashes; no priorizar raster de paths sin evidencia.
+- [ ] ADR para CUDA/bindings/unsafe/versiones y contrato numérico; CPU sigue compilando sin toolkit.
+- [ ] Incorporar ComputeBackend cuando existan CPU y CUDA reales; PRNG/discretos/aceptación comunes.
+- [ ] OOM → lote menor → reintento → fallback según política; cancelación/liberación y metadatos visibles.
+- [ ] Validar paridad/determinismo en equipo NVIDIA; streams/buffers/múltiples GPUs solo si el perfil lo exige.
 
-## Fase 5 — CUDA opcional y medida
+**Contrato de determinismo establecido temprano:** identidad bit a bit dentro del mismo backend, arquitectura GPU, motor, dependencias y versión de driver/toolchain fijados. Entre CPU y GPU: mismas decisiones discretas y diferencias de píxel dentro de una tolerancia medida antes de activar la etapa. No usar reducciones flotantes de orden variable para decisiones de aceptación.
 
-- [ ] Evaluar bindings mantenidos, incluidos cudarc y Rust-CUDA; fijar versiones y licencias en un ADR.
-- [ ] Definir ComputeBackend con implementación CPU real y backend CUDA real, bajo feature `cuda`.
-- [ ] Detectar dispositivo, VRAM y compatibilidad; conservar compilación/ejecución CPU sin toolkit.
-- [ ] Definir tolerancia de píxeles, decisiones discretas compartidas y contrato de reproducción por versión/arquitectura GPU.
-- [ ] Implementar y comparar PRNG por contador y transformación de color por píxel.
-- [ ] Implementar y comparar composición de capas y rasterización básica para el subconjunto SVG admitido.
-- [ ] Medir transferencia, kernels y posproceso; activar una etapa GPU solo cuando mejore el tiempo completo en lotes realistas.
-- [ ] Implementar buffers reutilizables, lotes adaptativos, streams y solapamiento según el perfil medido.
-- [ ] Implementar OOM → reducción de lote → reintento → fallback CPU según política; registrar backend por bloque/artefacto.
-- [ ] Probar cancelación, liberación de recursos, falta de GPU, error de inicialización y OOM simulado.
-- [ ] Ejecutar paridad y determinismo en GPU real; registrar los checks omitidos si falta hardware.
-- [ ] Añadir contenedor CUDA y guía de runner GPU; conservar el pipeline CPU principal.
+**Terminado medible:**
 
-**Salida:** GPU opcional con resultados reproducibles, paridad comprobada y mejoras medidas. Si el hardware no está disponible, esta fase queda pendiente de validación real.
+1. Cada etapa activada dispone de benchmark reproducible con baseline CPU y tiempo GPU total, incluidas transferencias.
+2. Repetir al menos 10 veces una misma corrida en GPU produce hashes idénticos en el entorno fijado.
+3. Dataset de paridad, métrica, umbral medido y peores diferencias documentados; ningún umbral inventado.
+4. No GPU/init error/OOM/cancelación tienen tests; CPU sigue funcionando.
+5. Si no hay mejora total, la etapa se conserva en CPU y se documenta. Si falta hardware, validación GPU pendiente; nunca marcarla como aprobada.
+6. SVG/vector no paga costes de raster GPU innecesarios.
 
-## Fase 6 — Análisis Python opcional
+## Fase 5 — Python/ML solo con necesidad demostrada
 
-- [ ] Seleccionar la primera capacidad útil: paletas o detección de similitud, según necesidades observadas.
-- [ ] Versionar contratos y generar clientes; separar análisis del flujo obligatorio.
-- [ ] Implementar análisis con dependencias/modelos de licencia documentada y versiones reproducibles.
-- [ ] Definir límites, timeouts, cancelación y reparto de VRAM si comparte dispositivo con Rust.
-- [ ] Verificar ausencia, caída y timeout del servicio: generación y exportación CPU continúan.
-- [ ] Medir utilidad/coste antes de incorporar embeddings, modelos estéticos o sugerencias de presets adicionales.
+**Entrada obligatoria:** casos originales documentados que pasan las reglas existentes pero siguen siendo inválidos o ilegibles; demostrar qué métrica basada en reglas resulta insuficiente.
 
-**Salida:** una mejora de análisis funciona y su indisponibilidad provoca degradación documentada, sin bloquear el producto.
+- [ ] Evaluar ampliar reglas antes de añadir ML.
+- [ ] ADR de frontera Java ↔ Python: beneficio, latencia, coste, despliegue, modelos/licencias y datos usados.
+- [ ] Añadir una única capacidad útil inicialmente, con tipos/cliente generados y presupuesto de recursos.
+- [ ] Comparar detección con/sin modelo sobre dataset etiquetado y versionado.
+- [ ] Python opcional con timeouts/cancelación; generación/exportación siguen funcionando si falta o cae.
+- [ ] Reservar VRAM compartida con Rust solo si ambos usan GPU.
 
-## Fase 7 — Escala avanzada y entrega
+**Terminado medible:**
 
-- [ ] Añadir múltiples GPUs, cola por dispositivo y planificación de VRAM a partir de mediciones de una GPU.
-- [ ] Probar galería y metadatos con decenas de miles de resultados; medir lotes mayores progresivamente.
-- [ ] Revisar licencias, dependencias, vulnerabilidades y aislamiento de usuarios.
-- [ ] Completar README, ejemplos originales, API, instalación CPU/CUDA y guía de contribución.
-- [ ] Elegir y añadir LICENSE con aprobación explícita.
-- [ ] Construir/actualizar Graphify excluyendo dependencias, binarios y artefactos generados; revisar fronteras entre servicios.
-- [ ] Ejecutar verificación final y registrar resultados, limitaciones y tareas diferidas.
+1. Dataset y criterio de mejora acordados antes de implementar; informar verdaderos/falsos positivos y negativos.
+2. Comparación reproducible demuestra beneficio útil sobre el baseline de reglas y mide latencia/memoria.
+3. Caída/ausencia/timeout del servicio no rompe generación/exportación.
+4. Modelo/dependencias/licencias/versiones registrados; contratos y pruebas pasan.
+5. Si las reglas bastan, omitir esta fase y registrar el motivo; no desplegar Python por variedad.
 
-**Salida:** entrega reproducible con documentación, pruebas y benchmarks verificables; capacidad y soporte GPU descritos según evidencia.
+## Git, evidencia y continuidad
 
-## Orden y dependencias
-
-Fases 0 → 1 → 2 → 3 → 4 → 5. La fase 6 puede comenzar después de estabilizar el MVP CPU y sus contratos; la fase 7 integra el resultado final. No retrasar el MVP por ML o múltiples GPUs.
-
-## Riesgos que deben tener pruebas
-
-| Condición | Comportamiento esperado | Fase |
-|---|---|---|
-| SVG malicioso, corrupto o excesivo | Rechazo seguro con límites y error comprensible | 1–3 |
-| Seed idéntica con distinto paralelismo o reanudación | Mismos parámetros y resultados dentro del contrato de determinismo | 1, 5 |
-| Mensaje duplicado o caída entre escritura y confirmación | Recuperación idempotente sin publicar dos resultados | 2 |
-| Cancelación durante exportación o render | Liberación de recursos y artefactos parciales identificados/limpiados | 2, 5 |
-| Resultado ajeno solicitado por identificador | Acceso denegado tanto a metadatos como a descarga | 2–3 |
-| CUDA o Python ausentes, OOM o caída | CPU disponible y degradación/fallback visible | 5–6 |
-
-## Próximo paso
-
-Revisar `superpowers/plans/2026-10-14-motor-cpu.md` y ejecutar la tarea 1 tras confirmación. Ninguna fase de implementación se ha iniciado. LICENSE permanece pendiente sin bloquear el desarrollo del motor.
+- Commit por implementación verificada, con archivos explícitos; nunca incluir secretos, dependencias descargadas o resultados de usuario.
+- Registrar hashes/comandos/resultados en docs/estado.md. Cambios documentales se distinguen de implementaciones funcionales.
+- DuckDB para consultar JSON/TXT/CSV grandes cuando ayude a filtrar/agregar; no imponerlo como dependencia del producto ni instalarlo para archivos pequeños.
+- Graphify cuando exista código suficiente: excluir herramientas descargadas/builds/artefactos y usar el grafo para revisar fronteras y dependencias; no confundir grafo con evidencia de tests.
+- No afirmar aceleración, cobertura ni capacidad sin medición.
+- Nunca reanudar una tarea marcada pendiente como si estuviera completa: leer estado, plan y git log.

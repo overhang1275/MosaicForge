@@ -1,6 +1,6 @@
 # MosaicForge — Diseño propuesto del MVP CPU
 
-Fecha: 2026-10-14. Estado: diseño aprobado por el usuario mediante «ok continua». Plan ejecutable del motor CPU preparado para revisión en `superpowers/plans/2026-10-14-motor-cpu.md`.
+Fecha: 2026-10-14. Estado: diseño aprobado y ajustado por instrucciones posteriores del usuario. Orden vigente: Rust CPU/CLI → frontend contra motor → Java/trabajos → CUDA medida → Python condicionado a insuficiencia de reglas. Ver `plan-desarrollo.md` y `adr/0002-orden-incremental.md`. Tarea 1 CPU autorizada; no pasar de fase 1 sin confirmación.
 
 ## Propósito y alcance
 
@@ -10,7 +10,7 @@ Requisitos y contexto: `requisitos-fuente.txt`, `plan-desarrollo.md`, `inventari
 
 ## Enfoques considerados
 
-1. **Recomendado: motor CPU vertical primero.** CLI reproducible → API/trabajos → interfaz. Permite validar seguridad SVG, calidad de salida y determinismo sin infraestructura, antes de integrar los servicios requeridos.
+1. **Elegido: motor CPU vertical primero.** CLI reproducible → interfaz de previsualización conectada directamente al motor → API Java/trabajos. Permite validar seguridad SVG, calidad de salida y determinismo sin infraestructura, antes de integrar los servicios requeridos.
 2. **Todos los servicios desde el inicio.** Hace visibles pronto las fronteras, pero exige cola, base de datos y frontend antes de verificar que el producto genera resultados correctos.
 3. **Demostrador web sin motor compartido.** Facilita una demo rápida, pero duplicaría generación en TypeScript y Rust o trasladaría negocio a Next.js; se descarta por las restricciones del proyecto.
 
@@ -80,7 +80,7 @@ Philox usa seed como clave y variante, identificador de regla, intento y contado
 
 Las variantes SVG y los parámetros deben coincidir al cambiar número de hilos, orden de bloques o reanudación. Para bytes PNG, fijar motor, dependencias, encoder y entorno de ejecución; no prometer identidad entre versiones o arquitecturas sin tests. Guardar la huella del entorno para repetir exactamente el render.
 
-La tolerancia CPU/GPU se definirá antes de activar CUDA, con referencias de imagen y decisiones discretas iguales. No inventar ahora un umbral de diferencias que aún no se ha medido.
+La tolerancia CPU/GPU se definirá antes de activar CUDA, con referencias de imagen y decisiones discretas iguales. Identidad bit a bit GPU solo dentro del mismo backend, arquitectura, versión de motor/dependencias/driver/toolchain fijados. Evitar reducciones flotantes no deterministas que afecten aceptación. No inventar ahora un umbral de diferencias que aún no se ha medido.
 
 ## Integración posterior del MVP
 
