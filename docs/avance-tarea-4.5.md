@@ -8,7 +8,7 @@ Fecha: 2026-10-14. BASE 7f9c0f5. Usuario autorizó retomar con «continua». Alc
 - [x] ~~Comparar índices 0–199 al cambiar rango, orden, grupos y uno/dos hilos.~~
 - [x] ~~Verificación final de suite CPU y prueba local integrada.~~
 - [x] ~~Revisión independiente de toda tarea 4 y correcciones verificadas.~~
-- [ ] Documentación, commit y punto de reanudación antes de tarea 5.
+- [x] ~~Documentación, commit 8031f75 y punto de reanudación antes de tarea 5.~~
 
 ## Decisiones
 

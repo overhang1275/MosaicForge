@@ -86,6 +86,7 @@ Existen generate_variant/VariantResult integrados, muestreo, geometría, aparien
 | b4b346b | Aplicación geométrica submódulo 4.2 | 44 tests, fmt, Clippy, revisión local |
 | 9eeaa95 | Apariencia y recorte submódulo 4.3 | 52 tests CPU + prueba local test.svg, fmt, Clippy |
 | 95da985 | Encuadre, cobertura, distorsión y reintentos 4.4 | 60 tests CPU + tres pruebas locales, fmt, Clippy, revisión visual |
+| 8031f75 | Integración 4.5 y cierre de tarea 4 | 67 tests CPU, prueba local integrada, fmt/Clippy, dos P2 de revisión corregidos |
 
 Autor técnico de commits: Codex <codex@localhost>, configuración por comando, sin cambiar identidad global. No se hizo push, merge, reset ni clean. No se versionan target/, dependencias descargadas ni resultados de usuarios.
 
@@ -103,4 +104,4 @@ Autor técnico de commits: Codex <codex@localhost>, configuración por comando, 
 
 ## Punto exacto para continuar
 
-Tarea 4 completa (4.1–4.5), 67 tests CPU y prueba local integrada pasan; revisión independiente atendida con dos regresiones. Esperar confirmación para tarea 5: exportar SVG/PNG CPU aplicando dimensiones/fondo, presupuesto de buffers y hash de bytes finales. Leer avance-tarea-4.5.md y requisitos-exportacion-impresion.md; crop interno todavía conserva geometría oculta. No repetir tarea 4 ni pasar a fase 2 sin terminar fase 1 y confirmación. El grafo sigue siendo snapshot anterior a tarea 2.
+Tarea 4 completa (4.1–4.5), commit 8031f75; 67 tests CPU y prueba local integrada pasan; revisión independiente atendida con dos regresiones. Esperar confirmación para tarea 5: exportar SVG/PNG CPU aplicando dimensiones/fondo, presupuesto de buffers y hash de bytes finales. Leer avance-tarea-4.5.md y requisitos-exportacion-impresion.md; crop interno todavía conserva geometría oculta. No repetir tarea 4 ni pasar a fase 2 sin terminar fase 1 y confirmación. El grafo sigue siendo snapshot anterior a tarea 2.
