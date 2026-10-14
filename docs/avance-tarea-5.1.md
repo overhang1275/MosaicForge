@@ -7,7 +7,7 @@ Fecha: 2026-10-14. BASE 47737df. Usuario autorizó tarea 5 por submódulos. Dete
 - [x] ~~Crear crate CPU local y planificador de reserva base.~~
 - [x] ~~Pruebas de fronteras, formatos y presupuesto.~~
 - [x] ~~Suite completa y checks: 70 tests, fmt y Clippy pasan.~~
-- [ ] Registrar hash del checkpoint.
+- [x] ~~Checkpoint funcional 8013a89 registrado.~~
 
 ## Implementación
 
