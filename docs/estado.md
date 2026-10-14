@@ -21,6 +21,7 @@
 - No pasar de fase 1 sin confirmación explícita del usuario.
 - Usar DuckDB para JSON/TXT/CSV grandes cuando permita consultar/filtrar sin cargar todo; no imponerlo como dependencia del producto.
 - Guardar commits cuando las implementaciones funcionen y pasen checks.
+- Implementar más adelante grupos configurables de N variantes para controlar memoria; incorporado a tarea 6, sin adelantar su código. Mantener reproducibilidad independiente de N y límites de buffers/concurrencia.
 - Se permite investigar documentación pública HP SmartStream Mosaic/PrintOS si sirve para requisitos o flujos; registrar fuentes y mantener originales algoritmos/código/UI/assets.
 
 ## Avance comprobado

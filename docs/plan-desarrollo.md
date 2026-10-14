@@ -30,6 +30,7 @@ Cada fase tiene un documento ejecutable propio y termina con checks, evidencia e
 - [ ] Tarea 4: geometría, color, capas, recorte y distorsión acotada; rechazo explícito por índice.
 - [ ] Tarea 5: SVG vectorial y PNG con resvg/tiny-skia, presupuesto de buffers.
 - [ ] Tarea 6: CLI incremental, cancelación y errores de E/S sin sobrescritura ni artefactos finales incompletos.
+- [ ] Generación por grupos configurables de N variantes: acotar resultados en memoria, exportar y liberar cada grupo; conservar índices globales y reproducibilidad al cambiar N. Solicitud del usuario registrada para implementar más adelante en tarea 6.
 - [ ] Guardar una primera corrida real de una variante SVG y PNG y su manifiesto.
 - [ ] Medir por separado normalización, muestreo/reglas, validación, serialización SVG, raster, codificación PNG y escritura.
 - [ ] Documentar las restricciones de validez y su cobertura de tests antes de diseñar infraestructura.
