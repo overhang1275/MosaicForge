@@ -57,6 +57,8 @@ Revisar `superpowers/plans/2026-10-14-motor-cpu.md` con el usuario; ejecución d
 
 Inicializar repositorio y guardar documentación baseline, sin incluir `.graphify-cli/`, resultados o secretos. No existía configuración de autor Git consultable; usar identidad técnica `Codex <codex@localhost>` solo para cada commit, sin cambiar configuración global. Cada implementación obtiene un commit cuando pasan formato, lint y tests. Registrar hash y evidencia en el siguiente checkpoint documental; no usar reset/clean para descartar cambios sin autorización.
 
+Baseline guardado en commit `b8cc6d8` (`docs: record approved architecture and CPU development plan`). Verificación: `git diff --cached --check` sin errores, `.graphify-cli/` ignorado y `git status --short` vacío después del commit. Solo documentación/reglas; sin pruebas de producto. Rama `main`.
+
 ## Bloqueos y límites
 
 - Sin blockers comprobados para la planificación.
