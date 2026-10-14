@@ -22,4 +22,4 @@ El fixture identity.json de services/engine/tests/fixtures usa un hash de planti
 
 ## Estado
 
-Esta entrega valida contratos. No incluye importación SVG, RNG, renderizador ni CLI funcional. No tiene resultados de benchmark ni pruebas CUDA.
+Estos archivos definen y validan contratos. El PRNG de tarea 2 vive en el módulo rng del core, con ADR 0003; todavía no hay importación SVG, renderizador ni CLI funcional. No hay resultados de benchmark del motor ni pruebas CUDA.

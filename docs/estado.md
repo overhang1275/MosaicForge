@@ -9,6 +9,7 @@
 3. plan-desarrollo.md (orden vigente actualizado).
 4. adr/0002-orden-incremental.md y diseno-mvp.md.
 5. superpowers/plans/2026-10-14-motor-cpu.md y avance-tarea-1.md.
+6. avance-tarea-2.md, adr/0003-determinismo.md y graphify.md.
 
 ## Instrucciones vigentes del usuario
 
@@ -31,13 +32,14 @@
 - [x] ~~Tarea 1: contratos v1, tipos Rust generados, validación de entrada/resultados y hash.~~
 - [x] ~~Revisión independiente y corrección de dos hallazgos P2.~~
 - [x] ~~Plan revisado según las nuevas consideraciones, con criterios medibles.~~
-- [ ] Usuario revisa el plan actualizado.
-- [ ] Fase 1, tarea 2: PRNG determinista.
+- [x] ~~Usuario autorizó continuar fase 1 con tarea 2 después de Graphify.~~
+- [x] ~~Generar grafo del snapshot de tarea 1 y registrar sus límites.~~
+- [x] ~~Fase 1, tarea 2: PRNG determinista.~~
 - [ ] Fase 1, tareas 3–6: SVG seguro, reglas, PNG y CLI.
 - [ ] Evidencia de una variante SVG/PNG, determinismo y perfil CPU.
 - [ ] Confirmación explícita para pasar a fase 2.
 
-La tarea 1 no es un motor generativo funcional: no hay importador SVG, RNG, renderer, CLI, web, Java ni infraestructura implementados.
+Las tareas 1–2 no son un motor generativo funcional: existen contratos, validación/hash y PRNG; no hay importador SVG, renderer, CLI, web, Java ni infraestructura implementados.
 
 ## Evidencia técnica
 
@@ -48,7 +50,8 @@ La tarea 1 no es un motor generativo funcional: no hay importador SVG, RNG, rend
 - Checks finales con exit code 0: cargo fmt --all -- --check; cargo clippy --workspace --all-targets --locked -- -D warnings; cargo test --workspace --locked.
 - Revisión independiente por lectura: dos P2 corregidos (null/schema y overflow de resultado); revisión posterior sin hallazgos materiales.
 - Licencias declaradas de dependencias fijadas registradas en dependencias-motor.md; LICENSE del producto pendiente.
-- No hay benchmarks, pruebas CUDA, tests de generación ni pruebas de fronteras Java/web ejecutados todavía.
+- Tarea 2: siete tests RNG añadidos; RED observado antes de implementación, GREEN total 17 tests; fmt/Clippy también pasan. Revisión independiente por lectura sin hallazgos materiales.
+- No hay benchmarks de render, pruebas CUDA, tests de generación ni pruebas de fronteras Java/web ejecutados todavía. El benchmark de Graphify estima tokens de navegación, no rendimiento del motor.
 
 ## Git y recuperación
 
@@ -57,6 +60,7 @@ La tarea 1 no es un motor generativo funcional: no hay importador SVG, RNG, rend
 | b8cc6d8 | Baseline documental | diff --check y herramientas excluidas |
 | 1c8f5ed | Registro de baseline | Commit documental |
 | 2f1e6d4 | Contratos y validación Rust tarea 1 | Diez tests, fmt, Clippy, revisión corregida |
+| 30ac241 | Philox y dominio de muestreo tarea 2 | 17 tests, fmt, Clippy, revisión sin hallazgos |
 
 Autor técnico de commits: Codex <codex@localhost>, configuración por comando, sin cambiar identidad global. No se hizo push, merge, reset ni clean. No se versionan target/, dependencias descargadas ni resultados de usuarios.
 
@@ -67,9 +71,9 @@ Autor técnico de commits: Codex <codex@localhost>, configuración por comando, 
 - Rust 1.99, Java 21, Node 24.19, pnpm 11.25 y Python 3.12 comprobados; algunas rutas no están en PATH.
 - Equipo: i5-1235U, 10 núcleos/12 hilos, 7.69 GiB RAM, Intel UHD; NVIDIA no detectada. CUDA real necesita otro entorno.
 - Contenedores no encontrados en las rutas comprobadas; despliegue todavía no probado.
-- .graphify-cli/ es herramienta de sesión anterior, excluida del producto; no existe grafo del código aún.
+- .graphify-cli/ es herramienta de sesión anterior, excluida del producto. Grafo en graphify-out/: 143 nodos, 248 relaciones, diez comunidades; snapshot anterior a tarea 2. Límites/estimaciones en graphify.md; actualizar antes de consultar relaciones nuevas.
 - Una tolerancia de imagen y una aceleración solo se publican cuando se midan.
 
 ## Punto exacto para continuar
 
-Presentar plan-desarrollo.md actualizado y esperar respuesta. No iniciar otras fases. Cuando el usuario autorice continuar fase 1, empezar tarea 2 desde su checklist; tarea 1 está terminada y no se repite. No volver a pedir aprobación de tecnologías ya aceptadas salvo que cambie la elección.
+Tarea 2 terminada. Siguiente: fase 1 tarea 3, importación SVG segura, a partir del plan ejecutable. La autorización de esta solicitud fue terminar grafo y hacer tarea 2; no iniciar tarea 3 automáticamente. No repetir tareas 1–2. No pasar a fase 2 sin confirmación explícita ni volver a pedir tecnologías ya aceptadas.

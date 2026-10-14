@@ -55,6 +55,6 @@ Directas runtime: serde, serde_json, regress (requerida por los patrones de tipo
 - Versiones de API/contratos iniciales: schema 1, reglas 1, motor 0.1.0.
 - Tipos generados en OUT_DIR a partir de contracts/engine/v1; no se versionan los archivos generados.
 - Configuration hash: SHA-256 de JSON de los tipos validados, con claves ordenadas (serde_json sin preserve_order), excluyendo count y startIndex.
-- Rasterizadores, RNG, CLI y benchmark pertenecen a tareas posteriores y no se verificaron todavía.
+- RNG de tarea 2 implementado sin dependencias nuevas; suite total actual de 17 tests pasa. Rasterizadores, CLI y benchmark de render pertenecen a tareas posteriores y no se verificaron todavía.
 
 Fuente del generador: https://github.com/oxidecomputer/typify

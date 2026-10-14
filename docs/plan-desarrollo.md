@@ -15,7 +15,7 @@ Cada fase tiene un documento ejecutable propio y termina con checks, evidencia e
 - [x] ~~Registrar preferencia open source y excepción CUDA opcional.~~
 - [x] ~~Guardar diseño inicial, checklist, documentación de continuidad y baseline Git.~~
 - [x] ~~Aceptar la corrección de orden: Rust → web → Java → CUDA → Python condicional.~~
-- [ ] Confirmación del usuario sobre esta revisión del plan.
+- [x] ~~Usuario autorizó continuar la fase 1 con tarea 2 después de Graphify.~~ El paso a fase 2 sigue pendiente de confirmación explícita.
 - [ ] Elegir LICENSE con aprobación explícita antes de distribución.
 
 ## Fase 1 — Motor Rust CPU y CLI
@@ -25,7 +25,7 @@ Cada fase tiene un documento ejecutable propio y termina con checks, evidencia e
 **Entrega:** contratos v1 y tipos generados, SVG seguro, PRNG por contador, transformaciones/validación, raster CPU y CLI. Plan concreto: superpowers/plans/2026-10-14-motor-cpu.md.
 
 - [x] ~~Tarea 1: contratos y validación de entrada/resultados; hash de configuración independiente del bloque.~~ Commit 2f1e6d4; diez tests, formato y Clippy pasan.
-- [ ] Tarea 2: PRNG y dominio (seed, índice, regla, intento, muestra) con vectores de referencia.
+- [x] ~~Tarea 2: PRNG y dominio (seed, índice, regla, intento, muestra) con vectores de referencia.~~ Commit 30ac241; siete pruebas RNG y diez de contratos pasan.
 - [ ] Tarea 3: importación segura, normalización y límites SVG.
 - [ ] Tarea 4: geometría, color, capas, recorte y distorsión acotada; rechazo explícito por índice.
 - [ ] Tarea 5: SVG vectorial y PNG con resvg/tiny-skia, presupuesto de buffers.
