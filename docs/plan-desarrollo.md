@@ -29,9 +29,9 @@ Cada fase tiene un documento ejecutable propio y termina con checks, evidencia e
 - [x] ~~Tarea 3: importación segura, normalización y límites SVG.~~ Commit cf8c819; quince tests SVG, suite total de 32 y checks pasan. Subconjunto y límites en svg-admitido.md.
 - [x] ~~Tarea 4: geometría, color, capas, recorte, distorsión, rechazo por índice e integración.~~
   4.1–4.5 terminados: 67 tests CPU, prueba local integrada con test.svg, formato y Clippy pasan. Revisión independiente: dos P2 corregidos con regresiones. Cobertura raster CPU pequeña adelantada, ADR 0004; exportación general y hash de artefacto final siguen en tarea 5. Evidencia y límites en avance-tarea-4.5.md.
-- [ ] Tarea 5: SVG vectorial y PNG con resvg/tiny-skia, presupuesto de buffers.
+- [ ] Tarea 5: SVG/PNG y PDF vectorial multipágina, presupuesto de buffers.
   Estado parcial: 5.1–5.2 completados (PNG CPU, validación y reservas base/temporales; 78 tests, prueba local PNG y fmt/Clippy pasan); 5.3 pendiente de permiso. Checklist en tarea-5-submodulos.md. Reservas no equivalen a RSS total; SVG final/integración de hashes y revisión global siguen pendientes.
-- [ ] Considerar geometría útil al diseñar exportación vectorial final: descarte/recorte real y recursos sin uso, conservando apariencia; medir tamaño/complejidad y validar PDF/Fiery en la entrega de impresión posterior. Requisito en requisitos-exportacion-impresion.md; no adelantar PDF ni afirmar mejoras sin medir.
+- [ ] 5.6 aprobado: un único PDF con todas las variantes aceptadas, una por página y en orden; procesar por grupos sin generar PDFs separados. Diseño de contrato agregado, tamaño físico/sangrado, recorte real y recursos sin uso; medir tamaño/complejidad. Fiery se valida cuando haya equipo. Requisitos en tarea-5-submodulos.md y requisitos-exportacion-impresion.md; no afirmar mejoras sin medir.
 - [ ] Tarea 6: CLI incremental, cancelación y errores de E/S sin sobrescritura ni artefactos finales incompletos.
 - [ ] Generación por grupos configurables de N variantes: acotar resultados en memoria, exportar y liberar cada grupo; conservar índices globales y reproducibilidad al cambiar N. Solicitud del usuario registrada para implementar más adelante en tarea 6.
 - [ ] Guardar una primera corrida real de una variante SVG y PNG y su manifiesto.
@@ -41,7 +41,7 @@ Cada fase tiene un documento ejecutable propio y termina con checks, evidencia e
 
 **Terminado medible:**
 
-1. Fixture SVG original → variante SVG y PNG; PNG decodifica con dimensiones correctas.
+1. Fixture SVG original → variante SVG y PNG; PNG decodifica con dimensiones correctas. PDF 5.6: documento único multipágina con variantes aceptadas en orden, conteo y tamaño físico correctos; sin PDF por variante/grupo.
 2. Pruebas comparan hashes/bytes de índices 0–199 con 1 y 2 hilos y con bloques reordenados; índices 100–199 aislados coinciden con el rango del lote completo.
 3. Tests rechazan SVG con recursos externos/scripts/entidades/ciclos y entradas que superen los límites aprobados; pruebas en el límite y justo por encima.
 4. Restricciones prueban rangos finitos, límites geométricos, recorte, escalas positivas y aceptación/rechazo reproducibles. Fallar explícitamente después de ocho intentos; no desplazar los índices siguientes.
@@ -101,7 +101,7 @@ Cada fase tiene un documento ejecutable propio y termina con checks, evidencia e
 
 ## Fase 4 — CUDA condicionada a evidencia
 
-**Objetivo:** acelerar solo etapas cuyo tiempo total medido mejore frente al CPU. SVG vectorial evita raster; PDF será una exportación separada con diseño/pruebas de impresión cuando se requiera, no rasterizar por defecto.
+**Objetivo:** acelerar solo etapas cuyo tiempo total medido mejore frente al CPU. SVG/PDF vectoriales evitan raster por defecto; PDF multipágina está incorporado a la fase 1, submódulo 5.6, con diseño/pruebas de impresión propios.
 
 - [ ] Perfilar SVG y PNG de extremo a extremo con varias complejidades, resoluciones y tamaños de lote.
 - [ ] Separar transferencia, lanzamiento, kernels, codificación y E/S; comparar primero la referencia resvg/tiny-skia.

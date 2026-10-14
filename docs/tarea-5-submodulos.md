@@ -1,12 +1,24 @@
 # Tarea 5 — Exportación CPU por submódulos
 
-Fecha: 2026-10-14. Usuario autorizó tarea 5 dividida en submódulos. 5.1–5.2 terminados; pedir autorización antes de cada siguiente, como en tarea 4. Mantener fase 1; sin CLI, web, Java, GPU o PDF todavía.
+Fecha: 2026-10-14. Usuario autorizó tarea 5 dividida en submódulos y después añadió PDF vectorial multipágina como 5.6. 5.1–5.2 terminados; pedir autorización antes de cada siguiente. Mantener fase 1; sin web, Java o GPU todavía. PDF autorizado en el plan, no implementado ni autorizado a empezar ahora.
 
 - [x] ~~**5.1 Validación y presupuesto base:** OutputSpec generado, validación común y plan base PNG con aritmética comprobada; sin reservar imágenes.~~
 - [x] ~~**5.2 PNG CPU:** render_png seguro, dimensiones/fondo, temporales de grupos/clips, PNG decodificado y encuadre sin letterboxing.~~
 - [ ] **5.3 SVG final:** aplicar dimensiones/fondo y política de encuadre al SVG exportado, manteniendo vectores y seguridad. Registrar límites de geometría oculta; no declarar optimización geométrica/PDF implementada si solo hay viewBox/clip.
 - [ ] **5.4 Integración:** exportar candidatos aceptados, calcular artifactHash de bytes finales y comprobar determinismo, rechazo y ausencia de artefactos para candidatos rechazados. E/S y publicación incremental siguen en tarea 6.
-- [ ] **5.5 Cierre:** pruebas con test.svg, revisión independiente de toda tarea 5, correcciones verificadas, documentación y checkpoint antes de CLI.
+- [ ] **5.5 Validación SVG/PNG:** casos reales con test.svg, pruebas de integración y documentación de resultados. La revisión independiente final de toda tarea 5 se traslada al final de 5.6 para incluir PDF.
+- [ ] **5.6 PDF vectorial multipágina y cierre:** un único PDF con todas las variantes generadas, una página por variante y orden por índice; tamaño físico/sangrado, recorte geométrico real y limpieza de recursos. Procesar por grupos sin acumular todas las páginas rasterizadas/SVG en RAM; integrar hashes/manifiesto y publicación final con CLI en tarea 6. Revisión independiente final, comparación visual y métricas de peso/complejidad; Fiery pendiente hasta tener acceso.
+
+## Requisitos aprobados para 5.6
+
+- Un solo archivo PDF por trabajo/lote completo, no un PDF por imagen ni por grupo N. Cada variante aceptada ocupa una página, en orden de índice global, sin duplicados u omisiones al cambiar N. Rechazos no son imágenes generadas: se registran por índice en manifiesto, sin inventar páginas válidas.
+- Conservar contenido vectorial; la palabra «imágenes» del requisito no implica rasterizar páginas por defecto. PDF con tamaño físico y sangrado explícitos, preservando apariencia.
+- Antes de implementar, diseñar contrato de salida de documento/lote y mapa índice→página: artifactHash de una variante no debe confundirse con hash del PDF completo. No añadir simplemente pdf al enum por variante sin resolver esta diferencia. Cualquier cambio incompatible de contrato requiere versión nueva y autorización según AGENTS.md.
+- Tamaño físico/sangrado requieren definición explícita de unidades/contrato; no inferir centímetros desde los píxeles actuales ni prometer PDF/X/CMYK/perfiles de color sin diseño y validación.
+- Aplicar requisitos-exportacion-impresion.md: descarte/recorte real de vectores fuera de página/sangrado, limpieza de definiciones sin uso y pruebas de equivalencia visual. Un MediaBox/CropBox o clip no demuestra esa optimización.
+- Ensayar una y múltiples páginas, grupos 1/7/100 y grupo final incompleto, orden y conteos, rechazo intermedio, determinismo, ausencia de recursos externos, integridad del PDF y tamaño físico correcto. Medir bytes/objetos/segmentos y memoria de proceso por separado antes de anunciar mejoras.
+- La CLI publicará un solo PDF final tras completarlo; cancelación/error no debe publicar un PDF truncado ni sobrescribir archivos existentes. Diseño/seguridad de escritura incremental y manifiesto se integra en tarea 6.
+- Si no hay variantes aceptadas, devolver resultado explícito de trabajo sin páginas; no publicar un PDF de éxito vacío. Validación en Fiery requiere el equipo real y no bloquea declarar únicamente lo comprobado localmente.
 
 ## Diseño acotado de 5.1
 
@@ -25,4 +37,4 @@ Antes de render real, 5.2 debe añadir/validar el coste de superficies aisladas,
 
 ## Continuidad
 
-5.1–5.2 terminados: 78 tests workspace, formato y Clippy pasan. Prueba local CPU aparte produce/repite tres PNG; revisión visual realizada. Evidencia en avance-tarea-5.2.md. No comenzar 5.3 sin confirmación. Tarea 4 ya completada; no repetirla. Consultar requisitos-exportacion-impresion.md y analisis-ejemplo-export.md al diseñar exportación, sin reutilizar assets propietarios.
+5.1–5.2 terminados. Quedan cuatro submódulos: 5.3–5.6. 78 tests workspace, formato y Clippy pasan; prueba local CPU aparte produce/repite tres PNG. No comenzar 5.3 sin confirmación. PDF multipágina aprobado solo como ampliación del plan; no está implementado. Consultar requisitos-exportacion-impresion.md y analisis-ejemplo-export.md, sin reutilizar assets propietarios.

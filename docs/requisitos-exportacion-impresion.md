@@ -24,4 +24,6 @@ No imponer ahora una meta de tamaño o velocidad sin baseline. Elegir objetivos 
 
 ## Encaje en el plan
 
-Tarea 5 debe tener en cuenta este requisito al diseñar la salida vectorial; no confundir la máscara de validación CPU con la optimización del artefacto final. El crop actual cambia el viewBox y conserva paths: todavía no cumple el recorte geométrico final aquí solicitado. PDF permanece como entrega posterior con diseño propio; no añadirlo silenciosamente al MVP CPU/CLI ni implementar un optimizador durante la pausa.
+Actualización aprobada: PDF se incorpora explícitamente al MVP CPU como submódulo 5.6; un único PDF multipágina por trabajo con la totalidad de variantes generadas, una página por variante aceptada en orden de índice. Los grupos N son unidades de procesamiento/memoria, no archivos PDF separados. Rechazos se registran en manifiesto; no se inventan imágenes ni se publica un PDF vacío como éxito.
+
+No confundir la máscara de validación CPU con optimización del artefacto final. El crop actual cambia el viewBox y conserva paths: todavía no cumple el recorte geométrico final aquí solicitado. Antes de implementar 5.6, diseñar unidades físicas/sangrado y contrato de documento agregado, sin confundir hashes por variante con el del PDF completo. Escritura incremental/publicación/cancelación se integra con tarea 6. No prometer PDF/X, CMYK o prestaciones de Fiery sin diseño/pruebas; Fiery seguirá pendiente si no hay equipo disponible.

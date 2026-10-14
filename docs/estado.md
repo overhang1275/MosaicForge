@@ -27,6 +27,7 @@
 - Usar DuckDB para JSON/TXT/CSV grandes cuando permita consultar/filtrar sin cargar todo; no imponerlo como dependencia del producto.
 - Guardar commits cuando las implementaciones funcionen y pasen checks.
 - Evitar viewBox/esquinas vacíos y ampliar variación con zoom, posición y giro dentro de límites; semilla más grande se refiere al contenido/superficie SVG, no al número del PRNG.
+- PDF aprobado como 5.6: un solo PDF multipágina con todas las variantes generadas, una página por variante aceptada en orden de índice. Grupos N no producen PDFs separados. Revisión final de tarea 5 pasa al final de 5.6; diseñar contrato agregado y tamaño físico/sangrado antes de implementar. Aprobación del plan no inicia 5.3–5.6.
 - Implementar más adelante grupos configurables de N variantes para controlar memoria; incorporado a tarea 6, sin adelantar su código. Mantener reproducibilidad independiente de N y límites de buffers/concurrencia.
 - Se permite investigar documentación pública HP SmartStream Mosaic/PrintOS si sirve para requisitos o flujos; registrar fuentes y mantener originales algoritmos/código/UI/assets.
 
@@ -111,4 +112,4 @@ Autor técnico de commits: Codex <codex@localhost>, configuración por comando, 
 
 ## Punto exacto para continuar
 
-Tarea 4 completa y 5.1–5.2 terminados, checkpoint 24b46db. Esperar confirmación antes de 5.3: SVG final con viewport/fondo y la misma política cover de PNG. Después 5.4 integra bytes/hashes con resultados y 5.5 revisa tarea completa. Leer tarea-5-submodulos.md y avance-tarea-5.2.md. No confundir reservas con RSS medido; coordinación de presupuestos entre hilos sigue en CLI/tarea 6. No repetir módulos completos ni pasar a fase 2 sin terminar fase 1 y confirmación. El grafo sigue siendo snapshot anterior a tarea 2.
+Tarea 4 completa y 5.1–5.2 terminados, checkpoint 24b46db. Esperar confirmación antes de 5.3: SVG final con viewport/fondo y política cover. Después 5.4 integración, 5.5 validación SVG/PNG y 5.6 PDF vectorial único multipágina con revisión global al cerrar. Quedan cuatro submódulos, 5.3–5.6. PDF aprobado en el plan, no implementado. Leer tarea-5-submodulos.md y requisitos-exportacion-impresion.md. No confundir reservas con RSS; coordinación/escritura incremental sigue en CLI 6. No repetir módulos completos ni pasar a fase 2 sin terminar fase 1 y confirmación. Grafo sigue anterior a tarea 2.
