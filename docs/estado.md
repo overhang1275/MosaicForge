@@ -93,6 +93,7 @@ Existen generador integrado, reglas/validación, raster PNG CPU general con dime
 | 95da985 | Encuadre, cobertura, distorsión y reintentos 4.4 | 60 tests CPU + tres pruebas locales, fmt, Clippy, revisión visual |
 | 8031f75 | Integración 4.5 y cierre de tarea 4 | 67 tests CPU, prueba local integrada, fmt/Clippy, dos P2 de revisión corregidos |
 | 8013a89 | Validación de salida y reserva base PNG 5.1 | 70 tests workspace, fmt/Clippy, revisión local |
+| 24b46db | Render PNG CPU y presupuesto de temporales 5.2 | 78 tests workspace, prueba local PNG, fmt/Clippy, revisión visual |
 
 Autor técnico de commits: Codex <codex@localhost>, configuración por comando, sin cambiar identidad global. No se hizo push, merge, reset ni clean. No se versionan target/, dependencias descargadas ni resultados de usuarios.
 
@@ -110,4 +111,4 @@ Autor técnico de commits: Codex <codex@localhost>, configuración por comando, 
 
 ## Punto exacto para continuar
 
-Tarea 4 completa y 5.1–5.2 terminados. Esperar confirmación antes de 5.3: SVG final con viewport/fondo y la misma política cover de PNG. Después 5.4 integra bytes/hashes con resultados y 5.5 revisa tarea completa. Leer tarea-5-submodulos.md y avance-tarea-5.2.md. No confundir reservas con RSS medido; coordinación de presupuestos entre hilos sigue en CLI/tarea 6. No repetir módulos completos ni pasar a fase 2 sin terminar fase 1 y confirmación. El grafo sigue siendo snapshot anterior a tarea 2.
+Tarea 4 completa y 5.1–5.2 terminados, checkpoint 24b46db. Esperar confirmación antes de 5.3: SVG final con viewport/fondo y la misma política cover de PNG. Después 5.4 integra bytes/hashes con resultados y 5.5 revisa tarea completa. Leer tarea-5-submodulos.md y avance-tarea-5.2.md. No confundir reservas con RSS medido; coordinación de presupuestos entre hilos sigue en CLI/tarea 6. No repetir módulos completos ni pasar a fase 2 sin terminar fase 1 y confirmación. El grafo sigue siendo snapshot anterior a tarea 2.

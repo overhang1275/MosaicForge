@@ -8,7 +8,7 @@ Fecha: 2026-10-14. BASE 143ecfb. Usuario autorizó 5.2; detenerse antes de 5.3.
 - [x] ~~Decodificar PNG en tests y verificar píxeles, transparencia, clips y repetición.~~
 - [x] ~~Generar y revisar visualmente tres PNG del archivo del usuario.~~
 - [x] ~~Checks finales: 78 tests workspace, prueba local PNG, formato y Clippy pasan.~~
-- [ ] Registrar hash del checkpoint antes de 5.3.
+- [x] ~~Checkpoint funcional 24b46db registrado; pausa antes de 5.3.~~
 
 ## API y encuadre
 
