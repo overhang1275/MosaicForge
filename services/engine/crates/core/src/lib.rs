@@ -1,5 +1,6 @@
 pub mod contract;
 pub mod rng;
+pub mod rules;
 mod svg_values;
 pub mod template;
 pub mod validation;

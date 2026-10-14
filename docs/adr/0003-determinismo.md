@@ -18,6 +18,8 @@ Rule ID permanece estable aunque cambie el orden de configuración. Cada regla n
 
 Este mapeo pertenece a rulesVersion 1; cambiarlo exige una versión nueva. Philox se usa para variación reproducible, no para credenciales o secretos. No se promete que diferentes inputs nunca colisionen en una sola salida u32.
 
+Submódulo 4.1 congela IDs geométricos: translateX=1, translateY=2, rotationDegrees=3, scaleX=4, scaleY=5; draw=0 por campo. MirrorX/Y se conservan como flags explícitos sin PRNG. Estos valores forman parte de rulesVersion 1; futuras reglas usarán IDs nuevos sin desplazar los existentes.
+
 ## Conversión a intervalos
 
 map_u32_to_range(value, min, max) exige endpoints finitos y ordenados. u = value / 2^32 se representa exactamente en f64 y está en [0,1). Para endpoints diferentes, usar (1-u)*min + u*max, sin FMA explícita; evita overflow de max-min cuando los extremos son opuestos. min==max devuelve min. El resultado se limita a [min,max] para proteger redondeos; por redondeo puede alcanzar max. Un resultado no finito es error.
