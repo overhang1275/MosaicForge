@@ -118,11 +118,11 @@ fn supplied_svg_has_varied_framing_without_blank_corners() {
     let spec: GenerationSpec = serde_json::from_value(value).unwrap();
     let mut hashes = std::collections::BTreeSet::new();
     for index in [0, 1, 17] {
-        let decision =
-            mosaicforge_core::constraints::search_candidate(&source, &spec, index).unwrap();
+        let decision = mosaicforge_core::generate::generate_variant(&source, &spec, index).unwrap();
+        mosaicforge_core::validate_result(&decision.result).unwrap();
         println!(
             "new index={index} attempts={} parameters={:?} coverage={:?} reason={:?}",
-            decision.attempts, decision.parameters, decision.coverage, decision.reason
+            decision.attempts, decision.parameters, decision.coverage, decision.result.reason
         );
         let result = decision.template.expect("sample must pass coverage");
         hashes.insert(result.hash.clone());
@@ -131,7 +131,7 @@ fn supplied_svg_has_varied_framing_without_blank_corners() {
         subset.count = 1.try_into().unwrap();
         assert_eq!(
             result.hash,
-            mosaicforge_core::constraints::search_candidate(&source, &subset, index)
+            mosaicforge_core::generate::generate_variant(&source, &subset, index)
                 .unwrap()
                 .template
                 .unwrap()

@@ -6,7 +6,7 @@ Fecha: 2026-10-14. Usuario autorizó empezar tarea 4 y pidió confirmar antes de
 - [x] ~~**4.2 Aplicación geométrica:** componer transforms alrededor del centro del viewBox, aplicar a SVG seguro y verificar identidad/orden/compatibilidad con importador.~~
 - [x] ~~**4.3 Apariencia y composición:** color/paleta, opacidad, orden de capas y crop; determinismo y límites por capa.~~
 - [x] ~~**4.4 Distorsión y restricciones:** deformación acotada, encuadre y cobertura CPU, aceptación/rechazo por índice, máximo ocho intentos y motivos explícitos.~~
-- [ ] **4.5 Integración:** generate_variant y pruebas completas de índices/rangos/hilos/grupos, commit de cierre de tarea 4.
+- [x] ~~**4.5 Integración:** generate_variant y pruebas completas de índices/rangos/hilos/grupos; cierre de tarea 4.~~
 
 Cada submódulo termina con tests/fmt/Clippy, commit y registro de avance. Preguntar al usuario antes de comenzar el siguiente. Si la sesión termina, retomar el primer submódulo pendiente sin repetir los completados.
 
@@ -22,7 +22,7 @@ Cada submódulo termina con tests/fmt/Clippy, commit y registro de avance. Pregu
 
 ## Punto de reanudación
 
-4.4 terminado. Esperar respuesta afirmativa antes de empezar 4.5: integración y determinismo completo. No repetir 4.1–4.4.
+4.1–4.5 terminados. Esperar autorización antes de tarea 5: exportación SVG/PNG CPU y presupuestos de buffers. No repetir tarea 4.
 
 ## Evidencia 4.1
 
@@ -65,3 +65,11 @@ Limitación deliberada: parámetros muestreados no son todavía matrices ni vari
 - Tres muestras anteriores y tres nuevas renderizadas y revisadas visualmente. Nuevas en out/test-4.4-{0,1,17}.svg y .png: 251/250/253 celdas ocupadas de 256, cero celdas de esquina vacías; hashes distintos y repetición por índice aislado idéntica. Original test.svg y muestras anteriores intactos.
 - Graphify consultado con budget 500: no encontró nodos coincidentes para restricciones nuevas; snapshot antiguo. Se verificó código y plan directamente.
 - Evidencia, comandos y límites en avance-tarea-4.4.md; dependencias y licencias declaradas actualizadas. Sin benchmark, CUDA, CLI ni API general de PNG. No marcar tarea 4 completa.
+
+## Evidencia 4.5 y cierre
+
+- generate_variant valida hash de SVG original e intervalo, y conecta búsqueda con VariantResult generado; aceptación/rechazo conserva índice y metadatos. Template/parametrización/cobertura/intentos quedan como información local del candidato.
+- Cinco tests nuevos de integración y dos regresiones de revisión; 67 tests CPU pasan, fmt/Clippy pasan. Tres pruebas locales omitidas en suite normal; la integrada se ejecuta aparte y reproduce muestras 0/1/17 anteriores. Índices 0–199 coinciden con subrango, grupos reordenados e hilos 1/2.
+- Revisión independiente de toda tarea 4: dos P2 reproducidos y corregidos RED→GREEN (proporción del crop en máscara y redondeo en límite de escala). Sin otros hallazgos reportados; no se solicitó re-revisión.
+- Ruling: hash de artefacto final se difiere a exportador, no usar hash SVG como PNG; dimensiones/fondo aún no aplicados al candidato. Se mantienen pendientes limpieza de vectores ocultos y PDF; estética semántica, GPU, rendimiento y RAM global no validados. Costes/decisiones completos en avance-tarea-4.5.md.
+- Sin dependencias ni schemas nuevos. No iniciar tarea 5 sin confirmación ni fase 2 sin terminar fase 1 y autorización.

@@ -229,3 +229,36 @@ fn search_can_accept_a_later_deterministic_attempt() {
     }
     assert!(accepted_after_retry);
 }
+
+#[test]
+fn coverage_uses_cropped_viewbox_not_original_viewport_proportions() {
+    let source=import_svg(br##"<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><g><rect width="100" height="50"/></g></svg>"##).unwrap();
+    let s = configured(json!({"crop":{"x":0,"y":0,"width":100,"height":50}}));
+    let decision = search_candidate(&source, &s, 0).unwrap();
+    assert!(decision.template.is_some(), "{:?}", decision.reason);
+    let coverage = decision.coverage.unwrap();
+    assert_eq!(coverage.occupied_tiles, 256);
+    assert_eq!(coverage.empty_corner_tiles, 0);
+    assert_eq!(decision.template.unwrap().width, 100.0);
+}
+
+#[test]
+fn exact_half_and_quarter_turns_fit_without_exceeding_scale_maximum() {
+    let source=import_svg(br##"<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><g><rect width="100" height="100"/></g></svg>"##).unwrap();
+    for angle in [180, 270] {
+        let s = configured(json!({"rotationDegrees":{"min":angle,"max":angle}}));
+        let decision = search_candidate(&source, &s, 0).unwrap();
+        assert!(
+            decision.template.is_some(),
+            "angle={angle}, reason={:?}",
+            decision.reason
+        );
+        let p = decision.parameters.unwrap();
+        assert_eq!(p.scale_x, 1.0);
+        assert_eq!(p.scale_y, 1.0);
+    }
+    let real_excess = configured(json!({"rotationDegrees":{"min":1,"max":1}}));
+    let decision = search_candidate(&source, &real_excess, 0).unwrap();
+    assert!(decision.template.is_none());
+    assert_eq!(decision.reason, Some("frame_exceeds_scale_limits"));
+}

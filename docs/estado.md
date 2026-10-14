@@ -46,12 +46,14 @@
 - [x] ~~Tarea 4, submódulo 4.3: apariencia, orden de capas y recorte; pruebas con test.svg.~~
 - [x] ~~Corrección de encuadres y muestras más variables con revisión visual.~~
 - [x] ~~Tarea 4, submódulo 4.4: distorsión, encuadre/cobertura CPU y reintentos acotados.~~
-- [ ] Confirmación del usuario para empezar 4.5: integración y determinismo completo.
-- [ ] Fase 1, resto de tarea 4 y tareas 5–6: generación, PNG y CLI.
+- [x] ~~Usuario autorizó retomar 4.5.~~
+- [x] ~~Tarea 4.5 y cierre de tarea 4: integración, determinismo y revisión independiente con dos P2 corregidos.~~
+- [ ] Confirmación para tarea 5: exportación SVG/PNG CPU.
+- [ ] Fase 1, tareas 5–6: exportación y CLI.
 - [ ] Evidencia de una variante SVG/PNG, determinismo y perfil CPU.
 - [ ] Confirmación explícita para pasar a fase 2.
 
-Existen muestreo, geometría, apariencia/crop, distorsión local, ajuste de encuadre, cobertura CPU y búsqueda con ocho intentos, además de contratos, PRNG e importador seguro. Falta integración generate_variant/VariantResult, renderer de exportación, CLI, web, Java e infraestructura. El raster CPU pequeño se adelantó para validar cobertura y generar diagnósticos locales.
+Existen generate_variant/VariantResult integrados, muestreo, geometría, apariencia/crop, distorsión local, encuadre, cobertura CPU y búsqueda con ocho intentos, además de contratos, PRNG e importador seguro. Falta exportador general (dimensiones/fondo/codificación/hash final), CLI, web, Java e infraestructura. El raster CPU pequeño solo valida cobertura y genera diagnósticos locales.
 
 ## Evidencia técnica
 
@@ -68,7 +70,8 @@ Existen muestreo, geometría, apariencia/crop, distorsión local, ajuste de encu
 - Submódulo 4.2: siete pruebas geométricas añadidas; RED observado y GREEN total 44 tests, cero fallos/omitidos; fmt, Clippy y diff --check pasan. Identidad, orden, centro del viewBox, transform previo, clips/capas, repetición y límites comprobados. Revisión local; detalle en tarea-4-submodulos.md.
 - Submódulo 4.3: ocho pruebas añadidas, RED observado y GREEN total 52 tests; fmt/Clippy pasan. Una prueba local omitida en suite normal, ejecutada aparte con test.svg y pasó. Original rechazado explícitamente; copia preparada y tres SVG generados con conservación de paths y repetición por índice. Evidencia y comandos en avance-tarea-4.3.md.
 - Submódulo 4.4: ocho pruebas añadidas, RED observado y GREEN total 60 tests CPU; fmt/Clippy pasan. Tres pruebas locales omitidas en suite normal, las tres ejecutadas aparte y pasan. Se revisaron seis PNG de diagnóstico; originales conservados, nuevas muestras más variables y sin celdas vacías de esquina. Evidencia en avance-tarea-4.4.md y ADR 0004. Revisión local; revisión global independiente pendiente de 4.5.
-- No hay benchmarks de render, pruebas CUDA, tests del generador final ni pruebas de fronteras Java/web ejecutados todavía. El benchmark de Graphify estima tokens de navegación, no rendimiento del motor.
+- Submódulo 4.5: cinco pruebas de integración/determinismo y dos regresiones de revisión nuevas; RED observado y suite final 67 tests CPU pasa, fmt/Clippy pasan. Tres pruebas locales omitidas por defecto; la integrada se ejecuta aparte y reproduce muestras anteriores. Revisión independiente de tarea 4: dos P2 corregidos y verificados por tests, sin otros hallazgos reportados. Decisiones y límites en avance-tarea-4.5.md.
+- No hay benchmarks de render, pruebas CUDA ni pruebas de fronteras Java/web ejecutados todavía. El benchmark de Graphify estima tokens de navegación, no rendimiento del motor.
 
 ## Git y recuperación
 
@@ -100,4 +103,4 @@ Autor técnico de commits: Codex <codex@localhost>, configuración por comando, 
 
 ## Punto exacto para continuar
 
-Trabajo pausado por petición del usuario; la información de impresión añadida después de la pausa solo actualiza documentación. Submódulo 4.4 terminado, commit 95da985. Esperar permiso explícito para retomar 4.5: generate_variant, resultados versionados y determinismo por índices/rangos/hilos/grupos, con revisión independiente global. Consultar tarea-4-submodulos.md, avance-tarea-4.4.md, ADR 0004 y requisitos-exportacion-impresion.md. No repetir módulos completados ni pasar a fase 2 sin confirmación. El grafo sigue siendo snapshot anterior a tarea 2.
+Tarea 4 completa (4.1–4.5), 67 tests CPU y prueba local integrada pasan; revisión independiente atendida con dos regresiones. Esperar confirmación para tarea 5: exportar SVG/PNG CPU aplicando dimensiones/fondo, presupuesto de buffers y hash de bytes finales. Leer avance-tarea-4.5.md y requisitos-exportacion-impresion.md; crop interno todavía conserva geometría oculta. No repetir tarea 4 ni pasar a fase 2 sin terminar fase 1 y confirmación. El grafo sigue siendo snapshot anterior a tarea 2.

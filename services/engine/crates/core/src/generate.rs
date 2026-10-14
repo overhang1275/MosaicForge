@@ -12,6 +12,75 @@ use std::collections::BTreeMap;
 
 const IDENTITY: [f64; 6] = [1.0, 0.0, 0.0, 1.0, 0.0, 0.0];
 
+#[derive(Debug)]
+pub struct Variant {
+    pub result: crate::contract::VariantResult,
+    pub template: Option<Template>,
+    pub parameters: Option<TransformParameters>,
+    pub coverage: Option<crate::constraints::Coverage>,
+    pub attempts: u8,
+}
+
+pub fn generate_variant(
+    template: &Template,
+    spec: &crate::contract::GenerationSpec,
+    index: u64,
+) -> Result<Variant, EngineError> {
+    use crate::{
+        configuration_hash, constraints::search_candidate, contract::result::*, validate_result,
+        validate_spec,
+    };
+    validate_spec(spec)?;
+    let start = spec
+        .start_index
+        .parse::<u64>()
+        .map_err(|_| EngineError::InvalidSpec("startIndex exceeds u64"))?;
+    if index < start || index - start >= spec.count.get() {
+        return Err(EngineError::InvalidSpec(
+            "index is outside the requested interval",
+        ));
+    }
+    let source = import_svg(template.normalized_svg.as_bytes())?;
+    if source.hash.as_str() != spec.template_hash.as_str() {
+        return Err(EngineError::InvalidSpec(
+            "templateHash does not match the normalized SVG",
+        ));
+    }
+    let decision = search_candidate(&source, spec, index)?;
+    let encode_error = |_| EngineError::InvalidSpec("cannot encode variant result");
+    let result = VariantResult {
+        schema_version: VariantResultSchemaVersion::X1,
+        engine_version: VariantResultEngineVersion::X010,
+        rules_version: VariantResultRulesVersion::X1,
+        backend: VariantResultBackend::Cpu,
+        device: "cpu".parse().map_err(encode_error)?,
+        seed: spec.seed.as_str().parse().map_err(encode_error)?,
+        index: index.to_string().parse().map_err(encode_error)?,
+        template_hash: source.hash.parse().map_err(encode_error)?,
+        configuration_hash: configuration_hash(spec)?.parse().map_err(encode_error)?,
+        // The exporter hashes final bytes after dimensions, background and encoding are applied.
+        artifact_hash: None,
+        status: if decision.template.is_some() {
+            VariantResultStatus::Accepted
+        } else {
+            VariantResultStatus::Rejected
+        },
+        reason: decision
+            .reason
+            .map(str::parse)
+            .transpose()
+            .map_err(encode_error)?,
+    };
+    validate_result(&result)?;
+    Ok(Variant {
+        result,
+        template: decision.template,
+        parameters: decision.parameters,
+        coverage: decision.coverage,
+        attempts: decision.attempts,
+    })
+}
+
 pub fn geometric_matrix(
     p: &TransformParameters,
     view_box: [f64; 4],

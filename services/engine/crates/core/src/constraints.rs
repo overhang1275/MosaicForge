@@ -75,15 +75,19 @@ pub fn fit_transform_to_frame(
                 .max((iy - cy).abs() / (height / 2.0));
         }
     }
-    let sx = p.scale_x * factor;
-    let sy = p.scale_y * factor;
-    if !sx.is_finite()
-        || !sy.is_finite()
-        || sx > spec.rules.scale_x.max
-        || sy > spec.rules.scale_y.max
-    {
+    // Inversion/trigonometry can put an exact quarter turn a few ulps above its bound.
+    let capped_scale = |value: f64, maximum: f64| {
+        if !value.is_finite() || value > maximum && value - maximum > maximum * 8.0 * f64::EPSILON {
+            None
+        } else {
+            Some(value.min(maximum))
+        }
+    };
+    let Some((sx, sy)) = capped_scale(p.scale_x * factor, spec.rules.scale_x.max)
+        .zip(capped_scale(p.scale_y * factor, spec.rules.scale_y.max))
+    else {
         return Ok(false);
-    }
+    };
     p.scale_x = sx;
     p.scale_y = sy;
     Ok(true)
@@ -164,7 +168,17 @@ pub fn search_candidate(
 
 pub fn measure_coverage(template: &Template) -> Result<Coverage, EngineError> {
     let source = import_svg(template.normalized_svg.as_bytes())?;
-    let tree = usvg::Tree::from_str(&source.normalized_svg, &usvg::Options::default())
+    // Measure the crop itself; original width/height can letterbox a differently shaped crop.
+    let mut root = crate::appearance::Element::read(&source.normalized_svg)?;
+    root.attrs
+        .insert("width".into(), source.view_box[2].to_string());
+    root.attrs
+        .insert("height".into(), source.view_box[3].to_string());
+    let mut writer = quick_xml::Writer::new(Vec::new());
+    root.write(&mut writer)?;
+    let mask_svg = String::from_utf8(writer.into_inner())
+        .map_err(|_| invalid("invalid coverage SVG encoding"))?;
+    let tree = usvg::Tree::from_str(&mask_svg, &usvg::Options::default())
         .map_err(|_| invalid("cannot measure SVG coverage"))?;
     let mut mask =
         resvg::tiny_skia::Pixmap::new(256, 256).ok_or(invalid("cannot allocate coverage mask"))?;

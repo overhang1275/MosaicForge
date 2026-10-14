@@ -91,7 +91,7 @@ Directas runtime: serde, serde_json, regress (patrones generados), sha2, quick-x
 - Versiones de API/contratos iniciales: schema 1, reglas 1, motor 0.1.0.
 - Tipos generados en OUT_DIR a partir de contracts/engine/v1; no se versionan los archivos generados.
 - Configuration hash: SHA-256 de JSON de los tipos validados, con claves ordenadas (serde_json sin preserve_order), excluyendo count y startIndex.
-- Hasta 4.4: suite CPU de 60 tests pasa; tres pruebas locales se ejecutan aparte sobre test.svg. Máscara de cobertura CPU y PNG de diagnóstico comprobados con resvg 0.47.0 / tiny-skia 0.12.0. API de exportación PNG, presupuestos de salida, CLI y benchmark siguen pendientes. usvg no incluye fontdb/rustybuzz en este build; el importador rechaza imágenes y recursos externos.
+- Hasta 4.5: suite CPU de 67 tests pasa; tres pruebas locales se omiten por defecto y la integrada con test.svg se ejecuta aparte. Máscara de cobertura CPU y PNG de diagnóstico comprobados con resvg 0.47.0 / tiny-skia 0.12.0. API de exportación PNG, presupuestos de salida, CLI y benchmark siguen pendientes. usvg no incluye fontdb/rustybuzz en este build; el importador rechaza imágenes y recursos externos. 4.5 no añade dependencias.
 - Metadata --locked actual: 76 paquetes externos, todos con licencia declarada open source. Se añadieron ocho combinaciones paquete/versión respecto al registro anterior.
 
 Fuente del generador: https://github.com/oxidecomputer/typify

@@ -27,8 +27,8 @@ Cada fase tiene un documento ejecutable propio y termina con checks, evidencia e
 - [x] ~~Tarea 1: contratos y validación de entrada/resultados; hash de configuración independiente del bloque.~~ Commit 2f1e6d4; diez tests, formato y Clippy pasan.
 - [x] ~~Tarea 2: PRNG y dominio (seed, índice, regla, intento, muestra) con vectores de referencia.~~ Commit 30ac241; siete pruebas RNG y diez de contratos pasan.
 - [x] ~~Tarea 3: importación segura, normalización y límites SVG.~~ Commit cf8c819; quince tests SVG, suite total de 32 y checks pasan. Subconjunto y límites en svg-admitido.md.
-- [ ] Tarea 4: geometría, color, capas, recorte y distorsión acotada; rechazo explícito por índice.
-  Estado parcial: 4.1–4.4 terminados (60 tests CPU, tres pruebas locales con test.svg, fmt y Clippy pasan); 4.5 pendiente de permiso. Cobertura raster CPU pequeña adelantada por petición de evitar esquinas vacías, ADR 0004; exportación PNG general sigue en tarea 5. Checklist y pausas en tarea-4-submodulos.md. No marcar tarea 4 completa todavía.
+- [x] ~~Tarea 4: geometría, color, capas, recorte, distorsión, rechazo por índice e integración.~~
+  4.1–4.5 terminados: 67 tests CPU, prueba local integrada con test.svg, formato y Clippy pasan. Revisión independiente: dos P2 corregidos con regresiones. Cobertura raster CPU pequeña adelantada, ADR 0004; exportación general y hash de artefacto final siguen en tarea 5. Evidencia y límites en avance-tarea-4.5.md.
 - [ ] Tarea 5: SVG vectorial y PNG con resvg/tiny-skia, presupuesto de buffers.
 - [ ] Considerar geometría útil al diseñar exportación vectorial final: descarte/recorte real y recursos sin uso, conservando apariencia; medir tamaño/complejidad y validar PDF/Fiery en la entrega de impresión posterior. Requisito en requisitos-exportacion-impresion.md; no adelantar PDF ni afirmar mejoras sin medir.
 - [ ] Tarea 6: CLI incremental, cancelación y errores de E/S sin sobrescritura ni artefactos finales incompletos.

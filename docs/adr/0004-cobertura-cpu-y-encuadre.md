@@ -25,6 +25,8 @@ Máximo ocho intentos por índice, con dominio PRNG propio por intento. Se devue
 
 La decisión de cobertura pertenece a la referencia CPU y al entorno fijado. No se promete paridad entre arquitecturas/rasterizadores sin medirla. Una futura GPU no sustituirá esta decisión discreta sin demostrar paridad. No se añade fondo a la máscara para disimular huecos.
 
+Revisión de integración 4.5: la máscara usa width/height derivados del viewBox ya recortado, evitando medir letterboxing introducido por dimensiones originales de otra proporción; solo cambia el SVG transitorio de medición. La exportación final aún debe aplicar su política de dimensiones/fondo. La comparación del zoom calculado con su máximo admite hasta 8 × EPSILON relativa para redondeo de inversión/trigonometría y capa la escala efectiva al máximo; no se amplían los rangos. Tests reproducen giros 180°/270° y un exceso real rechazado.
+
 ## Fuentes técnicas
 
 [resvg render](https://docs.rs/resvg/0.47.0/resvg/fn.render.html) documenta el render sobre pixmap; [resvg 0.47.0](https://docs.rs/resvg/0.47.0/resvg/) expone tiny-skia y usvg. La implementación de encuadre, reglas y restricciones es propia.
