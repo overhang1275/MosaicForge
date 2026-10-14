@@ -28,4 +28,4 @@ artifactHash queda ausente hasta exportar: el SVG interno todavía no tiene apli
 
 ## Estado
 
-Contratos, PRNG, importador y generación CPU están implementados. La máscara raster pequeña comprueba cobertura; exportación SVG/PNG general y CLI siguen pendientes. No hay resultados de benchmark del motor ni pruebas CUDA. No se modificaron schemas para la integración.
+Contratos, PRNG, importador, generación y render PNG CPU están implementados. La máscara pequeña comprueba cobertura; SVG final, integración de bytes/hashes de exportación y CLI siguen pendientes. render_png aplica dimensiones/fondo y valida presupuesto de superficies; generate_variant sigue devolviendo candidatos sin artifactHash. No hay benchmark del motor ni pruebas CUDA. No se modificaron schemas.

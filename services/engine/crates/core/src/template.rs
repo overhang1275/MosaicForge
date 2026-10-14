@@ -18,6 +18,31 @@ pub struct Template {
     pub segment_count: usize,
 }
 
+/// Prepare a safe pixel viewport with centered cover framing, without adding a background.
+pub fn prepare_viewport(
+    bytes: &[u8],
+    output: &crate::contract::OutputSpec,
+) -> Result<Template, EngineError> {
+    crate::validate_output(output)?;
+    let source = import_svg(bytes)?;
+    let mut root = crate::appearance::Element::read(&source.normalized_svg)?;
+    root.attrs.entry("viewBox".into()).or_insert_with(|| {
+        format!(
+            "{} {} {} {}",
+            source.view_box[0], source.view_box[1], source.view_box[2], source.view_box[3]
+        )
+    });
+    root.attrs
+        .insert("width".into(), output.width.get().to_string());
+    root.attrs
+        .insert("height".into(), output.height.get().to_string());
+    root.attrs
+        .insert("preserveAspectRatio".into(), "xMidYMid slice".into());
+    let mut writer = quick_xml::Writer::new(Vec::new());
+    root.write(&mut writer)?;
+    import_svg(&writer.into_inner())
+}
+
 struct Node {
     children: Vec<usize>,
     segments: usize,

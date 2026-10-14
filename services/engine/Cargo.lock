@@ -273,6 +273,7 @@ name = "mosaicforge-cpu"
 version = "0.1.0"
 dependencies = [
  "mosaicforge-core",
+ "resvg",
  "serde_json",
 ]
 

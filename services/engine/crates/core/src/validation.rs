@@ -5,6 +5,7 @@ use sha2::{Digest, Sha256};
 pub enum EngineError {
     InvalidSpec(&'static str),
     InvalidSvg(&'static str),
+    RenderFailed(&'static str),
 }
 
 impl EngineError {
@@ -12,6 +13,7 @@ impl EngineError {
         match self {
             Self::InvalidSpec(_) => "invalid_spec",
             Self::InvalidSvg(_) => "invalid_svg",
+            Self::RenderFailed(_) => "render_failed",
         }
     }
 }
@@ -19,7 +21,9 @@ impl EngineError {
 impl std::fmt::Display for EngineError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::InvalidSpec(message) | Self::InvalidSvg(message) => write!(f, "{message}"),
+            Self::InvalidSpec(message)
+            | Self::InvalidSvg(message)
+            | Self::RenderFailed(message) => write!(f, "{message}"),
         }
     }
 }

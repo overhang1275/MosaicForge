@@ -1,9 +1,9 @@
 # Tarea 5 — Exportación CPU por submódulos
 
-Fecha: 2026-10-14. Usuario autorizó tarea 5 dividida en submódulos. Ejecutar 5.1 ahora y pedir autorización antes de cada siguiente, como en tarea 4. Mantener fase 1; sin CLI, web, Java, GPU o PDF todavía.
+Fecha: 2026-10-14. Usuario autorizó tarea 5 dividida en submódulos. 5.1–5.2 terminados; pedir autorización antes de cada siguiente, como en tarea 4. Mantener fase 1; sin CLI, web, Java, GPU o PDF todavía.
 
 - [x] ~~**5.1 Validación y presupuesto base:** OutputSpec generado, validación común y plan base PNG con aritmética comprobada; sin reservar imágenes.~~
-- [ ] **5.2 PNG CPU:** render_png seguro con resvg/tiny-skia, dimensiones/fondo correctos, recursos externos rechazados y comprobación previa de temporales de grupos/clips. Probar PNG decodificado, transparencia y recortes de distintas proporciones.
+- [x] ~~**5.2 PNG CPU:** render_png seguro, dimensiones/fondo, temporales de grupos/clips, PNG decodificado y encuadre sin letterboxing.~~
 - [ ] **5.3 SVG final:** aplicar dimensiones/fondo y política de encuadre al SVG exportado, manteniendo vectores y seguridad. Registrar límites de geometría oculta; no declarar optimización geométrica/PDF implementada si solo hay viewBox/clip.
 - [ ] **5.4 Integración:** exportar candidatos aceptados, calcular artifactHash de bytes finales y comprobar determinismo, rechazo y ausencia de artefactos para candidatos rechazados. E/S y publicación incremental siguen en tarea 6.
 - [ ] **5.5 Cierre:** pruebas con test.svg, revisión independiente de toda tarea 5, correcciones verificadas, documentación y checkpoint antes de CLI.
@@ -25,4 +25,4 @@ Antes de render real, 5.2 debe añadir/validar el coste de superficies aisladas,
 
 ## Continuidad
 
-5.1 terminado: 70 tests del workspace pasan, formato y Clippy pasan. Evidencia en avance-tarea-5.1.md. No comenzar 5.2 sin confirmación. Tarea 4 ya completada; no repetirla. Consultar requisitos-exportacion-impresion.md y analisis-ejemplo-export.md al diseñar exportación, sin reutilizar assets propietarios.
+5.1–5.2 terminados: 78 tests workspace, formato y Clippy pasan. Prueba local CPU aparte produce/repite tres PNG; revisión visual realizada. Evidencia en avance-tarea-5.2.md. No comenzar 5.3 sin confirmación. Tarea 4 ya completada; no repetirla. Consultar requisitos-exportacion-impresion.md y analisis-ejemplo-export.md al diseñar exportación, sin reutilizar assets propietarios.
