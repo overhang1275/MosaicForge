@@ -1,0 +1,86 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "VariantResult",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "index",
+    "seed",
+    "templateHash",
+    "configurationHash",
+    "engineVersion",
+    "rulesVersion",
+    "backend",
+    "device",
+    "status"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "enum": [
+        "1"
+      ]
+    },
+    "index": {
+      "$ref": "#/definitions/DecimalU64"
+    },
+    "seed": {
+      "$ref": "#/definitions/DecimalU64"
+    },
+    "templateHash": {
+      "$ref": "#/definitions/Hash"
+    },
+    "configurationHash": {
+      "$ref": "#/definitions/Hash"
+    },
+    "artifactHash": {
+      "anyOf": [{ "$ref": "#/definitions/Hash" }, { "type": "null" }]
+    },
+    "engineVersion": {
+      "type": "string",
+      "enum": [
+        "0.1.0"
+      ]
+    },
+    "rulesVersion": {
+      "type": "string",
+      "enum": [
+        "1"
+      ]
+    },
+    "backend": {
+      "type": "string",
+      "enum": [
+        "cpu"
+      ]
+    },
+    "device": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "accepted",
+        "rejected"
+      ]
+    },
+    "reason": {
+      "type": ["string", "null"],
+      "minLength": 1,
+      "maxLength": 256
+    }
+  },
+  "definitions": {
+    "DecimalU64": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]{0,19})$"
+    },
+    "Hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    }
+  }
+}

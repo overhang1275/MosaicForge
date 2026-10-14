@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "1",
+  "templateHash": "0000000000000000000000000000000000000000000000000000000000000000",
+  "seed": "18446744073709551615",
+  "startIndex": "0",
+  "count": 200,
+  "engineVersion": "0.1.0",
+  "rulesVersion": "1",
+  "rules": {
+    "translateX": {
+      "min": 0,
+      "max": 0
+    },
+    "translateY": {
+      "min": 0,
+      "max": 0
+    },
+    "rotationDegrees": {
+      "min": 0,
+      "max": 0
+    },
+    "scaleX": {
+      "min": 1,
+      "max": 1
+    },
+    "scaleY": {
+      "min": 1,
+      "max": 1
+    },
+    "mirrorX": false,
+    "mirrorY": false,
+    "opacity": {
+      "min": 1,
+      "max": 1
+    },
+    "shuffleLayers": false,
+    "distortion": 0
+  },
+  "output": {
+    "format": "svg",
+    "width": 512,
+    "height": 512,
+    "background": "transparent"
+  }
+}
