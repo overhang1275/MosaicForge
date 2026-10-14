@@ -93,5 +93,6 @@ Directas runtime: serde, serde_json, regress (patrones generados), sha2, quick-x
 - Configuration hash: SHA-256 de JSON de los tipos validados, con claves ordenadas (serde_json sin preserve_order), excluyendo count y startIndex.
 - Hasta 4.5: suite CPU de 67 tests pasa; tres pruebas locales se omiten por defecto y la integrada con test.svg se ejecuta aparte. Máscara de cobertura CPU y PNG de diagnóstico comprobados con resvg 0.47.0 / tiny-skia 0.12.0. API de exportación PNG, presupuestos de salida, CLI y benchmark siguen pendientes. usvg no incluye fontdb/rustybuzz en este build; el importador rechaza imágenes y recursos externos. 4.5 no añade dependencias.
 - Metadata --locked actual: 76 paquetes externos, todos con licencia declarada open source. Se añadieron ocho combinaciones paquete/versión respecto al registro anterior.
+- 5.1 añade mosaicforge-cpu local (publish=false), dependiente de core; serde_json de tests ya existía. Ninguna versión externa nueva en Cargo.lock. Suite workspace actual: 70 tests CPU; reservas base no implican render general ni cota de RAM total.
 
 Fuente del generador: https://github.com/oxidecomputer/typify

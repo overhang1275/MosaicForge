@@ -48,7 +48,9 @@
 - [x] ~~Tarea 4, submódulo 4.4: distorsión, encuadre/cobertura CPU y reintentos acotados.~~
 - [x] ~~Usuario autorizó retomar 4.5.~~
 - [x] ~~Tarea 4.5 y cierre de tarea 4: integración, determinismo y revisión independiente con dos P2 corregidos.~~
-- [ ] Confirmación para tarea 5: exportación SVG/PNG CPU.
+- [x] ~~Usuario autorizó tarea 5 dividida en submódulos.~~
+- [x] ~~5.1: validación de salida y presupuesto base; 70 tests, formato y Clippy pasan.~~
+- [ ] Confirmación antes de 5.2: render PNG CPU y temporales.
 - [ ] Fase 1, tareas 5–6: exportación y CLI.
 - [ ] Evidencia de una variante SVG/PNG, determinismo y perfil CPU.
 - [ ] Confirmación explícita para pasar a fase 2.
@@ -71,6 +73,7 @@ Existen generate_variant/VariantResult integrados, muestreo, geometría, aparien
 - Submódulo 4.3: ocho pruebas añadidas, RED observado y GREEN total 52 tests; fmt/Clippy pasan. Una prueba local omitida en suite normal, ejecutada aparte con test.svg y pasó. Original rechazado explícitamente; copia preparada y tres SVG generados con conservación de paths y repetición por índice. Evidencia y comandos en avance-tarea-4.3.md.
 - Submódulo 4.4: ocho pruebas añadidas, RED observado y GREEN total 60 tests CPU; fmt/Clippy pasan. Tres pruebas locales omitidas en suite normal, las tres ejecutadas aparte y pasan. Se revisaron seis PNG de diagnóstico; originales conservados, nuevas muestras más variables y sin celdas vacías de esquina. Evidencia en avance-tarea-4.4.md y ADR 0004. Revisión local; revisión global independiente pendiente de 4.5.
 - Submódulo 4.5: cinco pruebas de integración/determinismo y dos regresiones de revisión nuevas; RED observado y suite final 67 tests CPU pasa, fmt/Clippy pasan. Tres pruebas locales omitidas por defecto; la integrada se ejecuta aparte y reproduce muestras anteriores. Revisión independiente de tarea 4: dos P2 corregidos y verificados por tests, sin otros hallazgos reportados. Decisiones y límites en avance-tarea-4.5.md.
+- Submódulo 5.1: crate CPU local, validate_output común y plan de reserva base PNG; RED dos de tres tests, GREEN 70 tests workspace (67 core + tres cpu), fmt/Clippy pasan. Tres tests locales omitidos por defecto y no repetidos en este paso sin render de salida. Sin librerías externas nuevas ni RAM medida; temporales resvg pendientes de 5.2. Evidencia en avance-tarea-5.1.md.
 - No hay benchmarks de render, pruebas CUDA ni pruebas de fronteras Java/web ejecutados todavía. El benchmark de Graphify estima tokens de navegación, no rendimiento del motor.
 
 ## Git y recuperación
@@ -104,4 +107,4 @@ Autor técnico de commits: Codex <codex@localhost>, configuración por comando, 
 
 ## Punto exacto para continuar
 
-Tarea 4 completa (4.1–4.5), commit 8031f75; 67 tests CPU y prueba local integrada pasan; revisión independiente atendida con dos regresiones. Esperar confirmación para tarea 5: exportar SVG/PNG CPU aplicando dimensiones/fondo, presupuesto de buffers y hash de bytes finales. Leer avance-tarea-4.5.md y requisitos-exportacion-impresion.md; crop interno todavía conserva geometría oculta. No repetir tarea 4 ni pasar a fase 2 sin terminar fase 1 y confirmación. El grafo sigue siendo snapshot anterior a tarea 2.
+Tarea 4 completa y 5.1 terminado. Esperar confirmación antes de 5.2: render PNG CPU, dimensiones/fondo, validación SVG y presupuesto de temporales de capas/clips. Leer tarea-5-submodulos.md y avance-tarea-5.1.md. No confundir reserva base con cota de temporales resvg/RAM total. No repetir módulos completos ni pasar a fase 2 sin terminar fase 1 y confirmación. El grafo sigue siendo snapshot anterior a tarea 2.

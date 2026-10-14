@@ -1,4 +1,4 @@
-use crate::contract::{GenerationSpec, VariantResult};
+use crate::contract::{GenerationSpec, OutputSpec, VariantResult};
 use sha2::{Digest, Sha256};
 
 #[derive(Debug, PartialEq, Eq)]
@@ -78,22 +78,9 @@ pub fn validate_spec(spec: &GenerationSpec) -> Result<(), EngineError> {
     if count > 10_000 || start.checked_add(count - 1).is_none() {
         return Err(invalid("variant interval exceeds supported limits"));
     }
-    let width = spec.output.width.get();
-    let height = spec.output.height.get();
-    if width > 4096
-        || height > 4096
-        || width
-            .checked_mul(height)
-            .is_none_or(|pixels| pixels > 16_777_216)
-    {
-        return Err(invalid("output dimensions exceed supported limits"));
-    }
+    validate_output(&spec.output)?;
     if !is_hash(&spec.template_hash) {
         return Err(invalid("templateHash must be lowercase SHA-256 hex"));
-    }
-    let background = spec.output.background.as_str();
-    if background != "transparent" && !is_rgb(background) {
-        return Err(invalid("background must be transparent or RGB hex"));
     }
     let rules = &spec.rules;
     for range in [
@@ -134,6 +121,25 @@ pub fn validate_spec(spec: &GenerationSpec) -> Result<(), EngineError> {
             || !(crop.y + crop.height).is_finite())
     {
         return Err(invalid("crop must be a finite positive rectangle"));
+    }
+    Ok(())
+}
+
+pub fn validate_output(output: &OutputSpec) -> Result<(), EngineError> {
+    let invalid = EngineError::InvalidSpec;
+    let width = output.width.get();
+    let height = output.height.get();
+    if width > 4096
+        || height > 4096
+        || width
+            .checked_mul(height)
+            .is_none_or(|pixels| pixels > 16_777_216)
+    {
+        return Err(invalid("output dimensions exceed supported limits"));
+    }
+    let background = output.background.as_str();
+    if background != "transparent" && !is_rgb(background) {
+        return Err(invalid("background must be transparent or RGB hex"));
     }
     Ok(())
 }
