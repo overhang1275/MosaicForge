@@ -30,6 +30,7 @@ Cada fase tiene un documento ejecutable propio y termina con checks, evidencia e
 - [ ] Tarea 4: geometría, color, capas, recorte y distorsión acotada; rechazo explícito por índice.
   Estado parcial: 4.1–4.4 terminados (60 tests CPU, tres pruebas locales con test.svg, fmt y Clippy pasan); 4.5 pendiente de permiso. Cobertura raster CPU pequeña adelantada por petición de evitar esquinas vacías, ADR 0004; exportación PNG general sigue en tarea 5. Checklist y pausas en tarea-4-submodulos.md. No marcar tarea 4 completa todavía.
 - [ ] Tarea 5: SVG vectorial y PNG con resvg/tiny-skia, presupuesto de buffers.
+- [ ] Considerar geometría útil al diseñar exportación vectorial final: descarte/recorte real y recursos sin uso, conservando apariencia; medir tamaño/complejidad y validar PDF/Fiery en la entrega de impresión posterior. Requisito en requisitos-exportacion-impresion.md; no adelantar PDF ni afirmar mejoras sin medir.
 - [ ] Tarea 6: CLI incremental, cancelación y errores de E/S sin sobrescritura ni artefactos finales incompletos.
 - [ ] Generación por grupos configurables de N variantes: acotar resultados en memoria, exportar y liberar cada grupo; conservar índices globales y reproducibilidad al cambiar N. Solicitud del usuario registrada para implementar más adelante en tarea 6.
 - [ ] Guardar una primera corrida real de una variante SVG y PNG y su manifiesto.

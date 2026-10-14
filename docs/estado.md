@@ -95,7 +95,8 @@ Autor técnico de commits: Codex <codex@localhost>, configuración por comando, 
 - Contenedores no encontrados en las rutas comprobadas; despliegue todavía no probado.
 - .graphify-cli/ es herramienta de sesión anterior, excluida del producto. Grafo en graphify-out/: 143 nodos, 248 relaciones, diez comunidades; snapshot anterior a tarea 2. Límites/estimaciones en graphify.md; actualizar antes de consultar relaciones nuevas.
 - Una tolerancia de imagen y una aceleración solo se publican cuando se midan.
+- Requisito de impresión registrado durante la pausa: evitar geometría oculta innecesaria en exportación final, medir complejidad/tamaño y coste RIP/Fiery. Ver requisitos-exportacion-impresion.md. La causa atribuida al PDF de HP es hipótesis del usuario, no diagnóstico medido; crop actual conserva paths y todavía no es optimización final.
 
 ## Punto exacto para continuar
 
-Submódulo 4.4 terminado, commit 95da985. Esperar permiso explícito del usuario para 4.5: generate_variant, resultados versionados y determinismo por índices/rangos/hilos/grupos, con revisión independiente global. Consultar tarea-4-submodulos.md, avance-tarea-4.4.md y ADR 0004. No repetir módulos completados ni pasar a fase 2 sin confirmación. El grafo sigue siendo snapshot anterior a tarea 2.
+Trabajo pausado por petición del usuario; la información de impresión añadida después de la pausa solo actualiza documentación. Submódulo 4.4 terminado, commit 95da985. Esperar permiso explícito para retomar 4.5: generate_variant, resultados versionados y determinismo por índices/rangos/hilos/grupos, con revisión independiente global. Consultar tarea-4-submodulos.md, avance-tarea-4.4.md, ADR 0004 y requisitos-exportacion-impresion.md. No repetir módulos completados ni pasar a fase 2 sin confirmación. El grafo sigue siendo snapshot anterior a tarea 2.
