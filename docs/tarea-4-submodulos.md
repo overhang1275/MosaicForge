@@ -3,7 +3,7 @@
 Fecha: 2026-10-14. Usuario autorizó empezar tarea 4 y pidió confirmar antes de cada submódulo siguiente para controlar sus tokens. Esta instrucción sustituye la ejecución continua de Superpowers para esta tarea.
 
 - [x] ~~**4.1 Muestreo geométrico:** obtener traslación, rotación, escala y flags de espejo reproducibles desde GenerationSpec, seed, índice e intento. Congelar IDs de reglas y comprobar identidad/rangos/reordenamiento.~~ No modifica SVG todavía.
-- [ ] **4.2 Aplicación geométrica:** componer transforms en el orden acordado alrededor del centro del viewBox, aplicar a SVG seguro y verificar identidad/orden/compatibilidad con importador.
+- [x] ~~**4.2 Aplicación geométrica:** componer transforms alrededor del centro del viewBox, aplicar a SVG seguro y verificar identidad/orden/compatibilidad con importador.~~
 - [ ] **4.3 Apariencia y composición:** color/paleta, opacidad, orden de capas y crop; determinismo y límites por capa.
 - [ ] **4.4 Distorsión y restricciones:** deformación acotada, geometría válida, aceptación/rechazo por índice, máximo ocho intentos y motivos explícitos.
 - [ ] **4.5 Integración:** generate_variant y pruebas completas de índices/rangos/hilos/grupos, commit de cierre de tarea 4.
@@ -22,7 +22,7 @@ Cada submódulo termina con tests/fmt/Clippy, commit y registro de avance. Pregu
 
 ## Punto de reanudación
 
-4.1 terminado, commit funcional ff7df4f. Esperar respuesta afirmativa antes de empezar 4.2.
+4.2 terminado. Esperar respuesta afirmativa antes de empezar 4.3: apariencia y composición. No repetir 4.1–4.2.
 
 ## Evidencia 4.1
 
@@ -31,3 +31,12 @@ BASE f4961f1. RED: cinco pruebas de transforms, cuatro fallan por sampler vacío
 Archivos: core/src/rules.rs, core/tests/transforms.rs y export de módulo en lib.rs. Sin dependencias nuevas. Se probaron seed/índice u64 máximos, intentos 0–7 y fuera de rango, rangos inválidos construidos en Rust, aislamiento entre reglas y reordenamiento/subrango del lote.
 
 Limitación deliberada: parámetros muestreados no son todavía matrices ni variantes SVG y no incluyen reglas de apariencia, crop o distorsión. No declarar tarea 4 completa.
+
+## Decisiones y evidencia 4.2
+
+- Orden de aplicación: escala y espejos, rotación, traslación; escala/rotación alrededor del centro del viewBox. Matriz M = T(traslación) × T(centro) × R × S × T(-centro). Si la raíz ya tiene matriz R0, se conserva como M × R0.
+- Se modifica únicamente el transform raíz, preservando grupos, IDs, defs y clips; sin añadir wrappers o dependencias. La entrada se reimporta antes de usar metadatos públicos de Template, y la salida pasa de nuevo por el importador seguro.
+- Identidad conserva SVG normalizado y hash. Parámetros no finitos, escalas no positivas y transformaciones fuera de los límites del importador se rechazan.
+- RED: seis tests iniciales, cuatro fallan con implementación vacía; dos de rechazo pasan con stub. GREEN final: siete pruebas geométricas y 37 anteriores = 44 tests, cero fallos/omitidos. cargo fmt --all -- --check, cargo clippy --workspace --all-targets --locked -- -D warnings y cargo test --workspace --locked --quiet pasan.
+- Pruebas: identidad en tres fixtures, viewBox desplazado, orden no conmutativo con transform raíz existente, clips/capas conservados, repetición exacta, entradas inválidas, límites acumulados y espejo Y con rotación negativa. Revisión local y git diff --check sin problemas pendientes.
+- Archivos: core/src/generate.rs, core/tests/geometry.rs y export en lib.rs. Sin medir rendimiento, rasterizar PNG ni ejecutar CUDA. Apariencia, crop, validez visual y generador completo siguen pendientes de 4.3–4.5.

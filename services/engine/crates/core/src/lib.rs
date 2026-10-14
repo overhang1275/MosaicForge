@@ -1,4 +1,5 @@
 pub mod contract;
+pub mod generate;
 pub mod rng;
 pub mod rules;
 mod svg_values;
