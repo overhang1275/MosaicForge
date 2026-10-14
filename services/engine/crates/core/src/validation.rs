@@ -4,18 +4,22 @@ use sha2::{Digest, Sha256};
 #[derive(Debug, PartialEq, Eq)]
 pub enum EngineError {
     InvalidSpec(&'static str),
+    InvalidSvg(&'static str),
 }
 
 impl EngineError {
     pub fn code(&self) -> &'static str {
-        "invalid_spec"
+        match self {
+            Self::InvalidSpec(_) => "invalid_spec",
+            Self::InvalidSvg(_) => "invalid_svg",
+        }
     }
 }
 
 impl std::fmt::Display for EngineError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::InvalidSpec(message) => write!(f, "{message}"),
+            Self::InvalidSpec(message) | Self::InvalidSvg(message) => write!(f, "{message}"),
         }
     }
 }
