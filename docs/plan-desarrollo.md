@@ -28,7 +28,7 @@ Cada fase tiene un documento ejecutable propio y termina con checks, evidencia e
 - [x] ~~Tarea 2: PRNG y dominio (seed, índice, regla, intento, muestra) con vectores de referencia.~~ Commit 30ac241; siete pruebas RNG y diez de contratos pasan.
 - [x] ~~Tarea 3: importación segura, normalización y límites SVG.~~ Commit cf8c819; quince tests SVG, suite total de 32 y checks pasan. Subconjunto y límites en svg-admitido.md.
 - [ ] Tarea 4: geometría, color, capas, recorte y distorsión acotada; rechazo explícito por índice.
-  Estado parcial: 4.1–4.3 terminados (52 tests CPU, prueba local con test.svg, fmt y Clippy pasan); 4.4 pendiente de permiso. Checklist y pausas en tarea-4-submodulos.md. No marcar tarea 4 completa todavía.
+  Estado parcial: 4.1–4.4 terminados (60 tests CPU, tres pruebas locales con test.svg, fmt y Clippy pasan); 4.5 pendiente de permiso. Cobertura raster CPU pequeña adelantada por petición de evitar esquinas vacías, ADR 0004; exportación PNG general sigue en tarea 5. Checklist y pausas en tarea-4-submodulos.md. No marcar tarea 4 completa todavía.
 - [ ] Tarea 5: SVG vectorial y PNG con resvg/tiny-skia, presupuesto de buffers.
 - [ ] Tarea 6: CLI incremental, cancelación y errores de E/S sin sobrescritura ni artefactos finales incompletos.
 - [ ] Generación por grupos configurables de N variantes: acotar resultados en memoria, exportar y liberar cada grupo; conservar índices globales y reproducibilidad al cambiar N. Solicitud del usuario registrada para implementar más adelante en tarea 6.

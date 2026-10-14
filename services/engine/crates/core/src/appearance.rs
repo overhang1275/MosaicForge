@@ -20,14 +20,14 @@ const PALETTE_RULE: u16 = 7;
 const LAYER_ORDER_RULE: u16 = 8;
 type ColorKey = (u8, u8, u8, u8);
 
-struct Element {
-    name: String,
-    attrs: BTreeMap<String, String>,
-    children: Vec<Element>,
+pub(crate) struct Element {
+    pub(crate) name: String,
+    pub(crate) attrs: BTreeMap<String, String>,
+    pub(crate) children: Vec<Element>,
 }
 
 impl Element {
-    fn read(svg: &str) -> Result<Self, EngineError> {
+    pub(crate) fn read(svg: &str) -> Result<Self, EngineError> {
         let mut reader = Reader::from_str(svg);
         let mut stack: Vec<Self> = Vec::new();
         loop {
@@ -66,7 +66,7 @@ impl Element {
         }
     }
 
-    fn write(&self, writer: &mut Writer<Vec<u8>>) -> Result<(), EngineError> {
+    pub(crate) fn write(&self, writer: &mut Writer<Vec<u8>>) -> Result<(), EngineError> {
         let mut start = BytesStart::new(&self.name);
         for (key, value) in &self.attrs {
             start.push_attribute((key.as_str(), value.as_str()));

@@ -5,7 +5,7 @@ Fecha: 2026-10-14. Usuario autorizó empezar tarea 4 y pidió confirmar antes de
 - [x] ~~**4.1 Muestreo geométrico:** obtener traslación, rotación, escala y flags de espejo reproducibles desde GenerationSpec, seed, índice e intento. Congelar IDs de reglas y comprobar identidad/rangos/reordenamiento.~~ No modifica SVG todavía.
 - [x] ~~**4.2 Aplicación geométrica:** componer transforms alrededor del centro del viewBox, aplicar a SVG seguro y verificar identidad/orden/compatibilidad con importador.~~
 - [x] ~~**4.3 Apariencia y composición:** color/paleta, opacidad, orden de capas y crop; determinismo y límites por capa.~~
-- [ ] **4.4 Distorsión y restricciones:** deformación acotada, geometría válida, aceptación/rechazo por índice, máximo ocho intentos y motivos explícitos.
+- [x] ~~**4.4 Distorsión y restricciones:** deformación acotada, encuadre y cobertura CPU, aceptación/rechazo por índice, máximo ocho intentos y motivos explícitos.~~
 - [ ] **4.5 Integración:** generate_variant y pruebas completas de índices/rangos/hilos/grupos, commit de cierre de tarea 4.
 
 Cada submódulo termina con tests/fmt/Clippy, commit y registro de avance. Preguntar al usuario antes de comenzar el siguiente. Si la sesión termina, retomar el primer submódulo pendiente sin repetir los completados.
@@ -22,7 +22,7 @@ Cada submódulo termina con tests/fmt/Clippy, commit y registro de avance. Pregu
 
 ## Punto de reanudación
 
-4.3 terminado. Esperar respuesta afirmativa antes de empezar 4.4: distorsión y restricciones. No repetir 4.1–4.3.
+4.4 terminado. Esperar respuesta afirmativa antes de empezar 4.5: integración y determinismo completo. No repetir 4.1–4.4.
 
 ## Evidencia 4.1
 
@@ -53,3 +53,15 @@ Limitación deliberada: parámetros muestreados no son todavía matrices ni vari
 - Pruebas cubren identidad, paleta y opacidad, none/alfa/herencia, orden reproducible, aislamiento entre reglas, grupos anidados, elementos sin capa, recorte en viewBox desplazado, entradas alteradas e intentos inválidos. Revisión local; revisión independiente de toda tarea 4 queda para 4.5.
 - Graphify consultado con budget 600: 21 nodos, 15 mostrados; snapshot antiguo y truncado. Se verificaron contratos y código actual directamente. No reconstruir el grafo en cada submódulo.
 - Prueba del archivo del usuario y comandos reproducibles: avance-tarea-4.3.md. Pendientes: distorsión, validez visual/reintentos e integración; no marcar tarea 4 completa.
+
+## Decisiones y evidencia 4.4
+
+- Usuario pidió revisar encuadres y más variabilidad; aclaró que semilla más grande significa contenido/superficie del SVG. Después autorizó terminar esa corrección y completar 4.4.
+- Ajuste de escala mínimo dentro de límites para que las esquinas inversas del crop permanezcan en el viewBox semilla. Máscara CPU 256 × 256 valida pintura real, clips, opacidad y ocupación de esquinas. ADR 0004 registra los umbrales iniciales y sus limitaciones.
+- Ruling: adelantar resvg/tiny-skia para comprobar cobertura — cuesta introducir el raster CPU pequeño antes de tarea 5; no añade lenguaje/servicio y no implementa exportación PNG general.
+- Distorsión local acotada de extremos y controles de paths mediante campo sinusoidal, fases en IDs 9 y 10; no deformar defs/clipPaths. No se promete legibilidad semántica ni ausencia de auto-intersecciones.
+- Máximo ocho intentos por índice; motivo explícito al agotar. Configuración inválida es error; candidato geométricamente inválido puede reintentarse. Parámetros efectivos ajustados quedan en CandidateDecision. generate_variant y resultados versionados siguen pendientes de integración 4.5.
+- RED observado: máscara vacía, stubs de encuadre/distorsión/búsqueda y parámetros fuera de rango. GREEN: 60 tests CPU, tres tests locales omitidos en suite normal y los tres ejecutados aparte con éxito. fmt y Clippy --locked -D warnings pasan. Revisión local, global independiente en 4.5.
+- Tres muestras anteriores y tres nuevas renderizadas y revisadas visualmente. Nuevas en out/test-4.4-{0,1,17}.svg y .png: 251/250/253 celdas ocupadas de 256, cero celdas de esquina vacías; hashes distintos y repetición por índice aislado idéntica. Original test.svg y muestras anteriores intactos.
+- Graphify consultado con budget 500: no encontró nodos coincidentes para restricciones nuevas; snapshot antiguo. Se verificó código y plan directamente.
+- Evidencia, comandos y límites en avance-tarea-4.4.md; dependencias y licencias declaradas actualizadas. Sin benchmark, CUDA, CLI ni API general de PNG. No marcar tarea 4 completa.

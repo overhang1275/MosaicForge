@@ -12,6 +12,7 @@
 6. avance-tarea-2.md, adr/0003-determinismo.md y graphify.md.
 7. avance-tarea-3.md y svg-admitido.md.
 8. tarea-4-submodulos.md: checklist de ejecución y pausa antes de cada submódulo.
+9. avance-tarea-4.4.md y adr/0004-cobertura-cpu-y-encuadre.md: cobertura, zoom y límites.
 
 ## Instrucciones vigentes del usuario
 
@@ -25,6 +26,7 @@
 - Tarea 4 se ejecuta por submódulos; preguntar antes de avanzar al siguiente para controlar tokens. Esta instrucción prevalece sobre ejecución continua del skill.
 - Usar DuckDB para JSON/TXT/CSV grandes cuando permita consultar/filtrar sin cargar todo; no imponerlo como dependencia del producto.
 - Guardar commits cuando las implementaciones funcionen y pasen checks.
+- Evitar viewBox/esquinas vacíos y ampliar variación con zoom, posición y giro dentro de límites; semilla más grande se refiere al contenido/superficie SVG, no al número del PRNG.
 - Implementar más adelante grupos configurables de N variantes para controlar memoria; incorporado a tarea 6, sin adelantar su código. Mantener reproducibilidad independiente de N y límites de buffers/concurrencia.
 - Se permite investigar documentación pública HP SmartStream Mosaic/PrintOS si sirve para requisitos o flujos; registrar fuentes y mantener originales algoritmos/código/UI/assets.
 
@@ -42,12 +44,14 @@
 - [x] ~~Tarea 4, submódulo 4.1: muestreo geométrico determinista.~~
 - [x] ~~Tarea 4, submódulo 4.2: aplicación geométrica segura al SVG.~~
 - [x] ~~Tarea 4, submódulo 4.3: apariencia, orden de capas y recorte; pruebas con test.svg.~~
-- [ ] Confirmación del usuario para empezar 4.4: distorsión y restricciones.
+- [x] ~~Corrección de encuadres y muestras más variables con revisión visual.~~
+- [x] ~~Tarea 4, submódulo 4.4: distorsión, encuadre/cobertura CPU y reintentos acotados.~~
+- [ ] Confirmación del usuario para empezar 4.5: integración y determinismo completo.
 - [ ] Fase 1, resto de tarea 4 y tareas 5–6: generación, PNG y CLI.
 - [ ] Evidencia de una variante SVG/PNG, determinismo y perfil CPU.
 - [ ] Confirmación explícita para pasar a fase 2.
 
-Existen muestreo, aplicación geométrica, paleta, opacidad, orden de capas y recorte SVG, además de contratos, PRNG e importador seguro. Todavía faltan distorsión, restricciones e integración del generador de variantes, renderer, CLI, web, Java e infraestructura.
+Existen muestreo, geometría, apariencia/crop, distorsión local, ajuste de encuadre, cobertura CPU y búsqueda con ocho intentos, además de contratos, PRNG e importador seguro. Falta integración generate_variant/VariantResult, renderer de exportación, CLI, web, Java e infraestructura. El raster CPU pequeño se adelantó para validar cobertura y generar diagnósticos locales.
 
 ## Evidencia técnica
 
@@ -63,7 +67,8 @@ Existen muestreo, aplicación geométrica, paleta, opacidad, orden de capas y re
 - Submódulo 4.1: cinco pruebas transforms añadidas, RED observado y GREEN total 37 tests, cero fallos/omitidos; fmt y Clippy pasan. Revisión local, sin subagente por este paso pequeño. Graphify consultado con budget 800 y resultado truncado; se verificó código actual directamente por snapshot antiguo.
 - Submódulo 4.2: siete pruebas geométricas añadidas; RED observado y GREEN total 44 tests, cero fallos/omitidos; fmt, Clippy y diff --check pasan. Identidad, orden, centro del viewBox, transform previo, clips/capas, repetición y límites comprobados. Revisión local; detalle en tarea-4-submodulos.md.
 - Submódulo 4.3: ocho pruebas añadidas, RED observado y GREEN total 52 tests; fmt/Clippy pasan. Una prueba local omitida en suite normal, ejecutada aparte con test.svg y pasó. Original rechazado explícitamente; copia preparada y tres SVG generados con conservación de paths y repetición por índice. Evidencia y comandos en avance-tarea-4.3.md.
-- No hay benchmarks de render, pruebas CUDA, tests de generación ni pruebas de fronteras Java/web ejecutados todavía. El benchmark de Graphify estima tokens de navegación, no rendimiento del motor.
+- Submódulo 4.4: ocho pruebas añadidas, RED observado y GREEN total 60 tests CPU; fmt/Clippy pasan. Tres pruebas locales omitidas en suite normal, las tres ejecutadas aparte y pasan. Se revisaron seis PNG de diagnóstico; originales conservados, nuevas muestras más variables y sin celdas vacías de esquina. Evidencia en avance-tarea-4.4.md y ADR 0004. Revisión local; revisión global independiente pendiente de 4.5.
+- No hay benchmarks de render, pruebas CUDA, tests del generador final ni pruebas de fronteras Java/web ejecutados todavía. El benchmark de Graphify estima tokens de navegación, no rendimiento del motor.
 
 ## Git y recuperación
 
@@ -92,4 +97,4 @@ Autor técnico de commits: Codex <codex@localhost>, configuración por comando, 
 
 ## Punto exacto para continuar
 
-Submódulo 4.3 terminado, commit 9eeaa95. Esperar permiso explícito del usuario para 4.4: distorsión acotada, restricciones y reintentos con rechazo por índice. Consultar tarea-4-submodulos.md, avance-tarea-4.3.md y svg-admitido.md. No repetir módulos completados ni pasar a fase 2 sin confirmación. El grafo sigue siendo snapshot anterior a tarea 2.
+Submódulo 4.4 terminado. Esperar permiso explícito del usuario para 4.5: generate_variant, resultados versionados y determinismo por índices/rangos/hilos/grupos, con revisión independiente global. Consultar tarea-4-submodulos.md, avance-tarea-4.4.md y ADR 0004. No repetir módulos completados ni pasar a fase 2 sin confirmación. El grafo sigue siendo snapshot anterior a tarea 2.
