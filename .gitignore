@@ -1,0 +1,11 @@
+# Herramientas locales y artefactos de desarrollo, no producto.
+.graphify-cli/
+graphify-out/
+**/target/
+**/node_modules/
+**/.next/
+**/__pycache__/
+.env
+.env.*
+!.env.example
+out/

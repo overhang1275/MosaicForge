@@ -1,0 +1,223 @@
+# Proyecto: MosaicForge
+
+Construye **MosaicForge**, una aplicación web open source para generar miles o millones de variantes visuales únicas a partir de plantillas vectoriales semilla, con **aceleración opcional por GPU NVIDIA mediante CUDA** en las etapas donde aporte una mejora real de rendimiento.
+
+La idea es similar conceptualmente a las herramientas de "variable design" usadas en impresión variable: un usuario carga un diseño base y la aplicación produce muchas piezas relacionadas visualmente, pero distintas entre sí. **No copies código, assets, nombres, algoritmos patentados, UI ni documentación de HP SmartStream Mosaic ni de ningún producto propietario.** Diseña una arquitectura, algoritmos, nombres y experiencia de usuario completamente originales.
+
+## Objetivo del producto
+
+MosaicForge debe permitir:
+
+- Importar plantillas vectoriales semilla (SVG como formato principal; otros formatos vectoriales solo si los justificas).
+- Definir reglas de transformación generativa: escala, posición, rotación, espejo, recorte, color, opacidad, capas, composición y aleatoriedad controlada.
+- Generar lotes grandes de variantes deterministas y reproducibles mediante seeds.
+- Previsualizar variantes en una interfaz web moderna.
+- Exportar los resultados en formatos adecuados para web, impresión o integración posterior.
+- Administrar trabajos de generación, plantillas, presets, usuarios y resultados desde una interfaz clara.
+- Aprovechar GPUs NVIDIA cuando estén disponibles para reducir drásticamente el tiempo de lotes grandes, **sin que la GPU sea requisito para ejecutar el sistema**.
+
+## Arquitectura requerida
+
+Diseña un sistema moderno, modular y mantenible con separación clara entre frontend, API, motor generativo y almacenamiento.
+
+### Frontend web
+
+- Aplicación web moderna, responsiva y accesible.
+- Interfaz orientada a diseñadores y equipos de producción.
+- Incluye:
+  - Carga de plantillas semilla.
+  - Editor o configurador de parámetros generativos.
+  - Vista previa interactiva de variantes.
+  - Galería de resultados con filtros y selección.
+  - Configuración de lotes: cantidad, resolución, formato, seed, reglas, prioridad y **backend de cómputo preferido (auto / CPU / GPU)**.
+  - Historial de trabajos y descarga de resultados.
+  - Indicador visible de qué backend procesó cada trabajo (CPU o GPU, y qué dispositivo) y de si hubo fallback.
+- Implementa el frontend con **Next.js (App Router) y TypeScript en modo estricto**. Prioriza rendimiento, tipado fuerte, componentes reutilizables y buena experiencia de usuario. Puedes elegir la librería de componentes y de estilos (por ejemplo, Tailwind CSS y Framer Motion para animaciones), justificando la elección.
+- La UI debe ser clara, profesional y extensible; evita un diseño genérico de dashboard.
+
+Reglas del frontend:
+
+- **Next.js como capa de presentación y BFF delgado:** usa Server Components para listados y datos de lectura, y Route Handlers o Server Actions solo para tareas de frontera (sesión/cookies de autenticación, proxy hacia la API Java, streaming de eventos). **La lógica de negocio y la validación autoritativa viven en el backend Java**; no dupliques reglas de negocio en Next.js.
+- **Tipos generados desde los contratos:** genera los tipos y el cliente TypeScript a partir del OpenAPI/JSON Schema del backend (por ejemplo, con `openapi-typescript`); no escribas a mano modelos que ya existen en el contrato. Valida en runtime las respuestas inesperadas.
+- **Rendimiento con volúmenes grandes:** galería virtualizada y paginada (pensada para decenas de miles de miniaturas), carga diferida de imágenes, y tareas pesadas de previsualización en el cliente (por ejemplo, renderizado SVG/canvas) fuera del hilo principal mediante Web Workers u OffscreenCanvas cuando corresponda.
+- **Progreso en tiempo real:** usa Server-Sent Events o WebSocket para el progreso de trabajos, con reconexión y recuperación de estado.
+- **Autocontenido y portable:** debe poder desplegarse con `output: standalone` en un contenedor propio, sin depender de un proveedor cloud concreto ni de funciones exclusivas de una plataforma de hosting.
+- **Accesibilidad y calidad:** cumple criterios WCAG razonables (teclado, foco, contraste, ARIA), con tests de componentes, tests end-to-end de los flujos principales y ESLint/Prettier/`tsc --noEmit` en CI.
+- **Trazabilidad:** el navegador y el servidor de Next.js generan/propagan el trace ID hacia la API Java, y registran eventos con el mismo esquema JSON común (sin datos sensibles).
+
+### Backend políglota (Java + Rust + Python)
+
+El backend es un conjunto de servicios escritos en **el lenguaje más adecuado para cada responsabilidad**. Antes de implementar, entrega una **matriz de decisión** (componente ? lenguaje ? justificación ? alternativas descartadas). No añadas un lenguaje a un componente solo por variedad: cada elección debe justificarse por rendimiento, ecosistema, seguridad, mantenibilidad o experiencia de desarrollo. Asignación de partida (puedes proponer ajustes razonados):
+
+| Responsabilidad | Lenguaje | Motivo |
+|---|---|---|
+| API pública, autenticación/autorización, orquestación de trabajos, reglas de negocio, puertos de persistencia/cola/almacenamiento | **Java** | Ecosistema maduro para servicios empresariales, tipado fuerte, concurrencia, seguridad y observabilidad |
+| Motor generativo, rasterización, backends CPU/CUDA, validación geométrica, exportación | **Rust** | Rendimiento, seguridad de memoria, paralelismo, control fino de GPU |
+| Análisis estético con modelos aprendidos, embeddings/similitud para deduplicación semántica, extracción y sugerencia de paletas, sugerencia de presets, análisis de datos, reportes de benchmarks y herramientas de automatización | **Python** | Ecosistema de ML y ciencia de datos (con GPU vía CUDA cuando aporte), iteración rápida |
+
+Reglas del backend:
+
+- **Java es el plano de control:** expone la API HTTP limpia, versionada y documentada; incluye autenticación, autorización, validación de entrada, manejo de errores consistente y observabilidad; gestiona trabajos asíncronos de generación masiva y decide a qué servicio enviar cada etapa.
+- **Rust es el plano de datos de alto rendimiento:** concentra todo el cómputo intensivo y toda la lógica CUDA del renderizado.
+- **Python solo donde gana claramente:** servicios o workers de análisis y ML, siempre **opcionales** para el flujo principal. El sistema debe generar y exportar variantes correctamente aunque los componentes Python no estén desplegados (con degradación documentada, por ejemplo, validación estética basada solo en reglas).
+- **Contratos independientes del lenguaje:** define las interfaces entre servicios con esquemas neutrales (OpenAPI para HTTP, Protobuf/gRPC o JSON Schema para mensajes de trabajo y eventos). Genera clientes y tipos desde esos esquemas; no dupliques modelos a mano. Versiona los contratos y añade **tests de contrato** en cada frontera (Java?Rust, Java?Python, frontend?Java).
+- **Sin acoplamiento interno:** los servicios se comunican solo mediante los contratos (HTTP/gRPC/mensajes sobre la cola abstracta); nada de memoria compartida, FFI improvisado ni dependencias de rutas internas entre lenguajes. Si propones FFI o ejecución como subproceso para algún caso, justifícalo.
+- **Despliegue independiente:** cada servicio tiene su propio Dockerfile, configuración, health checks y límites de recursos, y puede escalar por separado.
+- **Conciencia de recursos de cómputo:** los workers Rust y Python reportan sus capacidades (CPU cores, GPUs disponibles, VRAM libre, versión de CUDA/driver). Java usa esa información para asignar trabajos, repartir el **presupuesto de VRAM entre servicios que comparten GPU**, respetar límites por dispositivo y reintentar en CPU si procede.
+- **Java no ejecuta CUDA directamente;** la GPU se usa solo desde los workers Rust y Python.
+- Diseña los tres lados para procesar trabajos asíncronos con progreso, cancelación y reintentos idempotentes.
+
+### Motor generativo
+
+- Implementa el núcleo de transformación y renderizado vectorial en **Rust**.
+- Debe ser eficiente, seguro y adecuado para procesamiento paralelo.
+- Debe poder ejecutarse como servicio independiente, binario CLI o worker, según consideres mejor para la arquitectura.
+- Debe recibir una definición estructurada de plantilla, reglas, seed y parámetros de salida.
+- Debe producir resultados reproducibles: la misma plantilla, configuración, seed y backend siempre deben generar exactamente las mismas variantes.
+- Implementa al menos:
+  - Transformaciones geométricas: traslación, rotación, escala, reflejo y distorsión controlada.
+  - Variación de color, incluyendo paletas, reemplazo de colores y ajustes tonales.
+  - Composición de capas y reordenamiento opcional.
+  - Restricciones para evitar variantes inválidas, ilegibles o visualmente rotas.
+  - Generación concurrente de lotes.
+- No utilices ni repliques el algoritmo patentado de HP; crea tu propio modelo generativo basado en transformaciones paramétricas, ruido controlado, reglas de composición y validación estética.
+
+#### Aceleración con CUDA
+
+El motor debe separar **qué se calcula** de **dónde se calcula** mediante una abstracción `ComputeBackend` (puerto) con al menos dos implementaciones:
+
+- `CpuBackend`: implementación de referencia, paralelizada con hilos (por ejemplo, rayon). Es el backend por defecto y la fuente de verdad en tests.
+- `CudaBackend`: implementación acelerada, habilitada mediante **feature flag de Cargo** (por ejemplo, `--features cuda`). El proyecto debe compilar, probarse y ejecutarse completo sin CUDA instalado.
+
+Requisitos de diseño:
+
+1. **Qué acelerar en GPU** (solo si las mediciones lo justifican):
+   - Rasterización de variantes a resolución de salida (relleno de paths, anti-aliasing, curvas Bézier aplanadas).
+   - Composición y mezcla de capas (blending, opacidad, máscaras, recortes).
+   - Transformaciones de color por píxel: reemplazo por paleta, ajustes tonales, conversión de espacios de color.
+   - Generación masiva de parámetros aleatorios con un PRNG **basado en contador** (por ejemplo, estilo Philox/Threefry), de modo que cada variante derive su flujo aleatorio solo de `(seed, índice de variante)`, sin estado compartido.
+   - Métricas de validación estética en paralelo: cobertura, solapamiento, contraste, legibilidad, detección de desbordes.
+   - Detección de duplicados o casi-duplicados entre variantes (hash perceptual calculado en GPU).
+   - Redimensionado y generación de miniaturas para previsualización.
+2. **Qué NO mover a GPU:** parseo de SVG, lógica de reglas con mucho branching, E/S de archivos, construcción de SVG de salida y codificación de formatos de archivo (salvo que midas una ganancia clara y lo documentes).
+3. **Implementación:**
+   - Usa bindings Rust seguros y mantenidos para CUDA (por ejemplo, `cudarc`) y kernels escritos en CUDA C++ compilados con NVRTC o `nvcc` (PTX/cubin) desde `build.rs`. Evalúa Rust-CUDA y justifica tu elección.
+   - Encapsula todo `unsafe` en un módulo mínimo, documentado y con tests.
+   - Mantén los kernels en un directorio propio, con documentación de la geometría de lanzamiento (grid/block), uso de memoria y supuestos.
+4. **Rendimiento:**
+   - Procesa variantes por **lotes** para amortizar el coste de lanzamiento de kernels.
+   - Usa múltiples streams, memoria pinned y doble buffering para solapar transferencias H2D/D2H con cómputo.
+   - Reutiliza buffers mediante un pool de memoria; evita asignaciones por variante.
+   - Soporta múltiples GPUs: una cola de trabajo por dispositivo y balanceo básico.
+   - Ajusta el tamaño de lote dinámicamente según la VRAM libre y la resolución pedida.
+5. **Determinismo con GPU:**
+   - Define explícitamente el contrato: resultados **idénticos bit a bit dentro de un mismo backend, versión de motor y arquitectura de GPU**; entre CPU y GPU, resultados **dentro de una tolerancia documentada** (por ejemplo, ?E máximo o diferencia por canal) y **mismas decisiones discretas** (qué reglas se aplican, orden de capas, aceptación o rechazo de variantes).
+   - Evita operaciones no deterministas (por ejemplo, `atomicAdd` en flotantes con orden variable en reducciones que afecten al resultado) o documenta y controla su uso.
+   - Registra en cada resultado el backend, dispositivo y versión del motor para poder reproducirlo.
+6. **Robustez y fallback:**
+   - Detección de GPU en tiempo de ejecución; si no hay GPU o falla la inicialización, usa CPU y emite un log claro.
+   - Manejo de OOM de VRAM: reduce el tamaño de lote y reintenta; si no basta, haz fallback a CPU para ese trabajo, según política configurable.
+   - Timeouts y cancelación de trabajos que liberen recursos GPU correctamente.
+   - Límites configurables: GPUs permitidas, VRAM máxima por trabajo, concurrencia por dispositivo.
+7. **Licencias:** el CUDA Toolkit es propietario. Debe ser una dependencia **opcional**, nunca obligatoria. Documenta esto en el README y respeta la regla de no incluir dependencias propietarias obligatorias.
+
+### Almacenamiento y colas
+
+- No elijas todavía una base de datos, motor de colas ni proveedor de almacenamiento específico.
+- En su lugar, define interfaces y contratos claros para:
+  - Persistencia de usuarios, proyectos, plantillas, trabajos, presets y resultados.
+  - Cola de trabajos asíncronos (incluyendo metadatos de requisitos de cómputo del trabajo, por ejemplo, "requiere GPU", "prefiere GPU", "solo CPU").
+  - Almacenamiento de archivos binarios y artefactos generados.
+  - Cache de previsualizaciones.
+- Deja la implementación concreta desacoplada mediante puertos/adaptadores, de modo que pueda sustituirse sin reescribir la lógica de negocio.
+
+## Manejo de logs
+
+Implementa un sistema de logging moderno y estructurado para texto y JSON:
+
+- Logs estructurados en JSON en producción.
+- Logs legibles en texto para desarrollo local.
+- Niveles configurables: trace, debug, info, warn y error.
+- Contexto por solicitud y por trabajo: request ID, job ID, user ID, plantilla, seed, duración y resultado.
+- **Contexto de cómputo:** backend usado (cpu/cuda), ID y nombre del dispositivo, tamaño de lote, tiempos por etapa (transferencia, kernels, postproceso), VRAM usada/pico, y eventos de fallback u OOM.
+- No registres secretos, tokens, contenido sensible de usuarios ni datos personales innecesarios.
+- Incluye correlación entre logs del frontend, API Java, worker Rust y servicios Python mediante IDs de trazabilidad (por ejemplo, W3C Trace Context) propagados en cada llamada y mensaje de la cola.
+- Usa **el mismo esquema de eventos JSON en los tres lenguajes**, con librerías de logging idiomáticas de cada ecosistema configuradas para producir campos idénticos.
+- Define un formato común de eventos para errores, inicio/fin de trabajos, progreso y fallos de renderizado, incluyendo fallos de CUDA (código de error, kernel, dispositivo).
+- Expón métricas de observabilidad relevantes: variantes por segundo por backend, utilización y memoria de GPU, profundidad de cola, tasa de fallbacks.
+
+## Calidad de ingeniería
+
+- Código limpio, tipado, modular y bien documentado.
+- Arquitectura hexagonal o similar, con dominio independiente de frameworks.
+- Tests unitarios para el motor generativo, especialmente determinismo, límites, validaciones y transformaciones.
+- **Tests de paridad CPU?GPU:** mismas entradas en ambos backends; comprobar decisiones discretas idénticas y diferencias de píxel dentro de la tolerancia definida. Estos tests se ejecutan solo si hay GPU disponible y se omiten limpiamente en caso contrario.
+- Tests de determinismo en GPU: múltiples ejecuciones con la misma seed producen salida idéntica.
+- Tests de integración para API, carga de plantillas, generación de lotes y exportación.
+- Tests de contrato entre servicios de distinto lenguaje y un test de extremo a extremo que recorra Java ? Rust (? Python cuando esté habilitado) con propagación de trace ID.
+- Cada lenguaje usa su tooling estándar de formato, lint y tests (por ejemplo, `cargo fmt/clippy/test` en Rust, linter y tests propios en Java y Python con tipado estático en Python), ejecutados en CI.
+- Pruebas de fallback (incluida la ausencia o caída de los servicios Python): simular ausencia de GPU, error de inicialización y OOM.
+- **Benchmarks reproducibles** (por ejemplo, con criterion) que comparen CPU y GPU por etapa y de extremo a extremo, para distintas resoluciones y tamaños de lote. Documenta los resultados medidos con el hardware usado; no afirmes aceleraciones que no hayas medido.
+- Manejo robusto de archivos inválidos, plantillas corruptas, recursos excesivos y errores de renderizado.
+- Validación de límites: tamaño máximo de archivo, cantidad máxima de variantes, memoria (RAM y VRAM), tiempo de ejecución y concurrencia.
+- Configuración mediante variables de entorno o archivos de configuración, sin secretos en el repositorio.
+- Dockerfile(s) y composición local para desarrollo:
+  - Imagen del worker solo CPU (por defecto).
+  - Imagen alternativa del worker con CUDA (base `nvidia/cuda`), documentando el requisito de NVIDIA Container Toolkit y la reserva de GPU en la composición.
+  - Sin comprometer la elección final de infraestructura.
+- CI: el pipeline principal corre sin GPU (compilación con y sin la feature `cuda` cuando sea posible, tests CPU); documenta cómo ejecutar los tests GPU en un runner con GPU.
+- README con arquitectura, instalación (con y sin CUDA), ejecución, API, ejemplos, tabla de rendimiento medido y guía de contribución.
+- LICENSE open source apropiada.
+
+## Experiencia de usuario
+
+Diseña un flujo simple:
+
+1. El usuario crea un proyecto.
+2. Carga una o varias plantillas semilla.
+3. Configura reglas generativas y restricciones.
+4. Previsualiza un conjunto pequeño de variantes.
+5. Ajusta parámetros y guarda un preset.
+6. Lanza un lote grande, eligiendo backend (auto/CPU/GPU) si lo desea.
+7. Supervisa el progreso, incluyendo velocidad (variantes/segundo) y dispositivo usado.
+8. Revisa, selecciona y exporta las variantes.
+
+La interfaz debe comunicar claramente qué parámetros afectan el resultado y permitir regenerar variantes sin perder el contexto. Debe explicar de forma comprensible si un resultado difiere mínimamente entre CPU y GPU y cómo reproducirlo exactamente.
+
+## Restricciones importantes
+
+- No uses assets, marcas, logotipos, textos ni ejemplos visuales de HP.
+- No implementes ni aproximes directamente el algoritmo patentado de HP Mosaic.
+- No incluyas dependencias propietarias obligatorias (CUDA es opcional y está aislado tras una feature flag).
+- No hardcodees bases de datos, brokers, proveedores cloud ni formatos de almacenamiento.
+- No uses más lenguajes que Java, Rust y Python en el backend (y TypeScript en el frontend), y no los mezcles dentro de un mismo componente sin una razón técnica documentada.
+- Next.js no debe convertirse en un segundo backend: sin lógica de negocio, persistencia ni cómputo generativo en él.
+- Ninguna dependencia de Python o ML puede ser obligatoria para el flujo principal de generación.
+- No generes código muerto ni abstracciones innecesarias; la abstracción `ComputeBackend` se justifica por tener dos implementaciones reales.
+- No muevas una etapa a GPU sin medir antes que supera a la versión CPU para tamaños de lote realistas.
+- Prioriza un MVP funcional, pero deja la arquitectura preparada para escalar a generación masiva y múltiples GPUs.
+
+## Entregables iniciales
+
+1. Estructura del monorepo o repositorio, con un directorio por servicio/lenguaje y otro para contratos compartidos.
+2. Matriz de decisión de lenguajes y tecnologías por componente (incluido el frontend Next.js/TypeScript y su frontera con la API Java).
+3. Diseño de dominio y contratos entre Java, Rust, Python y frontend (incluyendo capacidades de cómputo de los workers y preferencia de backend por trabajo).
+4. API inicial.
+5. Motor generativo en Rust con transformaciones básicas, determinismo y backend CPU de referencia.
+6. Backend CUDA con al menos: PRNG por contador, transformación de color por píxel, composición de capas y rasterización básica, con fallback a CPU.
+7. Frontend con carga de plantilla, configuración y previsualización.
+8. Sistema de trabajos asíncronos con progreso.
+9. Logging estructurado JSON/texto con contexto de cómputo.
+10. Tests esenciales, incluyendo paridad CPU?GPU y benchmarks.
+11. Documentación y instrucciones de ejecución local (con y sin GPU).
+
+## Forma de trabajo
+
+Empieza creando un plan técnico breve, luego implementa el MVP de forma incremental. Antes de escribir código, propón:
+
+- La estructura de carpetas.
+- Los contratos principales.
+- Las decisiones técnicas (incluida la elección de bindings CUDA y la estrategia de determinismo CPU/GPU).
+- Un perfil preliminar de qué etapas del pipeline se espera acelerar en GPU y cómo lo validarás con mediciones.
+
+Implementa primero el backend CPU completo y correcto; después añade el backend CUDA etapa por etapa, verificando paridad y rendimiento en cada paso.
