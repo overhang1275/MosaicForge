@@ -26,7 +26,7 @@ Cada fase tiene un documento ejecutable propio y termina con checks, evidencia e
 
 - [x] ~~Tarea 1: contratos y validación de entrada/resultados; hash de configuración independiente del bloque.~~ Commit 2f1e6d4; diez tests, formato y Clippy pasan.
 - [x] ~~Tarea 2: PRNG y dominio (seed, índice, regla, intento, muestra) con vectores de referencia.~~ Commit 30ac241; siete pruebas RNG y diez de contratos pasan.
-- [ ] Tarea 3: importación segura, normalización y límites SVG.
+- [x] ~~Tarea 3: importación segura, normalización y límites SVG.~~ Commit cf8c819; quince tests SVG, suite total de 32 y checks pasan. Subconjunto y límites en svg-admitido.md.
 - [ ] Tarea 4: geometría, color, capas, recorte y distorsión acotada; rechazo explícito por índice.
 - [ ] Tarea 5: SVG vectorial y PNG con resvg/tiny-skia, presupuesto de buffers.
 - [ ] Tarea 6: CLI incremental, cancelación y errores de E/S sin sobrescritura ni artefactos finales incompletos.

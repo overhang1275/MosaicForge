@@ -10,6 +10,7 @@
 4. adr/0002-orden-incremental.md y diseno-mvp.md.
 5. superpowers/plans/2026-10-14-motor-cpu.md y avance-tarea-1.md.
 6. avance-tarea-2.md, adr/0003-determinismo.md y graphify.md.
+7. avance-tarea-3.md y svg-admitido.md.
 
 ## Instrucciones vigentes del usuario
 
@@ -35,11 +36,12 @@
 - [x] ~~Usuario autorizó continuar fase 1 con tarea 2 después de Graphify.~~
 - [x] ~~Generar grafo del snapshot de tarea 1 y registrar sus límites.~~
 - [x] ~~Fase 1, tarea 2: PRNG determinista.~~
-- [ ] Fase 1, tareas 3–6: SVG seguro, reglas, PNG y CLI.
+- [x] ~~Fase 1, tarea 3: importación SVG segura y normalización.~~
+- [ ] Fase 1, tareas 4–6: reglas, PNG y CLI.
 - [ ] Evidencia de una variante SVG/PNG, determinismo y perfil CPU.
 - [ ] Confirmación explícita para pasar a fase 2.
 
-Las tareas 1–2 no son un motor generativo funcional: existen contratos, validación/hash y PRNG; no hay importador SVG, renderer, CLI, web, Java ni infraestructura implementados.
+Las tareas 1–3 aún no son un generador funcional: existen contratos, validación/hash, PRNG e importador SVG; no hay reglas generativas, renderer, CLI, web, Java ni infraestructura implementados.
 
 ## Evidencia técnica
 
@@ -51,6 +53,7 @@ Las tareas 1–2 no son un motor generativo funcional: existen contratos, valida
 - Revisión independiente por lectura: dos P2 corregidos (null/schema y overflow de resultado); revisión posterior sin hallazgos materiales.
 - Licencias declaradas de dependencias fijadas registradas en dependencias-motor.md; LICENSE del producto pendiente.
 - Tarea 2: siete tests RNG añadidos; RED observado antes de implementación, GREEN total 17 tests; fmt/Clippy también pasan. Revisión independiente por lectura sin hallazgos materiales.
+- Tarea 3: quince tests SVG nuevos; RED inicial y reproducciones de revisión comprobadas, GREEN total 32 tests. fmt/Clippy --locked -D warnings pasan. Revisión por lectura: todos los hallazgos originales corregidos, último P2 local/acumulado confirmado resuelto. Sin medir RAM o throughput.
 - No hay benchmarks de render, pruebas CUDA, tests de generación ni pruebas de fronteras Java/web ejecutados todavía. El benchmark de Graphify estima tokens de navegación, no rendimiento del motor.
 
 ## Git y recuperación
@@ -61,6 +64,7 @@ Las tareas 1–2 no son un motor generativo funcional: existen contratos, valida
 | 1c8f5ed | Registro de baseline | Commit documental |
 | 2f1e6d4 | Contratos y validación Rust tarea 1 | Diez tests, fmt, Clippy, revisión corregida |
 | 30ac241 | Philox y dominio de muestreo tarea 2 | 17 tests, fmt, Clippy, revisión sin hallazgos |
+| cf8c819 | Importador SVG seguro y normalización tarea 3 | 32 tests, fmt, Clippy, hallazgos originales resueltos |
 
 Autor técnico de commits: Codex <codex@localhost>, configuración por comando, sin cambiar identidad global. No se hizo push, merge, reset ni clean. No se versionan target/, dependencias descargadas ni resultados de usuarios.
 
@@ -76,4 +80,4 @@ Autor técnico de commits: Codex <codex@localhost>, configuración por comando, 
 
 ## Punto exacto para continuar
 
-Tarea 2 terminada. Siguiente: fase 1 tarea 3, importación SVG segura, a partir del plan ejecutable. La autorización de esta solicitud fue terminar grafo y hacer tarea 2; no iniciar tarea 3 automáticamente. No repetir tareas 1–2. No pasar a fase 2 sin confirmación explícita ni volver a pedir tecnologías ya aceptadas.
+Tarea 3 terminada. Siguiente: fase 1 tarea 4, reglas y SVG reproducible, a partir del plan ejecutable; consultar svg-admitido.md y propiedades de Template para compatibilidad. La solicitud actual autorizó tarea 3, no iniciar tarea 4 automáticamente. No repetir tareas 1–3 ni pasar a fase 2 sin confirmación explícita. El grafo sigue siendo snapshot anterior a tarea 2.
