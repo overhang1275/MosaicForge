@@ -51,8 +51,7 @@ struct Geometry {
     stats: GeometryStats,
     flattened: usize,
 }
-pub fn optimize_page(svg: &[u8], job: &PdfJobSpec) -> Result<OptimizedPage, EngineError> {
-    let boxes = page_boxes(job)?;
+fn svg_tree(svg: &[u8]) -> Result<(usvg::Tree, usize), EngineError> {
     let safe = mosaicforge_core::template::import_svg(svg)?;
     let options = usvg::Options {
         image_href_resolver: usvg::ImageHrefResolver {
@@ -63,11 +62,34 @@ pub fn optimize_page(svg: &[u8], job: &PdfJobSpec) -> Result<OptimizedPage, Engi
     };
     let tree = usvg::Tree::from_str(&safe.normalized_svg, &options)
         .map_err(|_| EngineError::InvalidSvg("cannot parse PDF SVG"))?;
+    Ok((tree, safe.segment_count))
+}
+fn cover_transform(tree: &usvg::Tree, boxes: &PageBoxes) -> Transform {
     let (w, h) = (tree.size().width(), tree.size().height());
     let scale = ((boxes.trim[2] - boxes.trim[0]) / w).max((boxes.trim[3] - boxes.trim[1]) / h);
     let tx = (boxes.trim[0] + boxes.trim[2] - w * scale) / 2.0;
     let ty = (boxes.trim[1] + boxes.trim[3] - h * scale) / 2.0;
-    let transform = Transform::from_row(scale, 0.0, 0.0, scale, tx, ty);
+    Transform::from_row(scale, 0.0, 0.0, scale, tx, ty)
+}
+
+/// Input has the generation viewport but no added export background. Use the
+/// exact same trim-to-media transform as vector export, including bleed.
+pub(super) fn measure_artwork_coverage(
+    svg: &[u8],
+    job: &PdfJobSpec,
+) -> Result<mosaicforge_core::constraints::Coverage, EngineError> {
+    let boxes = page_boxes(job)?;
+    let (tree, _) = svg_tree(svg)?;
+    let transform = Transform::from_scale(256.0 / boxes.media[2], 256.0 / boxes.media[3])
+        .pre_concat(cover_transform(&tree, &boxes));
+    let mut mask = resvg::tiny_skia::Pixmap::new(256, 256).ok_or_else(failed)?;
+    resvg::render(&tree, transform, &mut mask.as_mut());
+    mosaicforge_core::constraints::measure_mask_coverage(&mask)
+}
+pub fn optimize_page(svg: &[u8], job: &PdfJobSpec) -> Result<OptimizedPage, EngineError> {
+    let boxes = page_boxes(job)?;
+    let (tree, input_segments) = svg_tree(svg)?;
+    let transform = cover_transform(&tree, &boxes);
     let boundary = vec![vec![
         [0.0, 0.0],
         [boxes.media[2] as f64, 0.0],
@@ -76,7 +98,7 @@ pub fn optimize_page(svg: &[u8], job: &PdfJobSpec) -> Result<OptimizedPage, Engi
     ]];
     let mut geo = Geometry {
         stats: GeometryStats {
-            input_segments: safe.segment_count,
+            input_segments,
             ..Default::default()
         },
         flattened: 0,

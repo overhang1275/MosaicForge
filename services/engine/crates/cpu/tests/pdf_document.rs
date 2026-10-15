@@ -118,3 +118,25 @@ fn rejected_indices_leave_no_page_gaps_and_u64_max_is_preserved() {
     .unwrap();
     assert_eq!(last.unwrap().variant.index.as_str(), u64::MAX.to_string());
 }
+
+#[test]
+fn physical_pdf_cover_cannot_publish_blank_artwork_hidden_by_background() {
+    let (_, mut job) = setup(1);
+    let template=import_svg(br##"<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><g><rect width="49" height="100"/><rect x="51" width="49" height="100"/></g></svg>"##).unwrap();
+    job.generation.template_hash = template.hash.parse().unwrap();
+    job.generation.output.background = "#ffffff".parse().unwrap();
+    job.pdf.trim_width_mm = 1.0;
+    job.pdf.trim_height_mm = 1000.0;
+    let mut bytes = Vec::new();
+    assert!(generate_pdf(&template, &job, 7, &mut bytes, |_| Ok(())).is_err());
+    assert!(bytes.is_empty(), "fail before adding a blank physical page");
+    job.pdf.trim_width_mm = 100.0;
+    job.pdf.trim_height_mm = 100.0;
+    job.generation.output.width = 4096.try_into().unwrap();
+    job.generation.output.height = 32.try_into().unwrap();
+    assert!(
+        generate_pdf(&template, &job, 7, &mut bytes, |_| Ok(())).is_err(),
+        "composed SVG and physical covers must be measured together"
+    );
+    assert!(bytes.is_empty());
+}

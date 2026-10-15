@@ -58,17 +58,17 @@
 - [x] ~~5.5 autorizado y terminado: flujo integrado validado con test.svg preparado, seis artefactos y rechazo.~~
 - [x] ~~Inicio de diseño 5.6 autorizado; primera prueba elegida de 100 × 100 mm, sin sangrado.~~
 - [x] ~~5.6 y tarea 5 completos: PDF vectorial único, recorte real, contratos, métricas y revisión independiente.~~
-- [ ] Fase 1, tarea 6: CLI incremental, publicación sin sobrescritura y cancelación.
+- [x] ~~Fase 1, tarea 6: CLI incremental, publicación sin sobrescritura y cancelación.~~
 - [x] ~~6.1: binario mosaicforge e inspect, lectura acotada y metadata JSON; 102 tests y checks pasan.~~
 - [x] ~~Usuario autorizó 6.2 y 6.3 juntos. 6.2 completo: generación SVG/PNG y publicación segura, 109 tests y checks pasan.~~
 - [x] ~~6.3 completo: grupos N, 1|2 hilos y presupuesto PNG compartido; 201 variantes reproducibles, 115 tests y checks pasan, revisión sin bloqueos.~~
 - [x] ~~6.4 autorizado y terminado: manifiesto persistente exclusivo, resultados de toda la ventana y Ctrl+C cooperativo; 122 tests y checks pasan, señal real Windows exit 130.~~
 - [x] ~~6.5 autorizado y terminado: generate-pdf, un PDF por trabajo, cancelación/publicación segura, 129 tests y QA real de tres páginas pasan.~~
-- [ ] Confirmación antes de 6.6: perfil por etapa/RAM, revisión independiente global y cierre de fase 1.
-- [ ] Evidencia de una variante SVG/PNG, determinismo y perfil CPU.
+- [x] ~~6.6 autorizado y terminado: perfil release por etapa y memoria, revisión global, encuadre final corregido y cierre funcional de fase 1. 131 tests pasan.~~
+- [x] ~~Evidencia real SVG/PNG/PDF, determinismo y perfil CPU registrados en perfil-cpu-fase1.md y mediciones/.~~
 - [ ] Confirmación explícita para pasar a fase 2.
 
-Existen generador, reglas/validación, SVG/PNG integrados y PDF vectorial único con dimensiones físicas, sangrado, recorte real y hashes separados. Validado con copia preparada de test.svg, Poppler/pypdf y revisión independiente. Faltan CLI/publicación/cancelación, perfil por etapas, web, Java e infraestructura. La máscara pequeña sigue siendo solo validación de cobertura.
+Existen generador, reglas/validación, SVG/PNG integrados y PDF vectorial único con dimensiones físicas, sangrado, recorte real y hashes separados. Validado con copia preparada de test.svg, Poppler/pypdf y revisión independiente. CLI/publicación/cancelación y perfil por etapas completos. Web, Java e infraestructura corresponden a fases posteriores. La máscara pequeña sigue siendo solo validación de cobertura.
 
 ## Evidencia técnica
 
@@ -92,7 +92,7 @@ Existen generador, reglas/validación, SVG/PNG integrados y PDF vectorial único
 - Submódulo 5.4: cpu::export::generate_and_export devuelve candidato y bytes finales opcionales; SHA-256 tras exportación completa, rechazos sin bytes/hash y errores propagados. RED tres fallos observado, GREEN 86 tests workspace, fmt/Clippy pasan; cinco locales omitidos, no repetidos. Orden/subrangos/tres hilos comprobados con SVG/PNG. Sin nuevos paquetes externos ni schemas. Evidencia en avance-tarea-5.4.md.
 - Submódulo 5.5: nuevo test local integra generación/exportación/hash sobre la copia preparada de test.svg; seis artefactos aceptados y repetidos por subrangos, bytes iguales a 5.3, SHA-256 verificado además con Python, píxeles SVG/PNG idénticos y revisión visual de tres PNG. Rechazo empty_viewport tras ocho intentos sin artefacto; fuentes intactas. Suite normal 86 tests, seis locales omitidos; el nuevo local se ejecutó aparte y pasó. Formato/Clippy pasan. Solo tests/docs, sin cambios de producto. Evidencia en avance-tarea-5.5.md.
 - Submódulo 5.6: contratos PDF nuevos, tipos/validadores, recorte real y writer por objetos. 95 tests normales (73 core + 22 cpu), nueve locales omitidos; tres PDF locales ejecutados aparte, formato/Clippy pasan. PDF final 3 páginas de 100 mm, 2730275 bytes; cero imágenes raster, hash/mapa/referencias y siete páginas visuales comprobados. Baseline propio: reducción de peso 63.91% en una muestra, sin garantía general ni de Fiery. Pico OS del proceso de test: 74.62 MiB residente y 149.47 MiB commit privado. Revisión independiente: un P1 de autointersecciones corregido con regresión, revisión posterior sin hallazgos importantes. Evidencia en avance-tarea-5.6.md y ADR 0005.
-- No hay benchmarks release por etapa, pruebas CUDA ni pruebas de fronteras Java/web ejecutados todavía. La medición de 5.6 incluye el proceso de test completo, no solo el exportador. El benchmark de Graphify estima tokens de navegación, no rendimiento del motor.
+- 6.6: perfil release por etapa y ocho procesos CLI medidos; 131 tests normales pasan y diez locales ignorados por defecto. Nuevo perfil local ejecutado aparte; QA PDF real pasa. Revisión global sin bloqueos P1/P2 tras corregir cobertura del encuadre final con regresiones SVG/PNG y PDF. Detalles en avance-tarea-6.6.md. No hay pruebas CUDA ni de fronteras Java/web ejecutadas todavía. La medición de 5.6 incluye el proceso de test completo, no solo el exportador. El benchmark de Graphify estima tokens de navegación, no rendimiento del motor.
 
 ## Git y recuperación
 
@@ -118,6 +118,7 @@ Existen generador, reglas/validación, SVG/PNG integrados y PDF vectorial único
 | c8094ac | CLI generate SVG/PNG y publicación exclusiva 6.2 | 109 tests, formato/Clippy, carrera/escritura fallida y CLI real |
 | 3088cc7 | CLI grupos y concurrencia CPU acotada 6.3 | 115 tests, formato/Clippy, 201 variantes reproducibles y prueba real |
 | 04a5359 | Manifiesto incremental y cancelación CLI 6.4 | 122 tests, formato/Clippy, Ctrl+C real Windows exit 130 |
+| 1b9499f | CLI PDF único por trabajo 6.5 | 129 tests, formato/Clippy, cancelación real y QA PDF de tres páginas |
 
 Autor técnico de commits: Codex <codex@localhost>, configuración por comando, sin cambiar identidad global. No se hizo push, merge, reset ni clean. No se versionan target/, dependencias descargadas ni resultados de usuarios.
 
@@ -135,6 +136,10 @@ Autor técnico de commits: Codex <codex@localhost>, configuración por comando, 
 
 ## Punto exacto para continuar
 
-Tareas 1–5 y 6.1–6.5 completas. CLI inspect, generate SVG/PNG y generate-pdf, manifiesto exclusivo, Ctrl+C/AtomicBool y publicación sin reemplazo. 129 tests normales, fmt y Clippy pasan; nueve locales omitidos por defecto y QA real ejecutado aparte. PDF: un mosaic.pdf por trabajo, orden global y grupos N=1/7/100 comprobados sobre 201 variantes. Pipeline PDF secuencial, páginas provisionales en manifiesto; documento/hash final solo tras publicar. Cero aceptadas sin PDF vacío; errores/cancelación previa eliminan temporal. Cancelación real PDF Windows exit 130, una candidata provisional, ningún PDF final ni temporales. PDF real out/cli-6.5-pdf/mosaic.pdf: tres páginas 100×100 mm sin sangrado, 2 730 275 bytes, mismo hash que 5.6; QA pypdf/Poppler/visual pasa. Detalles en avance-tarea-6.5.md y ejecucion-motor.md.
+**Fase 1 funcional CPU/CLI completa; esperar confirmación explícita antes de fase 2.** Tareas 1–6 terminadas. README.md documenta inspect, generate SVG/PNG y generate-pdf; avance-tarea-6.6.md registra el cierre y perfil-cpu-fase1.md enlaza las mediciones conservadas. No iniciar frontend, transporte HTTP, Java ni infraestructura sin la siguiente autorización.
 
-**Esperar confirmación antes de 6.6**: perfil por etapa/RAM, revisión independiente global y cierre de fase 1. No avanzar a web/fase 2 sin terminar fase 1 y confirmar. Linux/macOS, RSS y latencia máxima de cancelación no medidos aquí. Fiery excluido. SVG/PNG mantienen 1|2 hilos y reserva compartida estimada de buffers PNG de 512 MiB, no cota de RSS. No hay transacción archivo/manifiesto: si falla el registro después de publicar puede quedar un archivo completo sin resultado final. Sin reemplazo ni reanudación automática. Grafo antiguo sin reconstruir; no repetir tareas completas. PDF/X/CMYK/millones de páginas no implementados o validados.
+131 tests normales pasan (74 core, 23 CPU, 34 CLI); formato y Clippy sin warnings pasan, build release CPU pasa. Diez tests locales ignorados por defecto: el perfil nuevo se ejecutó aparte, los otros nueve no se repitieron en 6.6. Ocho corridas reales CLI y QA pypdf/Poppler del PDF pasan; tres páginas de 100 × 100 mm sin sangrado, 2 730 275 bytes, idénticas a 5.6/6.5. Hashes SVG/PNG conservados entre N/hilos y baselines. Revisión independiente global sin bloqueos P1/P2 tras dos regresiones de cobertura: se valida el encuadre visible final y la composición de encuadres PDF, sin contar el fondo añadido como arte. Los casos afectados pueden cambiar respecto al snapshot previo: conservar el commit para reproducir versiones de desarrollo.
+
+Medición exploratoria PNG 512², 12 variantes: pico working set observado aproximadamente 27 MiB con un hilo y 41 MiB con dos. Una corrida por caso; no es una cota de RAM ni una aceleración general. SVG/PNG mantienen 1|2 hilos y reserva compartida estimada de buffers PNG de 512 MiB, distinta del consumo real. PDF secuencial y único por trabajo; páginas provisionales en manifiesto, documento/hash final solo tras publicar. No hay transacción archivo/manifiesto: un fallo del registro posterior a publicar puede dejar un archivo completo sin resultado final. Sin reemplazo ni reanudación automática.
+
+Prototipo local todavía sin publicar; LICENSE pendiente de elección antes de distribución pública y sin modificar. Linux/macOS, GPU, OOM real, latencia máxima de cancelación y millones de variantes no medidos. Fiery excluido. PDF/X/CMYK no implementados o validados. Grafo Graphify antiguo sin reconstruir; revisión contrastada con fuentes actuales. No repetir tareas completas.

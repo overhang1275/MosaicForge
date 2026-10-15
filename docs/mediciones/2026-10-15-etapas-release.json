@@ -1,0 +1,88 @@
+{
+  "backend": "cpu",
+  "build": "release",
+  "scope": "Accepted attempt replay; generate_inclusive includes retries and nested imports. Replayed times are not additive with it or CLI totals. File writes include sync_all but exclude CLI hard_link/manifests.",
+  "setupMilliseconds": {
+    "import_normalize_ms": 17.3914,
+    "read_template_ms": 0.6072
+  },
+  "templateBytes": 777922,
+  "templateHash": "e8cfd87f3c8684427494222a03db48bbc8f2bfa1e5c6170ede7a556046474cac",
+  "variants": [
+    {
+      "attempts": 1,
+      "index": 0,
+      "milliseconds": {
+        "appearance_ms": 48.3376,
+        "coverage_validation_ms": 59.1201,
+        "distortion_ms": 18.6096,
+        "fit_frame_ms": 17.4648,
+        "generate_inclusive_ms": 257.6775,
+        "geometry_ms": 44.7897,
+        "hash_svg_and_png_ms": 0.4682,
+        "png_encode_ms": 12.338999999999999,
+        "png_prepare_ms": 63.362500000000004,
+        "raster_allocate_fill_ms": 0.242,
+        "raster_render_ms": 31.5727,
+        "sample_rules_ms": 0.0009,
+        "svg_serialize_validate_ms": 78.9267,
+        "write_sync_svg_and_png_ms": 8.2354
+      },
+      "pngBytes": 156608,
+      "pngHash": "79a61dd36b58ec4934fa136d2604b4de9f329a8ec43f884261438d6f0e020966",
+      "pngReservedBytes": 47750490,
+      "svgBytes": 771703,
+      "svgHash": "b034fb2c67793a19fc7ba0d89ec575a693a738d83b8702d1fdd5ba22c7762c52"
+    },
+    {
+      "attempts": 1,
+      "index": 1,
+      "milliseconds": {
+        "appearance_ms": 44.9712,
+        "coverage_validation_ms": 60.5807,
+        "distortion_ms": 16.577499999999997,
+        "fit_frame_ms": 16.5119,
+        "generate_inclusive_ms": 208.6714,
+        "geometry_ms": 36.8085,
+        "hash_svg_and_png_ms": 0.4869,
+        "png_encode_ms": 14.2139,
+        "png_prepare_ms": 67.20479999999999,
+        "raster_allocate_fill_ms": 0.2356,
+        "raster_render_ms": 37.9069,
+        "sample_rules_ms": 0.001,
+        "svg_serialize_validate_ms": 76.5801,
+        "write_sync_svg_and_png_ms": 7.4468
+      },
+      "pngBytes": 170369,
+      "pngHash": "54ae0989bd3a155de68fe1c876060b375723c5a284fcb44928416f68ed0373e5",
+      "pngReservedBytes": 42792888,
+      "svgBytes": 771705,
+      "svgHash": "866f2340e043a6babe264f16a68471cc791fe4679329c06ad480eacf2363d935"
+    },
+    {
+      "attempts": 4,
+      "index": 2,
+      "milliseconds": {
+        "appearance_ms": 46.8868,
+        "coverage_validation_ms": 57.2956,
+        "distortion_ms": 17.4478,
+        "fit_frame_ms": 17.8537,
+        "generate_inclusive_ms": 277.678,
+        "geometry_ms": 38.8915,
+        "hash_svg_and_png_ms": 0.4699,
+        "png_encode_ms": 12.5247,
+        "png_prepare_ms": 63.357499999999995,
+        "raster_allocate_fill_ms": 0.46040000000000003,
+        "raster_render_ms": 34.1731,
+        "sample_rules_ms": 0.0015,
+        "svg_serialize_validate_ms": 76.0222,
+        "write_sync_svg_and_png_ms": 7.468500000000001
+      },
+      "pngBytes": 162086,
+      "pngHash": "dfb3429fc82193ca71c0aa5510c6a6e1d19a728fb7a4a47567b9a82722039208",
+      "pngReservedBytes": 40955518,
+      "svgBytes": 771707,
+      "svgHash": "ee09f3f34fbb4b7db8b1b0c67e176ebe5f8625a23fec903f34c1e3599e1d2dbb"
+    }
+  ]
+}

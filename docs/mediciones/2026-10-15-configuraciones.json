@@ -1,0 +1,235 @@
+{
+  "stages": {
+    "count": 3,
+    "engineVersion": "0.1.0",
+    "output": {
+      "background": "#ffffff",
+      "format": "svg",
+      "height": 512,
+      "width": 512
+    },
+    "rules": {
+      "crop": {
+        "height": 120.0,
+        "width": 120.0,
+        "x": 12.0,
+        "y": 12.0
+      },
+      "distortion": 0.0,
+      "mirrorX": false,
+      "mirrorY": false,
+      "opacity": {
+        "max": 1.0,
+        "min": 0.8
+      },
+      "palette": [
+        "#ed5a33",
+        "#187d9b",
+        "#7346ad"
+      ],
+      "rotationDegrees": {
+        "max": 180.0,
+        "min": -180.0
+      },
+      "scaleX": {
+        "max": 1.55,
+        "min": 1.05
+      },
+      "scaleY": {
+        "max": 1.55,
+        "min": 1.05
+      },
+      "shuffleLayers": false,
+      "translateX": {
+        "max": 14.0,
+        "min": -14.0
+      },
+      "translateY": {
+        "max": 14.0,
+        "min": -14.0
+      }
+    },
+    "rulesVersion": "1",
+    "schemaVersion": "1",
+    "seed": "18446744073709551615",
+    "startIndex": "0",
+    "templateHash": "e8cfd87f3c8684427494222a03db48bbc8f2bfa1e5c6170ede7a556046474cac"
+  },
+  "svg": {
+    "count": 12,
+    "engineVersion": "0.1.0",
+    "output": {
+      "background": "#ffffff",
+      "format": "svg",
+      "height": 512,
+      "width": 512
+    },
+    "rules": {
+      "crop": {
+        "height": 120.0,
+        "width": 120.0,
+        "x": 12.0,
+        "y": 12.0
+      },
+      "distortion": 0.0,
+      "mirrorX": false,
+      "mirrorY": false,
+      "opacity": {
+        "max": 1.0,
+        "min": 0.8
+      },
+      "palette": [
+        "#ed5a33",
+        "#187d9b",
+        "#7346ad"
+      ],
+      "rotationDegrees": {
+        "max": 180.0,
+        "min": -180.0
+      },
+      "scaleX": {
+        "max": 1.55,
+        "min": 1.05
+      },
+      "scaleY": {
+        "max": 1.55,
+        "min": 1.05
+      },
+      "shuffleLayers": false,
+      "translateX": {
+        "max": 14.0,
+        "min": -14.0
+      },
+      "translateY": {
+        "max": 14.0,
+        "min": -14.0
+      }
+    },
+    "rulesVersion": "1",
+    "schemaVersion": "1",
+    "seed": "18446744073709551615",
+    "startIndex": "0",
+    "templateHash": "e8cfd87f3c8684427494222a03db48bbc8f2bfa1e5c6170ede7a556046474cac"
+  },
+  "png": {
+    "count": 12,
+    "engineVersion": "0.1.0",
+    "output": {
+      "background": "#ffffff",
+      "format": "png",
+      "height": 512,
+      "width": 512
+    },
+    "rules": {
+      "crop": {
+        "height": 120.0,
+        "width": 120.0,
+        "x": 12.0,
+        "y": 12.0
+      },
+      "distortion": 0.0,
+      "mirrorX": false,
+      "mirrorY": false,
+      "opacity": {
+        "max": 1.0,
+        "min": 0.8
+      },
+      "palette": [
+        "#ed5a33",
+        "#187d9b",
+        "#7346ad"
+      ],
+      "rotationDegrees": {
+        "max": 180.0,
+        "min": -180.0
+      },
+      "scaleX": {
+        "max": 1.55,
+        "min": 1.05
+      },
+      "scaleY": {
+        "max": 1.55,
+        "min": 1.05
+      },
+      "shuffleLayers": false,
+      "translateX": {
+        "max": 14.0,
+        "min": -14.0
+      },
+      "translateY": {
+        "max": 14.0,
+        "min": -14.0
+      }
+    },
+    "rulesVersion": "1",
+    "schemaVersion": "1",
+    "seed": "18446744073709551615",
+    "startIndex": "0",
+    "templateHash": "e8cfd87f3c8684427494222a03db48bbc8f2bfa1e5c6170ede7a556046474cac"
+  },
+  "pdf": {
+    "generation": {
+      "count": 3,
+      "engineVersion": "0.1.0",
+      "output": {
+        "background": "#ffffff",
+        "format": "svg",
+        "height": 512,
+        "width": 512
+      },
+      "rules": {
+        "crop": {
+          "height": 120.0,
+          "width": 120.0,
+          "x": 12.0,
+          "y": 12.0
+        },
+        "distortion": 0.0,
+        "mirrorX": false,
+        "mirrorY": false,
+        "opacity": {
+          "max": 1.0,
+          "min": 0.8
+        },
+        "palette": [
+          "#ed5a33",
+          "#187d9b",
+          "#7346ad"
+        ],
+        "rotationDegrees": {
+          "max": 180.0,
+          "min": -180.0
+        },
+        "scaleX": {
+          "max": 1.55,
+          "min": 1.05
+        },
+        "scaleY": {
+          "max": 1.55,
+          "min": 1.05
+        },
+        "shuffleLayers": false,
+        "translateX": {
+          "max": 14.0,
+          "min": -14.0
+        },
+        "translateY": {
+          "max": 14.0,
+          "min": -14.0
+        }
+      },
+      "rulesVersion": "1",
+      "schemaVersion": "1",
+      "seed": "18446744073709551615",
+      "startIndex": "0",
+      "templateHash": "e8cfd87f3c8684427494222a03db48bbc8f2bfa1e5c6170ede7a556046474cac"
+    },
+    "pdf": {
+      "bleedMm": 0.0,
+      "exporterVersion": "1",
+      "trimHeightMm": 100.0,
+      "trimWidthMm": 100.0
+    },
+    "schemaVersion": "1"
+  }
+}

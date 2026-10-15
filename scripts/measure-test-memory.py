@@ -22,6 +22,7 @@ def main():
     parser.add_argument("--exe", type=Path, required=True)
     parser.add_argument("--cwd", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--scope", default="Entire child process specified by --exe; excludes compiler and parent monitor")
     parser.add_argument("arguments", nargs=argparse.REMAINDER)
     args = parser.parse_args()
     assert os.name == "nt", "This monitor requires Windows PSAPI"
@@ -49,7 +50,7 @@ def main():
               "peak_working_set_bytes": peak_working_set,
               "peak_private_commit_bytes": peak_private_commit, "samples": samples,
               "command": [str(args.exe.resolve()), *arguments],
-              "scope": "Entire test process including template generation, PDF export and PNG references; excludes compiler and parent monitor"}
+              "scope": args.scope}
     with args.output.open("x") as handle:
         json.dump(result, handle, indent=2)
     print(json.dumps(result, indent=2))

@@ -18,6 +18,19 @@ pub struct Coverage {
     pub occupied_tiles: u16,
     pub empty_corner_tiles: u16,
 }
+impl Coverage {
+    pub fn rejection_reason(&self) -> Option<&'static str> {
+        if self.painted_pixels < 512 {
+            Some("empty_viewport")
+        } else if self.empty_corner_tiles != 0 {
+            Some("empty_corners")
+        } else if self.occupied_tiles < 250 {
+            Some("sparse_viewport")
+        } else {
+            None
+        }
+    }
+}
 
 fn output_crop(source: &Template, spec: &GenerationSpec) -> Result<[f64; 4], EngineError> {
     let [x, y, width, height] = source.view_box;
@@ -139,13 +152,13 @@ pub fn search_candidate(
             }
             Err(error) => return Err(error),
         };
-        let coverage = measure_coverage(&candidate)?;
-        reason = if coverage.painted_pixels < 512 {
-            "empty_viewport"
-        } else if coverage.empty_corner_tiles != 0 {
-            "empty_corners"
-        } else if coverage.occupied_tiles < 250 {
-            "sparse_viewport"
+        let coverage = measure_viewport_coverage(
+            &candidate,
+            spec.output.width.get() as f64,
+            spec.output.height.get() as f64,
+        )?;
+        if let Some(rejection) = coverage.rejection_reason() {
+            reason = rejection;
         } else {
             return Ok(CandidateDecision {
                 template: Some(candidate),
@@ -154,7 +167,7 @@ pub fn search_candidate(
                 reason: None,
                 coverage: Some(coverage),
             });
-        };
+        }
         last_coverage = Some(coverage);
     }
     Ok(CandidateDecision {
@@ -168,12 +181,33 @@ pub fn search_candidate(
 
 pub fn measure_coverage(template: &Template) -> Result<Coverage, EngineError> {
     let source = import_svg(template.normalized_svg.as_bytes())?;
-    // Measure the crop itself; original width/height can letterbox a differently shaped crop.
+    measure_viewport_coverage(&source, source.view_box[2], source.view_box[3])
+}
+
+/// Measures artwork after the same centred cover used by the exporters, without
+/// adding the configured background. Physical PDF sizes may be fractional.
+pub fn measure_viewport_coverage(
+    template: &Template,
+    width: f64,
+    height: f64,
+) -> Result<Coverage, EngineError> {
+    if !width.is_finite() || !height.is_finite() || width <= 0.0 || height <= 0.0 {
+        return Err(EngineError::InvalidSpec(
+            "coverage viewport must be finite and positive",
+        ));
+    }
+    let source = import_svg(template.normalized_svg.as_bytes())?;
     let mut root = crate::appearance::Element::read(&source.normalized_svg)?;
+    root.attrs.entry("viewBox".into()).or_insert_with(|| {
+        format!(
+            "{} {} {} {}",
+            source.view_box[0], source.view_box[1], source.view_box[2], source.view_box[3]
+        )
+    });
+    root.attrs.insert("width".into(), width.to_string());
+    root.attrs.insert("height".into(), height.to_string());
     root.attrs
-        .insert("width".into(), source.view_box[2].to_string());
-    root.attrs
-        .insert("height".into(), source.view_box[3].to_string());
+        .insert("preserveAspectRatio".into(), "xMidYMid slice".into());
     let mut writer = quick_xml::Writer::new(Vec::new());
     root.write(&mut writer)?;
     let mask_svg = String::from_utf8(writer.into_inner())
@@ -187,6 +221,13 @@ pub fn measure_coverage(template: &Template) -> Result<Coverage, EngineError> {
         256.0 / tree.size().height(),
     );
     resvg::render(&tree, transform, &mut mask.as_mut());
+    measure_mask_coverage(&mask)
+}
+
+pub fn measure_mask_coverage(mask: &resvg::tiny_skia::Pixmap) -> Result<Coverage, EngineError> {
+    if mask.width() != 256 || mask.height() != 256 {
+        return Err(EngineError::InvalidSpec("coverage mask must be 256 by 256"));
+    }
     let mut tiles = [0u16; 256];
     let mut painted_pixels = 0;
     for (i, pixel) in mask.pixels().iter().enumerate() {

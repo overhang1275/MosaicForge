@@ -7,7 +7,7 @@ Fecha: 2026-10-15. Base 3c7139c. Usuario autorizó iniciar tarea 6 y **excluyó 
 - [x] ~~**6.3 Grupos y concurrencia:** --batch-size N y --threads 1|2; pool Rayon, ventanas acotadas y presupuesto PNG compartido. 201 variantes SVG/PNG reproducibles con N=1/7/100, subrangos y grupo incompleto; 115 tests y checks pasan.~~
 - [x] ~~**6.4 Manifiesto y cancelación:** manifest.jsonl exclusivo, cabecera/resultados/rechazos/resumen; Ctrl+C/AtomicBool y espera interrumpible. Writer/token inyectados, señal Windows real exit 130, 122 tests y checks pasan.~~
 - [x] ~~**6.5 Integración PDF:** generate-pdf con PdfJobSpec, documento único por trabajo, páginas/hash en manifiesto, temporal y publicación exclusiva. Cero aceptadas sin PDF vacío; cancelación/fallos y señal Windows real comprobados. 129 tests, checks y QA de tres páginas reales pasan.~~
-- [ ] **6.6 Validación y cierre de fase 1:** corridas reales SVG/PNG/PDF mediante CLI, perfil por etapa y memoria separados, README de ejecución, revisión independiente global. Presentar evidencia y esperar confirmación antes de fase 2. **Fiery excluido**, no pendiente para cerrar.
+- [x] ~~**6.6 Validación y cierre de fase 1:** corridas reales SVG/PNG/PDF, perfil release por etapa y memoria separados, README y revisión independiente global. 131 tests y checks pasan; cobertura del encuadre final corregida con regresiones.~~ Evidencia en avance-tarea-6.6.md y perfil-cpu-fase1.md. **Esperar confirmación antes de fase 2. Fiery excluido.**
 
 ## 6.1 — Diseño acotado que ejecuta el plan aprobado
 

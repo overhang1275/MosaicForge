@@ -2,7 +2,7 @@
 
 Actualizado: 2026-10-15. Este orden reemplaza el plan anterior por instrucción directa del usuario. La aprobación anterior de tecnologías permanece; su incorporación se difiere a la fase que la necesita.
 
-Fiery excluido del alcance por instrucción del usuario del 2026-10-15; no condiciona el cierre de fase 1. Tarea 6 iniciada por submódulos según tarea-6-submodulos.md.
+Fiery excluido del alcance por instrucción del usuario del 2026-10-15; no condiciona el cierre de fase 1. Tarea 6 completada por submódulos según tarea-6-submodulos.md; fase 2 pendiente de confirmación.
 
 ## Alcance y punto de control
 
@@ -34,13 +34,14 @@ Cada fase tiene un documento ejecutable propio y termina con checks, evidencia e
 - [x] ~~Tarea 5: SVG/PNG y PDF vectorial multipágina, presupuesto de buffers y recorte real.~~
   5.1–5.6 completados: 95 tests normales, tres nuevos locales PDF aparte, formato/Clippy y revisión independiente corregida pasan. PDF único con orden, tamaño/sangrado configurables, cero imágenes raster y recursos verificados. Checkpoint funcional 3b51db2; avance-tarea-5.6.md y ADR 0005. La memoria medida del test no es presupuesto global ni benchmark release.
 - [x] ~~5.6: muestra única de tres páginas, 100 × 100 mm sin sangrado, hashes y mapa verificados; N=1/7/100 produce el mismo documento en tests. Recorte real medido frente a baseline propio y pico de memoria medido.~~ Fiery excluido; sin promesa de PDF/X/CMYK.
-- [ ] Tarea 6: CLI incremental, cancelación y errores de E/S sin sobrescritura ni artefactos finales incompletos.
-- [x] ~~6.1–6.5: CLI inspect/generate SVG/PNG/PDF, grupos, manifiesto, cancelación y publicación exclusiva; 129 tests y PDF real pasan. Falta 6.6 para cerrar tarea/fase.~~
+- [x] ~~Tarea 6: CLI incremental, cancelación y errores de E/S sin sobrescritura ni artefactos finales incompletos.~~
+- [x] ~~6.1–6.5: CLI inspect/generate SVG/PNG/PDF, grupos, manifiesto, cancelación y publicación exclusiva; 129 tests y PDF real pasan. 6.6 completa el cierre: 131 tests, perfil release y revisión global corregida; avance-tarea-6.6.md.~~
 - [x] ~~6.3: grupos N y 1|2 hilos implementados, ventanas acotadas y presupuesto PNG compartido; 201 variantes SVG/PNG reproducibles con N=1/7/100 y subrangos.~~
-- [ ] Guardar una primera corrida real de una variante SVG y PNG y su manifiesto.
-- [ ] Medir por separado normalización, muestreo/reglas, validación, serialización SVG, raster, codificación PNG y escritura.
-- [ ] Documentar las restricciones de validez y su cobertura de tests antes de diseñar infraestructura.
-- [ ] Presentar resultados y solicitar confirmación para pasar a fase 2.
+- [x] ~~Guardar corridas reales SVG/PNG/PDF y sus manifiestos; hashes comprobados.~~
+- [x] ~~Medir por separado normalización, muestreo/reglas, validación, serialización SVG, raster, codificación PNG y escritura; perfil-cpu-fase1.md.~~
+- [x] ~~Documentar las restricciones de validez y su cobertura de tests; validez-motor-cpu.md.~~
+- [x] ~~Preparar y presentar evidencia del cierre de fase 1.~~
+- [ ] Obtener confirmación explícita para pasar a fase 2.
 
 **Terminado medible:**
 

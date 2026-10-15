@@ -1,0 +1,39 @@
+{
+  "pages": 3,
+  "bytes": 2730275,
+  "sha256": "dd1208f9fea7fa7150e4811bf56e33879ba2c99237aa847167b95508789cfa01",
+  "objects": 14,
+  "form_xobjects": 3,
+  "image_xobjects": 0,
+  "operators": 321435,
+  "bounded_path_points": 319503,
+  "visual_300dpi": [
+    {
+      "index": 0,
+      "mae": 1.0011084675853157,
+      "rmse": 5.334353635502121,
+      "max_channel_error": 198.0,
+      "extra_ink_far_interior": 0,
+      "missing_ink_far_interior": 0,
+      "missing_ink_far_including_edge": 6
+    },
+    {
+      "index": 1,
+      "mae": 1.1880171934154258,
+      "rmse": 5.4545334507966645,
+      "max_channel_error": 182.0,
+      "extra_ink_far_interior": 0,
+      "missing_ink_far_interior": 0,
+      "missing_ink_far_including_edge": 7
+    },
+    {
+      "index": 2,
+      "mae": 0.9749554561131772,
+      "rmse": 5.01950089575372,
+      "max_channel_error": 169.0,
+      "extra_ink_far_interior": 0,
+      "missing_ink_far_interior": 0,
+      "missing_ink_far_including_edge": 8
+    }
+  ]
+}

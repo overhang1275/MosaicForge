@@ -34,6 +34,23 @@ fn coverage_measures_visible_paint_not_bounding_boxes() {
 }
 
 #[test]
+fn final_cover_must_not_accept_an_empty_visible_output() {
+    let source=import_svg(br##"<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><g><rect width="49" height="100"/><rect x="51" width="49" height="100"/></g></svg>"##).unwrap();
+    let mut spec = configured(json!({}));
+    spec.template_hash = source.hash.parse().unwrap();
+    for (width, height) in [(1, 4096), (32, 4096)] {
+        spec.output.width = width.try_into().unwrap();
+        spec.output.height = height.try_into().unwrap();
+        let decision = search_candidate(&source, &spec, 0).unwrap();
+        assert!(
+            decision.template.is_none(),
+            "final narrow cover is empty despite a mostly occupied source crop"
+        );
+        assert_eq!(decision.reason, Some("empty_viewport"));
+    }
+}
+
+#[test]
 fn coverage_respects_group_opacity_and_revalidates_template() {
     let invisible=import_svg(br##"<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><g opacity="0"><rect width="100" height="100"/></g></svg>"##).unwrap();
     assert_eq!(measure_coverage(&invisible).unwrap().painted_pixels, 0);

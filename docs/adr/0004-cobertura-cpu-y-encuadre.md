@@ -29,4 +29,6 @@ Revisión de integración 4.5: la máscara usa width/height derivados del viewBo
 
 ## Fuentes técnicas
 
+Actualización de cierre 6.6 (2026-10-15): la medición de producción ya no se limita al crop. Se materializa el viewBox implícito y se mide el mismo viewport/cover de SVG/PNG. Un crop mayormente ocupado podía dejar vacío un cover muy estrecho; regresión observada y corregida. PDF mide además la composición del viewport SVG con el cover físico a trim y la extensión real a sangrado/media, sin fondo añadido y reutilizando la transformación del exportador. Si no supera cobertura física aborta el documento, sin inventar rechazo de generación. Detalles vigentes en [validez-motor-cpu.md](../validez-motor-cpu.md) y avance de 6.6; lo anterior conserva el historial de 4.5.
+
 [resvg render](https://docs.rs/resvg/0.47.0/resvg/fn.render.html) documenta el render sobre pixmap; [resvg 0.47.0](https://docs.rs/resvg/0.47.0/resvg/) expone tiny-skia y usvg. La implementación de encuadre, reglas y restricciones es propia.

@@ -6,6 +6,9 @@ use mosaicforge_core::{
 
 pub const MAX_RENDER_BUFFER_BYTES: u64 = 512 * 1024 * 1024;
 
+#[cfg(test)]
+mod profile;
+
 #[derive(Debug, PartialEq, Eq)]
 pub struct PngBufferPlan {
     pub width: u32,

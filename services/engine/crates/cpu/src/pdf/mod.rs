@@ -70,6 +70,22 @@ pub fn generate_pdf_cancellable<W: Write, F: FnMut(PdfPageRecord) -> Result<(), 
                 return Ok(None);
             }
             let page_number = if let Some(svg) = exported.artifact {
+                let candidate = exported
+                    .variant
+                    .template
+                    .as_ref()
+                    .ok_or(EngineError::RenderFailed("missing PDF candidate"))?;
+                let viewport = mosaicforge_core::template::prepare_viewport(
+                    candidate.normalized_svg.as_bytes(),
+                    &spec.output,
+                )?;
+                let coverage =
+                    geometry::measure_artwork_coverage(viewport.normalized_svg.as_bytes(), job)?;
+                if coverage.rejection_reason().is_some() {
+                    return Err(EngineError::RenderFailed(
+                        "physical PDF cover fails artwork coverage; adjust layout or rules",
+                    ));
+                }
                 let page = geometry::optimize_page(&svg, job)?;
                 if token.load(Ordering::Relaxed) {
                     return Ok(None);
