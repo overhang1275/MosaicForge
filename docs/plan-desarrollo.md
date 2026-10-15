@@ -2,6 +2,8 @@
 
 Actualizado: 2026-10-15. Este orden reemplaza el plan anterior por instrucción directa del usuario. La aprobación anterior de tecnologías permanece; su incorporación se difiere a la fase que la necesita.
 
+Fiery excluido del alcance por instrucción del usuario del 2026-10-15; no condiciona el cierre de fase 1. Tarea 6 iniciada por submódulos según tarea-6-submodulos.md.
+
 ## Alcance y punto de control
 
 Prioridad: una variante válida y reproducible de punta a punta antes de invertir en infraestructura. Desarrollar solo Rust CPU/CLI en fase 1. No pasar a fase 2 sin confirmación explícita del usuario después de presentar evidencia de fase 1.
@@ -31,7 +33,7 @@ Cada fase tiene un documento ejecutable propio y termina con checks, evidencia e
   4.1–4.5 terminados: 67 tests CPU, prueba local integrada con test.svg, formato y Clippy pasan. Revisión independiente: dos P2 corregidos con regresiones. Cobertura raster CPU pequeña adelantada, ADR 0004; exportación general y hash de artefacto final siguen en tarea 5. Evidencia y límites en avance-tarea-4.5.md.
 - [x] ~~Tarea 5: SVG/PNG y PDF vectorial multipágina, presupuesto de buffers y recorte real.~~
   5.1–5.6 completados: 95 tests normales, tres nuevos locales PDF aparte, formato/Clippy y revisión independiente corregida pasan. PDF único con orden, tamaño/sangrado configurables, cero imágenes raster y recursos verificados. Checkpoint funcional 3b51db2; avance-tarea-5.6.md y ADR 0005. La memoria medida del test no es presupuesto global ni benchmark release.
-- [x] ~~5.6: muestra única de tres páginas, 100 × 100 mm sin sangrado, hashes y mapa verificados; N=1/7/100 produce el mismo documento en tests. Recorte real medido frente a baseline propio y pico de memoria medido.~~ Fiery queda pendiente hasta tener equipo; sin promesa de PDF/X/CMYK.
+- [x] ~~5.6: muestra única de tres páginas, 100 × 100 mm sin sangrado, hashes y mapa verificados; N=1/7/100 produce el mismo documento en tests. Recorte real medido frente a baseline propio y pico de memoria medido.~~ Fiery excluido; sin promesa de PDF/X/CMYK.
 - [ ] Tarea 6: CLI incremental, cancelación y errores de E/S sin sobrescritura ni artefactos finales incompletos.
 - [ ] Generación por grupos configurables de N variantes: acotar resultados en memoria, exportar y liberar cada grupo; conservar índices globales y reproducibilidad al cambiar N. Solicitud del usuario registrada para implementar más adelante en tarea 6.
 - [ ] Guardar una primera corrida real de una variante SVG y PNG y su manifiesto.

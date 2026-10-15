@@ -17,6 +17,7 @@
 ## Instrucciones vigentes del usuario
 
 - Checklist visible, marcar y tachar solo lo completado.
+- 2026-10-15: Fiery queda fuera del alcance por instrucción explícita; no es una validación pendiente ni condición para cerrar fase 1. Tarea 6 autorizada, ejecutada por submódulos.
 - Planes, documentación y registros de continuidad en docs/.
 - Usar Ponytail, Graphify y Superpowers.
 - Preferir librerías open source; CUDA propietaria es excepción opcional permitida.
@@ -58,6 +59,8 @@
 - [x] ~~Inicio de diseño 5.6 autorizado; primera prueba elegida de 100 × 100 mm, sin sangrado.~~
 - [x] ~~5.6 y tarea 5 completos: PDF vectorial único, recorte real, contratos, métricas y revisión independiente.~~
 - [ ] Fase 1, tarea 6: CLI incremental, publicación sin sobrescritura y cancelación.
+- [x] ~~6.1: binario mosaicforge e inspect, lectura acotada y metadata JSON; 102 tests y checks pasan.~~
+- [ ] Confirmación antes de 6.2: generación SVG/PNG y publicación segura.
 - [ ] Evidencia de una variante SVG/PNG, determinismo y perfil CPU.
 - [ ] Confirmación explícita para pasar a fase 2.
 
@@ -124,4 +127,4 @@ Autor técnico de commits: Codex <codex@localhost>, configuración por comando, 
 
 ## Punto exacto para continuar
 
-Tareas 1–5 completas; 5.6 autorizado hasta terminar con «sii terminalo» y cerrado. Checkpoint funcional PDF 3b51db2; leer avance-tarea-5.6.md, ADR 0005 y contratos engine/pdf/v1. Muestra final out/pdf-5.6-release/mosaic-100mm.pdf, 3 páginas, 100 × 100 mm sin sangrado, todas las aceptadas del rango 0..2. Siguiente tarea 6: CLI por submódulos, coordinar presupuestos/N/hilos, salida temporal/publicación sin reemplazo, cancelación, manifiesto incremental y perfil completo por etapa. No pasar a fase 2 sin terminar fase 1 y confirmación. No repetir tareas completas; grafo sigue anterior a tarea 2. Fiery/PDF-X/CMYK/millones de páginas no validados.
+Tareas 1–5 y 6.1 completas. Usuario excluyó Fiery. CLI disponible: inspect/ayuda/versión, JSON y lectura acotada; 102 tests normales y fmt/Clippy pasan. Inspección real de out/test-prepared.svg coincide con hash/metadata del motor. Checklist tarea-6-submodulos.md, avance-tarea-6.1.md y uso ejecucion-motor.md. Esperar confirmación antes de 6.2: generate SVG/PNG y temporales/publicación sin reemplazo. N/hilos/cancelación/manifiesto/PDF desde CLI/perfil siguen en 6.3–6.6. No adelantar web ni fase 2 sin terminar fase 1 y confirmar. Grafo antiguo sin reconstruir; no repetir tareas completas. PDF/X/CMYK/millones de páginas no implementados o validados.

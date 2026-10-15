@@ -7,6 +7,8 @@ use quick_xml::{
 use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, HashMap, VecDeque};
 
+pub const MAX_SVG_BYTES: usize = 5 * 1024 * 1024;
+
 #[derive(Debug)]
 pub struct Template {
     pub width: f64,
@@ -55,7 +57,7 @@ struct Frame {
 }
 
 pub fn import_svg(bytes: &[u8]) -> Result<Template, EngineError> {
-    if bytes.len() > 5 * 1024 * 1024 {
+    if bytes.len() > MAX_SVG_BYTES {
         return Err(invalid("SVG byte limit exceeded"));
     }
     let text = std::str::from_utf8(bytes).map_err(|_| invalid("SVG must be UTF-8"))?;

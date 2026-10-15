@@ -4,6 +4,8 @@ Fecha: 2026-10-14. Registro obtenido con cargo metadata --locked; versiones fija
 
 Actualización 2026-10-15, PDF 5.6: 84 paquetes externos fijados; ocho nuevos indicados debajo. cpu añade pdf-writer 0.15.0, i_overlay 9.0.1, kurbo 0.13.1 (ya presente transitivamente) y miniz_oxide 0.8 (ya presente). Sin funciones de multithreading opcionales de i_overlay ni FFI. Se revisó package.license de cada Cargo.toml descargado y el lock; no se modificó LICENSE del proyecto.
 
+Actualización CLI 6.1: 88 paquetes externos. clap 4.6.7 con std/help/usage/error-context y sin features por defecto; sin macros derive, color o carga de entorno. Añade clap_builder 4.6.7, clap_lex 1.1.1 y anstyle 1.0.14. Los cuatro declaran MIT OR Apache-2.0 según sus manifiestos locales descargados. El CLI reutiliza core/serde_json; no agrega un lenguaje o servicio.
+
 | Paquete añadido | Versión | Licencia declarada |
 |---|---|---|
 | i_float | 5.0.0 | MIT |
