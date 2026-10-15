@@ -4,7 +4,7 @@ Fecha: 2026-10-14. Registro obtenido con cargo metadata --locked; versiones fija
 
 Licencias declaradas por los paquetes (no sustituye revisar sus textos de licencia al distribuir). Todas las dependencias listadas declaran licencias open source. LICENSE del proyecto sigue pendiente; los crates locales son publish=false.
 
-Directas runtime: serde, serde_json, regress (patrones generados), sha2, quick-xml 0.42.0, usvg y resvg 0.47.0 sin features por defecto y svgtypes 0.16.1. resvg/tiny-skia se adelantan a 4.4 para medir cobertura CPU; no hay API general de exportación PNG todavía. Directas build: typify sin features por defecto, serde_json, syn y prettyplease. No se instalaron Java, Valkey, PostgreSQL, CUDA ni Python/ML para esta tarea.
+Directas runtime: serde, serde_json, regress (patrones generados), sha2, quick-xml 0.42.0, usvg y resvg 0.47.0 sin features por defecto y svgtypes 0.16.1. resvg/tiny-skia se usan para cobertura y exportación PNG CPU; desde 5.4 cpu también declara sha2 directamente para el hash de bytes finales. No cambian los paquetes externos ni versiones del lock en este paso. Directas build: typify sin features por defecto, serde_json, syn y prettyplease. No se instalaron Java, Valkey, PostgreSQL, CUDA ni Python/ML para esta tarea.
 
 | Paquete | Versión | Licencia declarada |
 |---|---|---|

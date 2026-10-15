@@ -53,12 +53,13 @@
 - [x] ~~5.1: validación de salida y presupuesto base; 70 tests, formato y Clippy pasan.~~
 - [x] ~~5.2: PNG CPU seguro, viewport/fondo, presupuesto de temporales y pruebas reales.~~
 - [x] ~~5.3 autorizado y terminado: SVG final, fondo/encuadre y paridad visual CPU.~~
-- [ ] Confirmación antes de 5.4: integración y hash del artefacto final.
+- [x] ~~5.4 autorizado y terminado: integración SVG/PNG y hash de bytes finales.~~
+- [ ] Confirmación antes de 5.5: validación integrada con muestras reales.
 - [ ] Fase 1, tareas 5–6: exportación y CLI.
 - [ ] Evidencia de una variante SVG/PNG, determinismo y perfil CPU.
 - [ ] Confirmación explícita para pasar a fase 2.
 
-Existen generador integrado, reglas/validación, exportación SVG final y raster PNG CPU con dimensiones/fondo y presupuesto de buffers, además de contratos, PRNG e importador seguro. Falta integración del exportador/hash de bytes finales, PDF multipágina, CLI, web, Java e infraestructura. La máscara pequeña sigue siendo solo validación de cobertura.
+Existen generador, reglas/validación, exportación SVG/PNG integrada con hash de bytes finales, dimensiones/fondo y presupuesto PNG, además de contratos, PRNG e importador seguro. Faltan validación integrada real de 5.5, PDF multipágina, CLI, web, Java e infraestructura. La máscara pequeña sigue siendo solo validación de cobertura.
 
 ## Evidencia técnica
 
@@ -79,6 +80,7 @@ Existen generador integrado, reglas/validación, exportación SVG final y raster
 - Submódulo 5.1: crate CPU local, validate_output común y plan de reserva base PNG; RED dos de tres tests, GREEN 70 tests workspace (67 core + tres cpu), fmt/Clippy pasan. Tres tests locales omitidos por defecto y no repetidos en este paso sin render de salida. Sin librerías externas nuevas ni RAM medida; temporales resvg pendientes de 5.2. Evidencia en avance-tarea-5.1.md.
 - Submódulo 5.2: render_png, preparación de viewport cover y estimador de temporales; RED de render vacío, viewBox implícito y bounds excesivos; suite final 78 tests pasa, formato/Clippy pasan. Cuatro tests locales omitidos por defecto; test local CPU ejecutado aparte con tres PNG 512² decodificados y repetibles, revisión visual hecha. Fuente SVG intacta. Reservas calculadas, no RSS medido. Evidencia y límites en avance-tarea-5.2.md.
 - Submódulo 5.3: export_svg seguro, fondo independiente de efectos de raíz y cover compartido; RED observado, 82 tests pasan, fmt/Clippy pasan. Cinco tests locales omitidos por defecto; nuevo test CPU ejecutado aparte sobre tres muestras con bytes repetibles, píxeles idénticos a PNG y revisión visual. Sin dependencias nuevas ni recorte geométrico real. Evidencia en avance-tarea-5.3.md.
+- Submódulo 5.4: cpu::export::generate_and_export devuelve candidato y bytes finales opcionales; SHA-256 tras exportación completa, rechazos sin bytes/hash y errores propagados. RED tres fallos observado, GREEN 86 tests workspace, fmt/Clippy pasan; cinco locales omitidos, no repetidos. Orden/subrangos/tres hilos comprobados con SVG/PNG. Sin nuevos paquetes externos ni schemas. Evidencia en avance-tarea-5.4.md.
 - No hay benchmarks de render, pruebas CUDA ni pruebas de fronteras Java/web ejecutados todavía. El benchmark de Graphify estima tokens de navegación, no rendimiento del motor.
 
 ## Git y recuperación
@@ -115,4 +117,4 @@ Autor técnico de commits: Codex <codex@localhost>, configuración por comando, 
 
 ## Punto exacto para continuar
 
-Tarea 4 completa y 5.1–5.3 terminados. Esperar confirmación antes de 5.4: integrar exportación y hash de bytes finales para candidatos aceptados. Después 5.5 validación SVG/PNG y 5.6 PDF vectorial único multipágina con revisión global al cerrar. Quedan tres submódulos, 5.4–5.6. PDF aprobado en el plan, no implementado. Leer avance-tarea-5.3.md, tarea-5-submodulos.md y requisitos-exportacion-impresion.md. No confundir reservas con RSS; coordinación/escritura incremental sigue en CLI 6. No repetir módulos completos ni pasar a fase 2 sin terminar fase 1 y confirmación. Grafo sigue anterior a tarea 2.
+Tarea 4 completa y 5.1–5.4 terminados. Esperar confirmación antes de 5.5: validar pipeline integrado con test.svg y documentar resultados SVG/PNG. Después 5.6 PDF vectorial único multipágina con revisión global al cerrar. Quedan dos submódulos, 5.5–5.6. PDF aprobado en el plan, no implementado. Leer avance-tarea-5.4.md, tarea-5-submodulos.md y requisitos-exportacion-impresion.md. No confundir reservas con RSS; coordinación/escritura incremental sigue en CLI 6. No repetir módulos completos ni pasar a fase 2 sin terminar fase 1 y confirmación. Grafo sigue anterior a tarea 2.

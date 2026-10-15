@@ -8,6 +8,7 @@ publish.workspace = true
 [dependencies]
 mosaicforge-core = { path = "../core" }
 resvg = { version = "=0.47.0", default-features = false }
+sha2 = "0.10"
 
 [dev-dependencies]
 serde_json = "1"
