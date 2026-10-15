@@ -5,6 +5,54 @@ use std::{fs, io::Write, path::Path};
 
 #[test]
 #[ignore = "requires local out/test-4.4-{0,1,17}.svg samples"]
+fn supplied_svg_exports_match_png_pixels() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../../..")
+        .canonicalize()
+        .unwrap();
+    for index in [0, 1, 17] {
+        let source = fs::read(root.join(format!("out/test-4.4-{index}.svg"))).unwrap();
+        let mut output: OutputSpec = serde_json::from_value(json!({
+            "format":"svg", "width":512, "height":512, "background":"#ffffff"
+        }))
+        .unwrap();
+        let svg = mosaicforge_core::export::export_svg(&source, &output).unwrap();
+        assert_eq!(
+            svg,
+            mosaicforge_core::export::export_svg(&source, &output).unwrap()
+        );
+        output.format = "png".parse().unwrap();
+        let expected = render_png(&source, &output).unwrap();
+        output.background = "transparent".parse().unwrap();
+        let actual = render_png(&svg, &output).unwrap();
+        assert_eq!(
+            resvg::tiny_skia::Pixmap::decode_png(&expected)
+                .unwrap()
+                .data(),
+            resvg::tiny_skia::Pixmap::decode_png(&actual)
+                .unwrap()
+                .data()
+        );
+        for (extension, bytes) in [("svg", svg), ("png", actual)] {
+            let path = root.join(format!("out/test-5.3-{index}.{extension}"));
+            if path.exists() {
+                assert_eq!(fs::read(&path).unwrap(), bytes);
+            } else {
+                fs::OpenOptions::new()
+                    .write(true)
+                    .create_new(true)
+                    .open(&path)
+                    .unwrap()
+                    .write_all(&bytes)
+                    .unwrap();
+            }
+            println!("index={index} {} bytes -> {}", bytes.len(), path.display());
+        }
+    }
+}
+
+#[test]
+#[ignore = "requires local out/test-4.4-{0,1,17}.svg samples"]
 fn supplied_svg_renders_repeatable_real_pngs() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("../../../..")

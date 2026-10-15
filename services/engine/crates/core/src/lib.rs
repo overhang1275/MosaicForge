@@ -2,6 +2,7 @@ pub mod appearance;
 pub mod constraints;
 pub mod contract;
 pub mod distortion;
+pub mod export;
 pub mod generate;
 pub mod rng;
 pub mod rules;
