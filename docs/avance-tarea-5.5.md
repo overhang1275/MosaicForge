@@ -6,7 +6,7 @@ Fecha: 2026-10-15. Base 0056bfa. Usuario autorizó 5.5; pausar antes de 5.6.
 - [x] ~~Comparar seis artefactos con las muestras 5.3 y repetir por subrangos.~~
 - [x] ~~Comprobar equivalencia visual SVG/PNG, rechazo y fuentes intactas.~~
 - [x] ~~Revisar muestras visualmente y registrar evidencia/checks.~~
-- [ ] Guardar commit y punto de continuación.
+- [x] ~~Checkpoint c5ef9c0 registrado; pausa antes de 5.6.~~
 
 ## Alcance
 

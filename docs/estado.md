@@ -103,6 +103,7 @@ Existen generador, reglas/validación, exportación SVG/PNG integrada con hash d
 | 24b46db | Render PNG CPU y presupuesto de temporales 5.2 | 78 tests workspace, prueba local PNG, fmt/Clippy, revisión visual |
 | 4d7a1b9 | SVG final con fondo independiente y encuadre cover 5.3 | 82 tests, prueba local de tres SVG/PNG, fmt/Clippy, revisión visual |
 | d72883f | Integración SVG/PNG y hash de bytes finales 5.4 | 86 tests, fmt/Clippy, determinismo por subrangos/orden/tres hilos |
+| c5ef9c0 | Validación integrada con SVG del usuario 5.5 | 86 tests normales, nuevo local aparte, seis artefactos, hashes, rechazo y revisión visual |
 
 Autor técnico de commits: Codex <codex@localhost>, configuración por comando, sin cambiar identidad global. No se hizo push, merge, reset ni clean. No se versionan target/, dependencias descargadas ni resultados de usuarios.
 
