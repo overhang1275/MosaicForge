@@ -8,6 +8,8 @@ use std::{
     path::{Path, PathBuf},
     process::ExitCode,
 };
+mod generation;
+mod publish;
 
 struct Failure {
     exit: u8,
@@ -52,6 +54,17 @@ fn run(args: impl IntoIterator<Item = OsString>, out: &mut impl Write, err: &mut
                         .required(true)
                         .value_parser(value_parser!(PathBuf)),
                 ),
+        )
+        .subcommand(
+            Command::new("generate")
+                .about("Generate SVG/PNG variants without replacing existing files")
+                .args(["template", "spec", "out"].map(|name| {
+                    Arg::new(name)
+                        .long(name)
+                        .value_name("PATH")
+                        .required(true)
+                        .value_parser(value_parser!(PathBuf))
+                })),
         );
     let matches = match command.try_get_matches_from(args) {
         Ok(m) => m,
@@ -77,6 +90,12 @@ fn run(args: impl IntoIterator<Item = OsString>, out: &mut impl Write, err: &mut
             );
         }
     };
+    if let Some(("generate", arguments)) = matches.subcommand() {
+        return match generation::run(arguments, out) {
+            Ok(()) => 0,
+            Err(e) => report(e, err),
+        };
+    }
     let Some(("inspect", arguments)) = matches.subcommand() else {
         return report(
             Failure {

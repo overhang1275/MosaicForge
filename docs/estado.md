@@ -60,7 +60,8 @@
 - [x] ~~5.6 y tarea 5 completos: PDF vectorial único, recorte real, contratos, métricas y revisión independiente.~~
 - [ ] Fase 1, tarea 6: CLI incremental, publicación sin sobrescritura y cancelación.
 - [x] ~~6.1: binario mosaicforge e inspect, lectura acotada y metadata JSON; 102 tests y checks pasan.~~
-- [ ] Confirmación antes de 6.2: generación SVG/PNG y publicación segura.
+- [x] ~~Usuario autorizó 6.2 y 6.3 juntos. 6.2 completo: generación SVG/PNG y publicación segura, 109 tests y checks pasan.~~
+- [ ] 6.3 autorizado: grupos N, concurrencia acotada y determinismo.
 - [ ] Evidencia de una variante SVG/PNG, determinismo y perfil CPU.
 - [ ] Confirmación explícita para pasar a fase 2.
 

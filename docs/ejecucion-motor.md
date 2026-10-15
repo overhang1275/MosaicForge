@@ -1,6 +1,6 @@
 # Ejecución del motor CPU
 
-Actualizado: 2026-10-15, submódulo 6.1. Por ahora la CLI expone **inspect**, --help y --version. Generación/exportación desde CLI todavía pendientes de 6.2–6.5; las funciones Rust SVG/PNG/PDF ya existen.
+Actualizado: 2026-10-15, submódulo 6.2. La CLI expone **inspect**, **generate SVG/PNG**, --help y --version. PDF CLI pendiente de 6.5; las funciones Rust PDF ya existen.
 
 ## Preparación
 
@@ -23,11 +23,21 @@ test.svg del usuario contiene CSS y metadatos no admitidos por el importador seg
 
 ## Errores y límites
 
+Generación desde raíz (spec conforme a contracts/engine/v1, templateHash obtenido de inspect):
+
+```powershell
+cargo run --manifest-path services/engine/Cargo.toml -p mosaicforge-cli --locked -- generate --template "out/test-prepared.svg" --spec "out/cli-6.2-svg.spec.json" --out "out/nuevo-trabajo"
+```
+
+El padre de --out debe existir. Permite un directorio existente, pero nunca reemplaza archivos: publica variant-{índice}.svg o .png según spec.output.format. El índice no depende de la posición en el grupo. stdout emite una línea JSON por resultado (kind=variant, result con el contrato VariantResult) y resumen final (kind=summary, accepted/rejected). El rechazo válido no escribe artefacto y devuelve 0. No se acumulan todos los artefactos del trabajo.
+
+El JSON spec admite hasta 1 MiB; contrato/hash se comprueban antes de crear directorio. Temporales exclusivos se escriben/sincronizan/cierran antes de publicar por hard link. Se requiere filesystem compatible con hard links; falla con código 3 si no lo admite. No se usa rename con reemplazo. Ante error, archivos completos ya publicados permanecen; no equivale a transacción de todo el trabajo ni garantiza recuperación de energía. Un proceso terminado abruptamente puede dejar temporales. Manifiesto persistente y cancelación cooperativa llegan en 6.4.
+
 | Código | Estado |
 |---|---|
-| 0 | inspect completado, ayuda o versión |
-| 2 | Argumentos inválidos, SVG inseguro/malformado o >5 MiB |
-| 3 | Fallo al abrir/leer/escribir, o ruta no regular |
+| 0 | inspect/generate completado, ayuda o versión |
+| 2 | Argumentos/contrato inválidos, hash incorrecto, SVG inseguro/malformado o >5 MiB, spec >1 MiB |
+| 3 | Fallo al abrir/leer/escribir/publicar/renderizar, colisión o ruta no regular |
 
 stderr usa JSON con error.code y error.message. No incluye el contenido SVG. --help/--version producen texto en stdout. Un fallo del destino stdout devuelve 3; el consumidor debe comprobar el código de salida, porque un stream roto puede haber recibido datos parciales.
 
