@@ -1,0 +1,57 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PdfJobSpec",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "generation",
+    "pdf"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "enum": [
+        "1"
+      ]
+    },
+    "generation": {
+      "$ref": "../../v1/generation.schema.json"
+    },
+    "pdf": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "PdfLayout",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "exporterVersion",
+        "trimWidthMm",
+        "trimHeightMm",
+        "bleedMm"
+      ],
+      "properties": {
+        "exporterVersion": {
+          "type": "string",
+          "enum": [
+            "1"
+          ]
+        },
+        "trimWidthMm": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 2000
+        },
+        "trimHeightMm": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 2000
+        },
+        "bleedMm": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 50
+        }
+      }
+    }
+  }
+}

@@ -2,6 +2,19 @@
 
 Fecha: 2026-10-14. Registro obtenido con cargo metadata --locked; versiones fijadas en services/engine/Cargo.lock.
 
+Actualización 2026-10-15, PDF 5.6: 84 paquetes externos fijados; ocho nuevos indicados debajo. cpu añade pdf-writer 0.15.0, i_overlay 9.0.1, kurbo 0.13.1 (ya presente transitivamente) y miniz_oxide 0.8 (ya presente). Sin funciones de multithreading opcionales de i_overlay ni FFI. Se revisó package.license de cada Cargo.toml descargado y el lock; no se modificó LICENSE del proyecto.
+
+| Paquete añadido | Versión | Licencia declarada |
+|---|---|---|
+| i_float | 5.0.0 | MIT |
+| i_key_sort | 0.11.0 | MIT |
+| i_overlay | 9.0.1 | MIT OR Apache-2.0 |
+| i_shape | 5.0.0 | MIT |
+| i_tree | 0.19.1 | MIT |
+| libm | 0.2.16 | MIT |
+| pdf-writer | 0.15.0 | MIT OR Apache-2.0 |
+| ryu | 1.0.23 | Apache-2.0 OR BSL-1.0 |
+
 Licencias declaradas por los paquetes (no sustituye revisar sus textos de licencia al distribuir). Todas las dependencias listadas declaran licencias open source. LICENSE del proyecto sigue pendiente; los crates locales son publish=false.
 
 Directas runtime: serde, serde_json, regress (patrones generados), sha2, quick-xml 0.42.0, usvg y resvg 0.47.0 sin features por defecto y svgtypes 0.16.1. resvg/tiny-skia se usan para cobertura y exportación PNG CPU; desde 5.4 cpu también declara sha2 directamente para el hash de bytes finales. No cambian los paquetes externos ni versiones del lock en este paso. Directas build: typify sin features por defecto, serde_json, syn y prettyplease. No se instalaron Java, Valkey, PostgreSQL, CUDA ni Python/ML para esta tarea.

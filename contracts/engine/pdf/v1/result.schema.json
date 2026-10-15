@@ -1,0 +1,98 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PdfDocumentResult",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "exporterVersion",
+    "templateHash",
+    "seed",
+    "startIndex",
+    "count",
+    "generationConfigurationHash",
+    "documentConfigurationHash",
+    "status",
+    "requestedCount",
+    "acceptedCount",
+    "rejectedCount",
+    "pageCount"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "enum": [
+        "1"
+      ]
+    },
+    "exporterVersion": {
+      "type": "string",
+      "enum": [
+        "1"
+      ]
+    },
+    "templateHash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "seed": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]{0,19})$"
+    },
+    "startIndex": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]{0,19})$"
+    },
+    "count": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 10000
+    },
+    "generationConfigurationHash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "documentConfigurationHash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "completed",
+        "no_pages"
+      ]
+    },
+    "requestedCount": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 10000
+    },
+    "acceptedCount": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 10000
+    },
+    "rejectedCount": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 10000
+    },
+    "pageCount": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 10000
+    },
+    "documentHash": {
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  }
+}

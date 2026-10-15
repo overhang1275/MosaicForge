@@ -4,6 +4,7 @@ pub mod contract;
 pub mod distortion;
 pub mod export;
 pub mod generate;
+pub mod pdf;
 pub mod rng;
 pub mod rules;
 mod svg_values;
