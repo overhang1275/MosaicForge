@@ -458,14 +458,15 @@ mod tests {
                 [100.0 * a.cos(), 100.0 * a.sin()]
             })
             .collect();
-        assert!(
+        assert_eq!(
             overlay(
                 &vec![contour],
                 &Vec::new(),
                 OverlayRule::Union,
                 FillRule::EvenOdd
             )
-            .is_err()
+            .unwrap_err(),
+            EngineError::RenderFailed("PDF intersection candidate budget exceeded")
         );
     }
 

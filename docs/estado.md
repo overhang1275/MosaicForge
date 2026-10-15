@@ -56,12 +56,12 @@
 - [x] ~~5.4 autorizado y terminado: integración SVG/PNG y hash de bytes finales.~~
 - [x] ~~5.5 autorizado y terminado: flujo integrado validado con test.svg preparado, seis artefactos y rechazo.~~
 - [x] ~~Inicio de diseño 5.6 autorizado; primera prueba elegida de 100 × 100 mm, sin sangrado.~~
-- [ ] Revisar/aprobar propuesta escrita PDF antes del plan e implementación 5.6.2–5.6.5.
-- [ ] Fase 1, tareas 5–6: exportación y CLI.
+- [x] ~~5.6 y tarea 5 completos: PDF vectorial único, recorte real, contratos, métricas y revisión independiente.~~
+- [ ] Fase 1, tarea 6: CLI incremental, publicación sin sobrescritura y cancelación.
 - [ ] Evidencia de una variante SVG/PNG, determinismo y perfil CPU.
 - [ ] Confirmación explícita para pasar a fase 2.
 
-Existen generador, reglas/validación, exportación SVG/PNG integrada con hash de bytes finales, dimensiones/fondo y presupuesto PNG, además de contratos, PRNG e importador seguro; flujo integrado comprobado con la copia preparada de test.svg. Faltan PDF multipágina, CLI, web, Java e infraestructura. La máscara pequeña sigue siendo solo validación de cobertura.
+Existen generador, reglas/validación, SVG/PNG integrados y PDF vectorial único con dimensiones físicas, sangrado, recorte real y hashes separados. Validado con copia preparada de test.svg, Poppler/pypdf y revisión independiente. Faltan CLI/publicación/cancelación, perfil por etapas, web, Java e infraestructura. La máscara pequeña sigue siendo solo validación de cobertura.
 
 ## Evidencia técnica
 
@@ -84,7 +84,8 @@ Existen generador, reglas/validación, exportación SVG/PNG integrada con hash d
 - Submódulo 5.3: export_svg seguro, fondo independiente de efectos de raíz y cover compartido; RED observado, 82 tests pasan, fmt/Clippy pasan. Cinco tests locales omitidos por defecto; nuevo test CPU ejecutado aparte sobre tres muestras con bytes repetibles, píxeles idénticos a PNG y revisión visual. Sin dependencias nuevas ni recorte geométrico real. Evidencia en avance-tarea-5.3.md.
 - Submódulo 5.4: cpu::export::generate_and_export devuelve candidato y bytes finales opcionales; SHA-256 tras exportación completa, rechazos sin bytes/hash y errores propagados. RED tres fallos observado, GREEN 86 tests workspace, fmt/Clippy pasan; cinco locales omitidos, no repetidos. Orden/subrangos/tres hilos comprobados con SVG/PNG. Sin nuevos paquetes externos ni schemas. Evidencia en avance-tarea-5.4.md.
 - Submódulo 5.5: nuevo test local integra generación/exportación/hash sobre la copia preparada de test.svg; seis artefactos aceptados y repetidos por subrangos, bytes iguales a 5.3, SHA-256 verificado además con Python, píxeles SVG/PNG idénticos y revisión visual de tres PNG. Rechazo empty_viewport tras ocho intentos sin artefacto; fuentes intactas. Suite normal 86 tests, seis locales omitidos; el nuevo local se ejecutó aparte y pasó. Formato/Clippy pasan. Solo tests/docs, sin cambios de producto. Evidencia en avance-tarea-5.5.md.
-- No hay benchmarks de render, pruebas CUDA ni pruebas de fronteras Java/web ejecutados todavía. El benchmark de Graphify estima tokens de navegación, no rendimiento del motor.
+- Submódulo 5.6: contratos PDF nuevos, tipos/validadores, recorte real y writer por objetos. 95 tests normales (73 core + 22 cpu), nueve locales omitidos; tres PDF locales ejecutados aparte, formato/Clippy pasan. PDF final 3 páginas de 100 mm, 2730275 bytes; cero imágenes raster, hash/mapa/referencias y siete páginas visuales comprobados. Baseline propio: reducción de peso 63.91% en una muestra, sin garantía general ni de Fiery. Pico OS del proceso de test: 74.62 MiB residente y 149.47 MiB commit privado. Revisión independiente: un P1 de autointersecciones corregido con regresión, revisión posterior sin hallazgos importantes. Evidencia en avance-tarea-5.6.md y ADR 0005.
+- No hay benchmarks release por etapa, pruebas CUDA ni pruebas de fronteras Java/web ejecutados todavía. La medición de 5.6 incluye el proceso de test completo, no solo el exportador. El benchmark de Graphify estima tokens de navegación, no rendimiento del motor.
 
 ## Git y recuperación
 
@@ -105,6 +106,7 @@ Existen generador, reglas/validación, exportación SVG/PNG integrada con hash d
 | 4d7a1b9 | SVG final con fondo independiente y encuadre cover 5.3 | 82 tests, prueba local de tres SVG/PNG, fmt/Clippy, revisión visual |
 | d72883f | Integración SVG/PNG y hash de bytes finales 5.4 | 86 tests, fmt/Clippy, determinismo por subrangos/orden/tres hilos |
 | c5ef9c0 | Validación integrada con SVG del usuario 5.5 | 86 tests normales, nuevo local aparte, seis artefactos, hashes, rechazo y revisión visual |
+| 3b51db2 | PDF vectorial multipágina, contratos y recorte real 5.6 | 95 tests, formato/Clippy, QA Poppler/pypdf, revisión P1 corregida |
 
 Autor técnico de commits: Codex <codex@localhost>, configuración por comando, sin cambiar identidad global. No se hizo push, merge, reset ni clean. No se versionan target/, dependencias descargadas ni resultados de usuarios.
 
@@ -122,4 +124,4 @@ Autor técnico de commits: Codex <codex@localhost>, configuración por comando, 
 
 ## Punto exacto para continuar
 
-Tarea 4 completa y 5.1–5.5 terminados. Usuario autorizó iniciar 5.6 por diseño y eligió 100 × 100 mm, sin sangrado. Propuesta guardada en superpowers/specs/2026-10-15-pdf-multipagina-design.md: contrato agregado nuevo que referencia generación v1, hashes separados, mapa incremental, cajas físicas y geometría/memoria. Esperar revisión del diseño antes del plan de implementación. Pasos propuestos 5.6.2 contratos/selección técnica, 5.6.3 página/recorte real, 5.6.4 ensamblado y 5.6.5 validación/revisión global. PDF no implementado; no instalar bibliotecas ni cambiar contratos publicados todavía. Leer avance-tarea-5.6.md. No confundir reservas con RSS; publicación/cancelación siguen en CLI 6. No pasar a fase 2 sin terminar fase 1 y confirmación. Grafo sigue anterior a tarea 2.
+Tareas 1–5 completas; 5.6 autorizado hasta terminar con «sii terminalo» y cerrado. Checkpoint funcional PDF 3b51db2; leer avance-tarea-5.6.md, ADR 0005 y contratos engine/pdf/v1. Muestra final out/pdf-5.6-release/mosaic-100mm.pdf, 3 páginas, 100 × 100 mm sin sangrado, todas las aceptadas del rango 0..2. Siguiente tarea 6: CLI por submódulos, coordinar presupuestos/N/hilos, salida temporal/publicación sin reemplazo, cancelación, manifiesto incremental y perfil completo por etapa. No pasar a fase 2 sin terminar fase 1 y confirmación. No repetir tareas completas; grafo sigue anterior a tarea 2. Fiery/PDF-X/CMYK/millones de páginas no validados.

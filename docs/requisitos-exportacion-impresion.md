@@ -12,13 +12,15 @@ Actualización: se inspeccionó docs/ejemplo_export.pdf suministrado después. 1
 
 La exportación final para impresión debe evitar arrastrar toda la plantilla detrás de un recorte pequeño. Conservar la plantilla original para reproducibilidad y ajustes; generar un artefacto final con la geometría necesaria para representar la página y su sangrado configurado.
 
-- [ ] Diseñar descarte de objetos completamente exteriores y recorte geométrico de los que cruzan el límite. Comprobar resultado visible, trazos, uniones, curvas, transformaciones, reglas de relleno y clips internos; no eliminar objetos solo por sus puntos de control o por el centro de su bounding box.
-- [ ] Retirar definiciones y recursos sin referencias después de optimizar; conservar los recortes que aún sean necesarios para reproducir el resultado.
-- [ ] Probar que el recorte real no cambia el resultado visible, con diferencias medidas; añadir casos de trazos que cruzan el borde, agujeros y clips anidados. La tolerancia debe fijarse con evidencia.
-- [ ] Medir bytes, objetos, segmentos y recursos antes/después sobre un mismo diseño. Una página de dimensiones pequeñas no es por sí sola un criterio de complejidad vectorial.
-- [ ] Al implementar PDF, probar tamaño físico, cajas de página/sangrado y requisitos de impresión definidos para ese flujo. No rasterizar por defecto para reducir tamaño.
+- [x] ~~Implementar descarte/recorte real de rellenos y contornos de trazos en PDF, con curvas, transforms, fill-rule y clips; fixture de bordes y agujeros probado.~~
+- [x] ~~Emitir solo grupos/pinturas útiles y recursos referenciados; auditoría pypdf de alcanzabilidad y uso pasa.~~
+- [x] ~~Medir diferencia visual entre recorte y baseline, además de referencia resvg; umbrales de regresión a 300 DPI fijados con evidencia en avance-tarea-5.6.md.~~
+- [x] ~~Medir bytes, objetos y puntos de contornos en baseline/optimizado del mismo diseño: 2284331→824466 bytes, seis objetos en ambos y 267606→96195 puntos.~~ No equiparar puntos poligonales con comandos Bézier SVG.
+- [x] ~~Probar cajas físicas, corte de 100 mm y sangrado positivo de 3 mm; cero Image XObjects y comparación visual independiente.~~
 - [ ] Comparar PDF con recorte simple frente a exportación optimizada: mismo contenido visible, tamaño, tiempo de generación y procesamiento RIP, RAM máxima y errores, por páginas y lotes.
 - [ ] Registrar modelo/versión/configuración del Fiery, resolución y trabajo de prueba cuando se disponga de acceso. Sin ese entorno, declarar validación Fiery pendiente; no prometer aceleración.
+
+Actualización 2026-10-15: comparación de peso/complejidad e imagen ya realizada en 5.6; proceso completo de prueba medido con PSAPI (74.62 MiB de pico residente). El punto de comparación completa de rendimiento/RIP permanece pendiente: falta perfil por etapa y Fiery real, no se publicó una aceleración.
 
 No imponer ahora una meta de tamaño o velocidad sin baseline. Elegir objetivos medibles después de obtener muestras y ejecutar el perfil. Compresión y limpieza de recursos pueden formar parte del diseño, pero su beneficio debe medirse.
 
@@ -26,4 +28,4 @@ No imponer ahora una meta de tamaño o velocidad sin baseline. Elegir objetivos 
 
 Actualización aprobada: PDF se incorpora explícitamente al MVP CPU como submódulo 5.6; un único PDF multipágina por trabajo con la totalidad de variantes generadas, una página por variante aceptada en orden de índice. Los grupos N son unidades de procesamiento/memoria, no archivos PDF separados. Rechazos se registran en manifiesto; no se inventan imágenes ni se publica un PDF vacío como éxito.
 
-No confundir la máscara de validación CPU con optimización del artefacto final. El crop actual cambia el viewBox y conserva paths: todavía no cumple el recorte geométrico final aquí solicitado. Antes de implementar 5.6, diseñar unidades físicas/sangrado y contrato de documento agregado, sin confundir hashes por variante con el del PDF completo. Escritura incremental/publicación/cancelación se integra con tarea 6. No prometer PDF/X, CMYK o prestaciones de Fiery sin diseño/pruebas; Fiery seguirá pendiente si no hay equipo disponible.
+No confundir la máscara de validación CPU con optimización del artefacto final. El crop/exportador SVG actual conserva paths; el PDF implementado en 5.6 sí aplica recorte geométrico real y limpieza con precisión documentada en ADR 0005. Contrato agregado nuevo en contracts/engine/pdf/v1; hashes de variante/documento distintos. Escritura incremental/publicación/cancelación de CLI se integra con tarea 6. No prometer PDF/X, CMYK o prestaciones de Fiery sin diseño/pruebas; Fiery sigue pendiente.

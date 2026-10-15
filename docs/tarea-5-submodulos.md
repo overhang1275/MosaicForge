@@ -1,13 +1,13 @@
 # Tarea 5 — Exportación CPU por submódulos
 
-Actualizado: 2026-10-15. 5.1–5.5 terminados; usuario autorizó iniciar 5.6 por diseño y eligió prueba inicial de 100 × 100 mm sin sangrado. Propuesta escrita pendiente de revisión; PDF todavía no implementado. Mantener fase 1 y pedir autorización entre los pasos de 5.6; sin web, Java o GPU todavía.
+Actualizado: 2026-10-15. Tarea 5 completa, 5.1–5.6 terminados. Usuario aprobó diseño y pidió terminar 5.6 sin más pausas. Muestra inicial de 100 × 100 mm sin sangrado generada y verificada. Mantener fase 1; siguiente tarea 6 CLI, sin web, Java o GPU todavía.
 
 - [x] ~~**5.1 Validación y presupuesto base:** OutputSpec generado, validación común y plan base PNG con aritmética comprobada; sin reservar imágenes.~~
 - [x] ~~**5.2 PNG CPU:** render_png seguro, dimensiones/fondo, temporales de grupos/clips, PNG decodificado y encuadre sin letterboxing.~~
 - [x] ~~**5.3 SVG final:** dimensiones/fondo y encuadre cover compartido con PNG, vectores y seguridad conservados; límites de geometría oculta documentados en avance-tarea-5.3.md.~~
 - [x] ~~**5.4 Integración:** candidatos aceptados exportados a SVG/PNG con artifactHash de bytes finales, determinismo comprobado, rechazos sin artefactos y errores propagados. E/S/publicación siguen en tarea 6.~~
 - [x] ~~**5.5 Validación SVG/PNG:** pipeline real con copia preparada de test.svg, seis exportaciones/repeticiones, hashes, paridad RGBA, rechazo y fuentes intactas comprobados; documentación en avance-tarea-5.5.md. Revisión independiente final al cerrar 5.6.~~
-- [ ] **5.6 PDF vectorial multipágina y cierre:** un único PDF con todas las variantes generadas, una página por variante y orden por índice; tamaño físico/sangrado, recorte geométrico real y limpieza de recursos. Procesar por grupos sin acumular todas las páginas rasterizadas/SVG en RAM; integrar hashes/manifiesto y publicación final con CLI en tarea 6. Revisión independiente final, comparación visual y métricas de peso/complejidad; Fiery pendiente hasta tener acceso.
+- [x] ~~**5.6 PDF vectorial multipágina y cierre:** documento único con todas las aceptadas en orden, tamaño/sangrado configurables, recorte real y limpieza. N=1/7/100 reproducible; memoria/bytes/complejidad medidos, QA Poppler/pypdf y revisión independiente completados. Manifiesto/publicación/cancelación siguen en CLI 6; Fiery pendiente.~~
 
 ## Requisitos aprobados para 5.6
 
@@ -37,4 +37,4 @@ Antes de render real, 5.2 debe añadir/validar el coste de superficies aisladas,
 
 ## Continuidad
 
-5.1–5.5 terminados. 5.6 iniciado por diseño, sin código PDF. Primera prueba: 100 × 100 mm, sangrado cero, ambos configurables. Revisar superpowers/specs/2026-10-15-pdf-multipagina-design.md antes de escribir el plan. Pasos propuestos: 5.6.1 diseño; 5.6.2 contratos/selección técnica; 5.6.3 página y recorte; 5.6.4 ensamblado; 5.6.5 validación/revisión global. 86 tests workspace y prueba local SVG/PNG pasan del checkpoint anterior; no repetidos para este cambio solo documental. Ver avance-tarea-5.6.md y requisitos-exportacion-impresion.md.
+5.1–5.6 terminados. 95 tests normales, nueve locales omitidos; tres PDF locales ejecutados aparte y formato/Clippy pasan. Revisión independiente: P1 corregido y verificado; posterior sin hallazgos importantes. Checkpoint funcional 3b51db2. Muestra out/pdf-5.6-release/mosaic-100mm.pdf, tres páginas de 100 mm y 2730275 bytes. Evidencia detallada en avance-tarea-5.6.md y ADR 0005. Sigue tarea 6: CLI/publicación/manifiesto/cancelación y perfil por etapas; no pasar a fase 2 sin confirmación.

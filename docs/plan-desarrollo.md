@@ -1,6 +1,6 @@
 # MosaicForge — Plan de desarrollo por fases
 
-Actualizado: 2026-10-14. Este orden reemplaza el plan anterior por instrucción directa del usuario. La aprobación anterior de tecnologías permanece; su incorporación se difiere a la fase que la necesita.
+Actualizado: 2026-10-15. Este orden reemplaza el plan anterior por instrucción directa del usuario. La aprobación anterior de tecnologías permanece; su incorporación se difiere a la fase que la necesita.
 
 ## Alcance y punto de control
 
@@ -29,9 +29,9 @@ Cada fase tiene un documento ejecutable propio y termina con checks, evidencia e
 - [x] ~~Tarea 3: importación segura, normalización y límites SVG.~~ Commit cf8c819; quince tests SVG, suite total de 32 y checks pasan. Subconjunto y límites en svg-admitido.md.
 - [x] ~~Tarea 4: geometría, color, capas, recorte, distorsión, rechazo por índice e integración.~~
   4.1–4.5 terminados: 67 tests CPU, prueba local integrada con test.svg, formato y Clippy pasan. Revisión independiente: dos P2 corregidos con regresiones. Cobertura raster CPU pequeña adelantada, ADR 0004; exportación general y hash de artefacto final siguen en tarea 5. Evidencia y límites en avance-tarea-4.5.md.
-- [ ] Tarea 5: SVG/PNG y PDF vectorial multipágina, presupuesto de buffers.
-  Estado parcial: 5.1–5.5 completados (86 tests normales, local integrado y fmt/Clippy pasan). 5.6 iniciado por diseño: primera prueba 100 × 100 mm sin sangrado; propuesta escrita pendiente de revisión en superpowers/specs/2026-10-15-pdf-multipagina-design.md. Checklist en tarea-5-submodulos.md. PDF no implementado; reservas no equivalen a RSS total y revisión global sigue pendiente.
-- [ ] 5.6 aprobado: un único PDF con todas las variantes aceptadas, una por página y en orden; procesar por grupos sin generar PDFs separados. Diseño de contrato agregado, tamaño físico/sangrado, recorte real y recursos sin uso; medir tamaño/complejidad. Fiery se valida cuando haya equipo. Requisitos en tarea-5-submodulos.md y requisitos-exportacion-impresion.md; no afirmar mejoras sin medir.
+- [x] ~~Tarea 5: SVG/PNG y PDF vectorial multipágina, presupuesto de buffers y recorte real.~~
+  5.1–5.6 completados: 95 tests normales, tres nuevos locales PDF aparte, formato/Clippy y revisión independiente corregida pasan. PDF único con orden, tamaño/sangrado configurables, cero imágenes raster y recursos verificados. Checkpoint funcional 3b51db2; avance-tarea-5.6.md y ADR 0005. La memoria medida del test no es presupuesto global ni benchmark release.
+- [x] ~~5.6: muestra única de tres páginas, 100 × 100 mm sin sangrado, hashes y mapa verificados; N=1/7/100 produce el mismo documento en tests. Recorte real medido frente a baseline propio y pico de memoria medido.~~ Fiery queda pendiente hasta tener equipo; sin promesa de PDF/X/CMYK.
 - [ ] Tarea 6: CLI incremental, cancelación y errores de E/S sin sobrescritura ni artefactos finales incompletos.
 - [ ] Generación por grupos configurables de N variantes: acotar resultados en memoria, exportar y liberar cada grupo; conservar índices globales y reproducibilidad al cambiar N. Solicitud del usuario registrada para implementar más adelante en tarea 6.
 - [ ] Guardar una primera corrida real de una variante SVG y PNG y su manifiesto.

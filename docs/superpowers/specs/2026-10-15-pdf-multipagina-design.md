@@ -1,6 +1,6 @@
 # Diseño propuesto — PDF vectorial único multipágina
 
-Fecha: 2026-10-15. Estado: propuesta para revisión, no implementada. Base 1ba3c9c. Fase 1, submódulo 5.6.1.
+Fecha: 2026-10-15. Estado: diseño aprobado y ejecutado tras «sii terminalo». Base de diseño 1ba3c9c; implementación 3b51db2 y evidencia en ../../avance-tarea-5.6.md. Fase 1, tarea 5.6 completa; decisiones finales y límites en ../../adr/0005-pdf-vectorial.md.
 
 ## Objetivo y decisiones del usuario
 
@@ -71,7 +71,7 @@ La publicación sin reemplazar archivos, temporal en el destino apropiado, cance
 
 PDF idéntico byte a byte para misma plantilla, PdfJobSpec, backend CPU y versión/entorno fijados. Asignación de referencias, compresión, orden de recursos y metadatos estables; sin fecha actual ni IDs aleatorios. Cambios del exportador o del recorte que alteren bytes deben registrar su versión. N/hilos no afectan contenido, decisiones discretas ni numeración de páginas.
 
-## Evaluación técnica pendiente, sin dependencias instaladas
+## Evaluación previa a implementación (histórica)
 
 Se consultaron fuentes primarias. svg2pdf ofrece conversión a Form XObject/Chunk y licencia MIT/Apache-2.0; el repositorio consultado figura archivado y recomienda krilla/krilla-svg como alternativa mantenida a evaluar. El Cargo.toml de main leído directamente declara usvg/resvg 0.46 y pdf-writer 0.14, distintos del usvg 0.47 actual. El índice de documentación de la versión publicada presenta dependencias anteriores: fijar y revisar el paquete concreto antes de decidir, no asumir que main coincide con el release. No está seleccionado ni se promete compatibilidad directa. pdf-writer 0.15 documenta un buffer global en Pdf; su API de Chunks requiere estudiar finalización/offsets antes de alegar streaming. i_overlay se evalúa para intersecciones de contornos, sin asumir que por sí solo resuelve curvas o semántica SVG.
 
@@ -92,4 +92,4 @@ Fuentes consultadas 2026-10-15:
 - **5.6.4 Documento completo:** una/múltiples páginas, orden por índice, rechazo intermedio, sin páginas y error de writer; grupos 1/7/100 sobre 201 índices y último grupo incompleto, mismos bytes/hash, conteos y recursos correctos. Grupos de esta prueba no sustituyen el coordinador CLI de tarea 6.
 - **5.6.5 Validación y cierre:** test.svg preparado, PDF 100 × 100 mm sin sangrado y fixture con sangrado positivo, render por un lector PDF independiente, revisión visual, bytes/objetos/segmentos y memoria medida por separado; formato/lint/tests y revisión independiente global de toda tarea 5. Fiery pendiente si no hay equipo.
 
-Pedir autorización antes del siguiente paso como solicitó el usuario. No marcar tarea 5 completa hasta cumplir 5.6; no pasar a fase 2 sin confirmar.
+Actualización de ejecución: el usuario pidió terminar 5.6 sin más pausas. Se ejecutó el plan 2026-10-15-pdf-multipagina.md y se cumplieron los criterios, con límites de precisión/memoria y Fiery documentados. Biblioteca y escritor seleccionados en ADR 0005. Tarea 5 completa; tarea 6/CLI y la autorización para fase 2 siguen pendientes.
