@@ -6,7 +6,7 @@ Fecha: 2026-10-15. Base b6b1664. Usuario autorizó 5.4; pausar antes de 5.5.
 - [x] ~~Integrar SVG/PNG con hash de bytes finales y ausencia de artefactos rechazados.~~
 - [x] ~~Comprobar repetición, rangos/orden/hilos, errores y presupuesto PNG.~~
 - [x] ~~Formato, Clippy, suite y revisión local.~~
-- [ ] Guardar commit y punto de continuación.
+- [x] ~~Checkpoint funcional d72883f registrado; pausa antes de 5.5.~~
 
 ## Alcance y decisión
 
