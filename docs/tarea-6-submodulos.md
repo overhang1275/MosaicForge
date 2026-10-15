@@ -4,7 +4,7 @@ Fecha: 2026-10-15. Base 3c7139c. Usuario autorizó iniciar tarea 6 y **excluyó 
 
 - [x] ~~**6.1 Binario e inspect:** crate CLI, argumentos/help, lectura acotada, metadata JSON estable y errores/códigos comprobados; 102 tests workspace pasan.~~
 - [x] ~~**6.2 Generación y publicación segura:** generate SVG/PNG, temporales y publicación sin reemplazo; colisión, carrera y fallo de escritura comprobados. 109 tests y checks pasan.~~
-- [ ] **6.3 Grupos y concurrencia:** --batch-size N y --threads 1|2, Rayon con memoria/buffers acotados; índices globales, N=1/7/100, subrangos y grupo incompleto reproducibles. SVG/PNG se liberan al publicarse.
+- [x] ~~**6.3 Grupos y concurrencia:** --batch-size N y --threads 1|2; pool Rayon, ventanas acotadas y presupuesto PNG compartido. 201 variantes SVG/PNG reproducibles con N=1/7/100, subrangos y grupo incompleto; 115 tests y checks pasan.~~
 - [ ] **6.4 Manifiesto y cancelación:** JSONL incremental con resultados/rechazos/resumen, Ctrl+C/AtomicBool cooperativo; pruebas con writer/token inyectados. Códigos 0 éxito, 2 entrada, 3 E/S/render y 130 cancelación. No confundir rechazo válido con fallo de proceso.
 - [ ] **6.5 Integración PDF:** PdfJobSpec agregado, un solo documento final para todo el trabajo, mapa de páginas/hash y publicación después de cerrar; error/cancelación sin PDF truncado publicado ni sobreescritura. Cero aceptadas sin PDF vacío.
 - [ ] **6.6 Validación y cierre de fase 1:** corridas reales SVG/PNG/PDF mediante CLI, perfil por etapa y memoria separados, README de ejecución, revisión independiente global. Presentar evidencia y esperar confirmación antes de fase 2. **Fiery excluido**, no pendiente para cerrar.
@@ -15,12 +15,12 @@ Fecha: 2026-10-15. Base 3c7139c. Usuario autorizó iniciar tarea 6 y **excluyó 
 
 El usuario autoriza ambos submódulos juntos; detenerse antes de 6.4. Se conservan los contratos v1 y la lógica CPU existente.
 
-- [ ] 6.2: `generate --template FILE --spec FILE --out DIR`; validar JSON acotado (1 MiB), contrato y hash antes de crear salidas. Archivos `variant-{índice}.svg|png`, resultados por stdout y resumen. Los rechazos no crean artefactos ni fallan el proceso.
-- [ ] Temporales exclusivos en el directorio final; escribir, sincronizar, cerrar y publicar con `std::fs::hard_link`, que falla si el destino existe, seguido de limpieza del temporal. Sin fallback que sobrescriba; un sistema de archivos sin hard links devuelve error. Publicación atómica por archivo, no transacción de todo el trabajo; los artefactos completos previos permanecen si algo falla.
-- [ ] Probar igualdad con el motor, colisión y productores concurrentes; inyectar fallo durante escritura para comprobar ausencia de archivo final parcial y limpieza.
-- [ ] 6.3: grupos 1..10000 (por defecto 100), hilos 1|2 (por defecto 1); pool local Rayon, ventanas de trabajo como máximo del tamaño de hilos. Los grupos no acumulan imágenes ni reinician índices.
-- [ ] Presupuesto compartido PNG de 512 MiB para buffers estimados, con reserva por candidato y liberación después de publicar y soltar bytes. No dividir el límite entre hilos: una imagen grande válida puede ejecutarse sola. No es una cota de RSS (árboles SVG, asignador y runtime quedan fuera).
-- [ ] Probar 201 variantes SVG/PNG con N=1/7/100, ambos números de hilos, grupo final incompleto y subrangos; verificar reserva concurrente y liberación incluso ante error.
+- [x] ~~6.2: generate, JSON acotado a 1 MiB, contrato y hash; archivos variant-{índice}.svg|png, resultados/stdout y resumen. Rechazos sin artefacto y exit 0.~~
+- [x] ~~Temporales exclusivos, sincronizados y cerrados; publicación hard_link sin reemplazo y limpieza. No hay fallback de reemplazo ni transacción de trabajo completo.~~
+- [x] ~~Igualdad con motor, colisión, carrera y fallo de escritura comprobados.~~
+- [x] ~~6.3: grupos 1..10000, hilos 1|2 y pool local Rayon; ventanas <=hilos, sin acumular N imágenes ni reiniciar índices.~~
+- [x] ~~Presupuesto compartido PNG 512 MiB de buffers estimados por candidato, liberado tras publicación/bytes; no se divide entre hilos y no implica límite de RSS.~~
+- [x] ~~201 variantes SVG/PNG con N=1/7/100 y ambos hilos, grupo incompleto, subrangos y coordinación/liberación de reserva comprobados.~~
 
 Referencias primarias: [Rust hard_link](https://doc.rust-lang.org/std/fs/fn.hard_link.html), [Rayon ThreadPoolBuilder](https://docs.rs/rayon/latest/rayon/struct.ThreadPoolBuilder.html). Manifiesto persistente, Ctrl+C y PDF CLI permanecen para 6.4/6.5.
 

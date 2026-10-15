@@ -6,6 +6,19 @@ Actualización 2026-10-15, PDF 5.6: 84 paquetes externos fijados; ocho nuevos in
 
 Actualización CLI 6.1: 88 paquetes externos. clap 4.6.7 con std/help/usage/error-context y sin features por defecto; sin macros derive, color o carga de entorno. Añade clap_builder 4.6.7, clap_lex 1.1.1 y anstyle 1.0.14. Los cuatro declaran MIT OR Apache-2.0 según sus manifiestos locales descargados. El CLI reutiliza core/serde_json; no agrega un lenguaje o servicio.
 
+Actualización CLI 6.2: referencia al crate CPU existente, sin paquetes externos nuevos. CLI 6.3: 94 paquetes externos según cargo metadata --locked --offline; Rayon se justifica por la frontera real de concurrencia dentro de Rust, sin nuevo lenguaje/servicio/FFI. Pool local con 1|2 hilos. Los seis añadidos declaran MIT OR Apache-2.0 en metadata de paquetes descargados:
+
+| Paquete añadido en 6.3 | Versión | Licencia declarada |
+|---|---|---|
+| rayon | 1.12.0 | MIT OR Apache-2.0 |
+| rayon-core | 1.13.0 | MIT OR Apache-2.0 |
+| crossbeam-deque | 0.8.8 | MIT OR Apache-2.0 |
+| crossbeam-epoch | 0.9.21 | MIT OR Apache-2.0 |
+| crossbeam-utils | 0.8.23 | MIT OR Apache-2.0 |
+| either | 1.19.0 | MIT OR Apache-2.0 |
+
+El primer cargo test sin permiso de red no pudo consultar crates.io; cargo fetch con permiso resolvió/descargó las seis dependencias. Las verificaciones posteriores usan --locked --offline.
+
 | Paquete añadido | Versión | Licencia declarada |
 |---|---|---|
 | i_float | 5.0.0 | MIT |

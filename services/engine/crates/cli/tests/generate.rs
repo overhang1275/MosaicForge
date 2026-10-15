@@ -167,3 +167,111 @@ fn valid_rejections_have_success_status_and_no_artifacts() {
     assert_eq!(got[3], json!({"kind":"summary","accepted":0,"rejected":3}));
     assert_eq!(fs::read_dir(job.dir.join("out")).unwrap().count(), 0);
 }
+
+#[test]
+fn groups_threads_and_subranges_preserve_bytes_and_order_for_201_variants() {
+    // Resetting RNG/index at a boundary or using scheduling order changes this output.
+    for format in ["svg", "png"] {
+        let mut job = Job::new(format);
+        job.spec["count"] = json!(201);
+        job.spec["rules"]["scaleX"] = json!({"min":1.0,"max":1.3});
+        job.spec["rules"]["scaleY"] = json!({"min":1.0,"max":1.3});
+        job.spec["rules"]["rotationDegrees"] = json!({"min":0.0,"max":90.0});
+        let baseline = job.run("reference");
+        let values = records(&baseline);
+        assert_eq!(values.len(), 202);
+        assert!(values[201]["accepted"].as_u64().unwrap() > 0);
+        let hashes: std::collections::BTreeSet<_> = values[..201]
+            .iter()
+            .filter_map(|v| v["result"]["artifactHash"].as_str())
+            .collect();
+        assert!(
+            hashes.len() > 1,
+            "fixture must generate distinct accepted artifacts"
+        );
+        for (n, threads) in [(1, 1), (7, 1), (100, 1), (1, 2), (7, 2), (100, 2)] {
+            let name = format!("n{n}-t{threads}");
+            let output = job
+                .command(&name)
+                .args([
+                    "--batch-size",
+                    &n.to_string(),
+                    "--threads",
+                    &threads.to_string(),
+                ])
+                .output()
+                .unwrap();
+            records(&output);
+            assert_eq!(
+                fs::read_dir(job.dir.join(&name)).unwrap().count() as u64,
+                values[201]["accepted"].as_u64().unwrap()
+            );
+            assert_eq!(
+                output.stdout, baseline.stdout,
+                "{format}, N={n}, threads={threads}"
+            );
+            for index in 9..210 {
+                let filename = format!("variant-{index}.{format}");
+                let expected = fs::read(job.dir.join("reference").join(&filename));
+                let actual = fs::read(job.dir.join(&name).join(&filename));
+                match (expected, actual) {
+                    (Ok(a), Ok(b)) => assert_eq!(a, b, "{filename}"),
+                    (Err(a), Err(b)) => {
+                        assert_eq!(a.kind(), std::io::ErrorKind::NotFound);
+                        assert_eq!(b.kind(), std::io::ErrorKind::NotFound);
+                    }
+                    _ => panic!("artifact presence differs for {filename}"),
+                }
+            }
+        }
+        job.spec["startIndex"] = json!("108");
+        job.spec["count"] = json!(7);
+        let subrange = records(
+            &job.command("range")
+                .args(["--batch-size", "7", "--threads", "2"])
+                .output()
+                .unwrap(),
+        );
+        assert_eq!(subrange[..7], values[99..106]);
+        for index in 108..115 {
+            let filename = format!("variant-{index}.{format}");
+            let expected = fs::read(job.dir.join("reference").join(&filename));
+            let actual = fs::read(job.dir.join("range").join(filename));
+            assert_eq!(actual.ok(), expected.ok());
+        }
+    }
+}
+
+#[test]
+fn highest_u64_index_is_supported_without_exclusive_end_overflow() {
+    let mut job = Job::new("svg");
+    job.spec["startIndex"] = json!(u64::MAX.to_string());
+    job.spec["count"] = json!(1);
+    let output = records(
+        &job.command("last")
+            .args(["--batch-size", "100", "--threads", "2"])
+            .output()
+            .unwrap(),
+    );
+    assert_eq!(output[0]["result"]["index"], u64::MAX.to_string());
+    assert!(
+        job.dir
+            .join(format!("last/variant-{}.svg", u64::MAX))
+            .is_file()
+    );
+}
+#[test]
+fn invalid_group_and_thread_limits_fail_before_writing() {
+    let job = Job::new("png");
+    for args in [
+        ["--batch-size", "0"],
+        ["--batch-size", "10001"],
+        ["--threads", "0"],
+        ["--threads", "3"],
+    ] {
+        let output = job.command("out").args(args).output().unwrap();
+        assert_eq!(output.status.code(), Some(2));
+        assert!(output.stdout.is_empty());
+        assert!(!job.dir.join("out").exists());
+    }
+}

@@ -1,10 +1,12 @@
 use mosaicforge_core::{
     EngineError,
-    contract::{GenerationSpec, generation::OutputSpecFormat},
+    contract::{
+        GenerationSpec, OutputSpec, generation::OutputSpecFormat, result::VariantResultStatus,
+    },
     export::export_svg,
     generate::{Variant, generate_variant},
     template::Template,
-    validate_result,
+    validate_output, validate_result,
 };
 use sha2::{Digest, Sha256};
 
@@ -22,13 +24,33 @@ pub fn generate_and_export(
     index: u64,
     available_png_bytes: u64,
 ) -> Result<ExportedVariant, EngineError> {
-    let mut variant = generate_variant(template, spec, index)?;
+    export_generated_variant(
+        generate_variant(template, spec, index)?,
+        &spec.output,
+        available_png_bytes,
+    )
+}
+
+/// Exports a candidate returned by generate_variant, allowing callers to reserve
+/// shared buffer capacity after planning that candidate and before rendering it.
+pub fn export_generated_variant(
+    mut variant: Variant,
+    output: &OutputSpec,
+    available_png_bytes: u64,
+) -> Result<ExportedVariant, EngineError> {
+    validate_output(output)?;
+    validate_result(&variant.result)?;
+    if variant.template.is_some() != (variant.result.status == VariantResultStatus::Accepted) {
+        return Err(EngineError::InvalidSpec(
+            "candidate does not match variant status",
+        ));
+    }
     let artifact = if let Some(candidate) = &variant.template {
         let svg = candidate.normalized_svg.as_bytes();
-        let bytes = match spec.output.format {
-            OutputSpecFormat::Svg => export_svg(svg, &spec.output)?,
+        let bytes = match output.format {
+            OutputSpecFormat::Svg => export_svg(svg, output)?,
             OutputSpecFormat::Png => {
-                crate::render::render_png_with_budget(svg, &spec.output, available_png_bytes)?
+                crate::render::render_png_with_budget(svg, output, available_png_bytes)?
             }
         };
         variant.result.artifact_hash = Some(

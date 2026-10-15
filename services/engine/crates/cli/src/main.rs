@@ -9,6 +9,7 @@ use std::{
     process::ExitCode,
 };
 mod generation;
+mod memory;
 mod publish;
 
 struct Failure {
@@ -64,7 +65,19 @@ fn run(args: impl IntoIterator<Item = OsString>, out: &mut impl Write, err: &mut
                         .value_name("PATH")
                         .required(true)
                         .value_parser(value_parser!(PathBuf))
-                })),
+                }))
+                .arg(
+                    Arg::new("batch-size")
+                        .long("batch-size")
+                        .default_value("100")
+                        .value_parser(value_parser!(u64).range(1..=10_000)),
+                )
+                .arg(
+                    Arg::new("threads")
+                        .long("threads")
+                        .default_value("1")
+                        .value_parser(value_parser!(u64).range(1..=2)),
+                ),
         );
     let matches = match command.try_get_matches_from(args) {
         Ok(m) => m,

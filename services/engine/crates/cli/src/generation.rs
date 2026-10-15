@@ -1,11 +1,16 @@
 use crate::{Failure, io_failure, read_template};
 use mosaicforge_core::{
     EngineError,
-    contract::{GenerationSpec, generation::OutputSpecFormat},
+    contract::{GenerationSpec, VariantResult, generation::OutputSpecFormat},
+    generate::generate_variant,
     template::Template,
     validate_spec,
 };
-use mosaicforge_cpu::{export::generate_and_export, render::MAX_RENDER_BUFFER_BYTES};
+use mosaicforge_cpu::{
+    export::export_generated_variant,
+    render::{MAX_RENDER_BUFFER_BYTES, plan_png_render},
+};
+use rayon::prelude::*;
 use serde_json::json;
 use std::{
     fs::{self, File},
@@ -46,7 +51,11 @@ pub fn run(args: &clap::ArgMatches, out: &mut impl Write) -> Result<(), Failure>
         Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists && directory.is_dir() => (),
         Err(_) => return Err(io_failure("cannot create output directory")),
     }
-    generate(&template, &spec, directory, out)
+    let batch_size = *args
+        .get_one::<u64>("batch-size")
+        .expect("defaulted by clap");
+    let threads = *args.get_one::<u64>("threads").expect("defaulted by clap") as usize;
+    generate(&template, &spec, directory, out, batch_size, threads)
 }
 fn read_spec(path: &Path) -> Result<GenerationSpec, Failure> {
     if !fs::metadata(path)
@@ -85,35 +94,84 @@ fn generate(
     spec: &GenerationSpec,
     directory: &Path,
     out: &mut impl Write,
+    batch_size: u64,
+    threads: usize,
 ) -> Result<(), Failure> {
     let start = spec
         .start_index
         .parse::<u64>()
         .map_err(|_| invalid_spec("startIndex exceeds u64"))?;
-    let extension = match spec.output.format {
-        OutputSpecFormat::Svg => "svg",
-        OutputSpecFormat::Png => "png",
-    };
+    let pool = rayon::ThreadPoolBuilder::new()
+        .num_threads(threads)
+        .build()
+        .map_err(|_| io_failure("cannot create worker pool"))?;
+    let budget = crate::memory::BufferBudget::new(MAX_RENDER_BUFFER_BYTES);
     let mut accepted = 0u64;
-    for offset in 0..spec.count.get() {
-        let index = start + offset;
-        let exported = generate_and_export(template, spec, index, MAX_RENDER_BUFFER_BYTES)
-            .map_err(engine_failure)?;
-        if let Some(bytes) = &exported.artifact {
-            crate::publish::publish_with(
-                &directory.join(format!("variant-{index}.{extension}")),
-                |file| file.write_all(bytes),
-            )
-            .map_err(|_| io_failure("cannot publish artifact without replacement"))?;
-            accepted += 1;
+    for group_start in (0..spec.count.get()).step_by(batch_size as usize) {
+        let group_end = (group_start + batch_size).min(spec.count.get());
+        for window_start in (group_start..group_end).step_by(threads) {
+            // Only indices/results for this window survive; artifact bytes are
+            // published and dropped by the worker, never queued for the batch.
+            let indices: Vec<_> = (window_start..(window_start + threads as u64).min(group_end))
+                .map(|offset| start + offset)
+                .collect();
+            let results: Vec<_> = pool.install(|| {
+                indices
+                    .par_iter()
+                    .map(|&index| generate_one(template, spec, index, directory, &budget))
+                    .collect()
+            });
+            for result in results {
+                let result = result?;
+                accepted += u64::from(result.artifact_hash.is_some());
+                emit(out, &json!({"kind":"variant","result":result}))?;
+            }
         }
-        emit(
-            out,
-            &json!({"kind":"variant","result":exported.variant.result}),
-        )?;
     }
     emit(
         out,
         &json!({"kind":"summary","accepted":accepted,"rejected":spec.count.get()-accepted}),
     )
+}
+
+fn generate_one(
+    template: &Template,
+    spec: &GenerationSpec,
+    index: u64,
+    directory: &Path,
+    budget: &crate::memory::BufferBudget,
+) -> Result<VariantResult, Failure> {
+    let variant = generate_variant(template, spec, index).map_err(engine_failure)?;
+    let bytes = if let Some(candidate) = &variant.template {
+        if spec.output.format == OutputSpecFormat::Png {
+            plan_png_render(
+                candidate.normalized_svg.as_bytes(),
+                &spec.output,
+                MAX_RENDER_BUFFER_BYTES,
+            )
+            .map_err(engine_failure)?
+            .reserved_bytes
+        } else {
+            0
+        }
+    } else {
+        0
+    };
+    let reservation = budget.reserve(bytes).map_err(engine_failure)?;
+    let exported = export_generated_variant(variant, &spec.output, MAX_RENDER_BUFFER_BYTES)
+        .map_err(engine_failure)?;
+    if let Some(bytes) = exported.artifact {
+        let extension = match spec.output.format {
+            OutputSpecFormat::Svg => "svg",
+            OutputSpecFormat::Png => "png",
+        };
+        crate::publish::publish_with(
+            &directory.join(format!("variant-{index}.{extension}")),
+            |file| file.write_all(&bytes),
+        )
+        .map_err(|_| io_failure("cannot publish artifact without replacement"))?;
+        drop(bytes);
+    }
+    drop(reservation);
+    Ok(exported.variant.result)
 }
