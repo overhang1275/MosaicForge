@@ -2,7 +2,7 @@
 
 Actualizado: 2026-10-15. Este orden reemplaza el plan anterior por instrucción directa del usuario. La aprobación anterior de tecnologías permanece; su incorporación se difiere a la fase que la necesita.
 
-Fiery excluido del alcance por instrucción del usuario del 2026-10-15; no condiciona el cierre de fase 1. Tarea 6 completada por submódulos según tarea-6-submodulos.md; fase 2 pendiente de confirmación.
+Fiery excluido del alcance por instrucción del usuario del 2026-10-15; no condiciona el cierre de fase 1. Tarea 6 completada por submódulos según tarea-6-submodulos.md; fase 2 autorizada por el usuario, diseño detallado en revisión.
 
 ## Alcance y punto de control
 
@@ -41,7 +41,7 @@ Cada fase tiene un documento ejecutable propio y termina con checks, evidencia e
 - [x] ~~Medir por separado normalización, muestreo/reglas, validación, serialización SVG, raster, codificación PNG y escritura; perfil-cpu-fase1.md.~~
 - [x] ~~Documentar las restricciones de validez y su cobertura de tests; validez-motor-cpu.md.~~
 - [x] ~~Preparar y presentar evidencia del cierre de fase 1.~~
-- [ ] Obtener confirmación explícita para pasar a fase 2.
+- [x] ~~Obtener confirmación explícita para pasar a fase 2 por submódulos.~~
 
 **Terminado medible:**
 
@@ -56,6 +56,8 @@ Cada fase tiene un documento ejecutable propio y termina con checks, evidencia e
 **Validez:** diseñar cobertura visible, área fuera del encuadre, área mínima de elementos, solapamiento y contraste de colores adyacentes relevantes. Implementar primero métricas deterministas comprobables con fixtures analíticos. No prometer detectar texto ilegible o buena estética en arte arbitrario; texto viene convertido a paths y las limitaciones se documentan.
 
 ## Fase 2 — Frontend conectado al motor CPU
+
+Inicio autorizado. Checklist: fase-2-submodulos.md. Propuesta detallada en superpowers/specs/2026-10-15-fase-2-web-design.md; pendiente de revisión antes del plan ejecutable.
 
 **Objetivo:** cargar una plantilla, ajustar reglas/seed y obtener previsualizaciones reales del motor, todavía sin usuarios, proyectos persistentes o cola de producción.
 

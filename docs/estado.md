@@ -66,7 +66,8 @@
 - [x] ~~6.5 autorizado y terminado: generate-pdf, un PDF por trabajo, cancelación/publicación segura, 129 tests y QA real de tres páginas pasan.~~
 - [x] ~~6.6 autorizado y terminado: perfil release por etapa y memoria, revisión global, encuadre final corregido y cierre funcional de fase 1. 131 tests pasan.~~
 - [x] ~~Evidencia real SVG/PNG/PDF, determinismo y perfil CPU registrados en perfil-cpu-fase1.md y mediciones/.~~
-- [ ] Confirmación explícita para pasar a fase 2.
+- [x] ~~Confirmación explícita del usuario para comenzar fase 2 por submódulos.~~
+- [ ] Revisar diseño escrito de fase 2 y después completar 2.1; ver fase-2-submodulos.md.
 
 Existen generador, reglas/validación, SVG/PNG integrados y PDF vectorial único con dimensiones físicas, sangrado, recorte real y hashes separados. Validado con copia preparada de test.svg, Poppler/pypdf y revisión independiente. CLI/publicación/cancelación y perfil por etapas completos. Web, Java e infraestructura corresponden a fases posteriores. La máscara pequeña sigue siendo solo validación de cobertura.
 
@@ -119,6 +120,7 @@ Existen generador, reglas/validación, SVG/PNG integrados y PDF vectorial único
 | 3088cc7 | CLI grupos y concurrencia CPU acotada 6.3 | 115 tests, formato/Clippy, 201 variantes reproducibles y prueba real |
 | 04a5359 | Manifiesto incremental y cancelación CLI 6.4 | 122 tests, formato/Clippy, Ctrl+C real Windows exit 130 |
 | 1b9499f | CLI PDF único por trabajo 6.5 | 129 tests, formato/Clippy, cancelación real y QA PDF de tres páginas |
+| e99fa75 | Cierre CPU 6.6 y cobertura final | 131 tests, formato/Clippy, perfil release, matriz CLI, QA PDF y revisión global |
 
 Autor técnico de commits: Codex <codex@localhost>, configuración por comando, sin cambiar identidad global. No se hizo push, merge, reset ni clean. No se versionan target/, dependencias descargadas ni resultados de usuarios.
 
@@ -136,7 +138,7 @@ Autor técnico de commits: Codex <codex@localhost>, configuración por comando, 
 
 ## Punto exacto para continuar
 
-**Fase 1 funcional CPU/CLI completa; esperar confirmación explícita antes de fase 2.** Tareas 1–6 terminadas. README.md documenta inspect, generate SVG/PNG y generate-pdf; avance-tarea-6.6.md registra el cierre y perfil-cpu-fase1.md enlaza las mediciones conservadas. No iniciar frontend, transporte HTTP, Java ni infraestructura sin la siguiente autorización.
+**Fase 1 funcional CPU/CLI completa; fase 2 autorizada por el usuario.** Tareas 1–6 terminadas. README.md documenta inspect, generate SVG/PNG y generate-pdf; avance-tarea-6.6.md registra el cierre y perfil-cpu-fase1.md enlaza las mediciones conservadas. Fase 2 en diseño: propuesta en superpowers/specs/2026-10-15-fase-2-web-design.md y checklist en fase-2-submodulos.md. Antes de implementar, revisar esa propuesta y escribir el plan ejecutable. Java e infraestructura siguen diferidos.
 
 131 tests normales pasan (74 core, 23 CPU, 34 CLI); formato y Clippy sin warnings pasan, build release CPU pasa. Diez tests locales ignorados por defecto: el perfil nuevo se ejecutó aparte, los otros nueve no se repitieron en 6.6. Ocho corridas reales CLI y QA pypdf/Poppler del PDF pasan; tres páginas de 100 × 100 mm sin sangrado, 2 730 275 bytes, idénticas a 5.6/6.5. Hashes SVG/PNG conservados entre N/hilos y baselines. Revisión independiente global sin bloqueos P1/P2 tras dos regresiones de cobertura: se valida el encuadre visible final y la composición de encuadres PDF, sin contar el fondo añadido como arte. Los casos afectados pueden cambiar respecto al snapshot previo: conservar el commit para reproducir versiones de desarrollo.
 
