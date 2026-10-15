@@ -1,6 +1,6 @@
 # Tarea 5 — Exportación CPU por submódulos
 
-Actualizado: 2026-10-15. Usuario autorizó tarea 5 dividida en submódulos y después añadió PDF vectorial multipágina como 5.6. 5.1–5.5 terminados; pedir autorización antes de 5.6. Mantener fase 1; sin web, Java o GPU todavía. PDF autorizado en el plan, no implementado ni autorizado a empezar ahora.
+Actualizado: 2026-10-15. 5.1–5.5 terminados; usuario autorizó iniciar 5.6 por diseño y eligió prueba inicial de 100 × 100 mm sin sangrado. Propuesta escrita pendiente de revisión; PDF todavía no implementado. Mantener fase 1 y pedir autorización entre los pasos de 5.6; sin web, Java o GPU todavía.
 
 - [x] ~~**5.1 Validación y presupuesto base:** OutputSpec generado, validación común y plan base PNG con aritmética comprobada; sin reservar imágenes.~~
 - [x] ~~**5.2 PNG CPU:** render_png seguro, dimensiones/fondo, temporales de grupos/clips, PNG decodificado y encuadre sin letterboxing.~~
@@ -37,4 +37,4 @@ Antes de render real, 5.2 debe añadir/validar el coste de superficies aisladas,
 
 ## Continuidad
 
-5.1–5.5 terminados. Solo queda 5.6. 86 tests workspace, formato y Clippy pasan; nuevo test local integrado ejecutado aparte sobre seis SVG/PNG, hashes y rechazo, con revisión visual. No comenzar 5.6 sin confirmación. Primero diseñar contrato agregado y tamaño físico/sangrado; PDF todavía no implementado. Consultar avance-tarea-5.5.md, requisitos-exportacion-impresion.md y analisis-ejemplo-export.md, sin reutilizar assets propietarios.
+5.1–5.5 terminados. 5.6 iniciado por diseño, sin código PDF. Primera prueba: 100 × 100 mm, sangrado cero, ambos configurables. Revisar superpowers/specs/2026-10-15-pdf-multipagina-design.md antes de escribir el plan. Pasos propuestos: 5.6.1 diseño; 5.6.2 contratos/selección técnica; 5.6.3 página y recorte; 5.6.4 ensamblado; 5.6.5 validación/revisión global. 86 tests workspace y prueba local SVG/PNG pasan del checkpoint anterior; no repetidos para este cambio solo documental. Ver avance-tarea-5.6.md y requisitos-exportacion-impresion.md.

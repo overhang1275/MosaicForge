@@ -55,7 +55,8 @@
 - [x] ~~5.3 autorizado y terminado: SVG final, fondo/encuadre y paridad visual CPU.~~
 - [x] ~~5.4 autorizado y terminado: integración SVG/PNG y hash de bytes finales.~~
 - [x] ~~5.5 autorizado y terminado: flujo integrado validado con test.svg preparado, seis artefactos y rechazo.~~
-- [ ] Confirmación antes de 5.6: diseño de contrato/documento PDF único multipágina y exportación vectorial.
+- [x] ~~Inicio de diseño 5.6 autorizado; primera prueba elegida de 100 × 100 mm, sin sangrado.~~
+- [ ] Revisar/aprobar propuesta escrita PDF antes del plan e implementación 5.6.2–5.6.5.
 - [ ] Fase 1, tareas 5–6: exportación y CLI.
 - [ ] Evidencia de una variante SVG/PNG, determinismo y perfil CPU.
 - [ ] Confirmación explícita para pasar a fase 2.
@@ -121,4 +122,4 @@ Autor técnico de commits: Codex <codex@localhost>, configuración por comando, 
 
 ## Punto exacto para continuar
 
-Tarea 4 completa y 5.1–5.5 terminados. Esperar confirmación antes de 5.6: primero diseñar contrato agregado PDF, mapa índice→página y tamaño físico/sangrado; después exportación vectorial única multipágina y recorte real de geometría/limpieza. Solo queda 5.6 de tarea 5; revisión independiente global al cerrar. PDF aprobado en el plan, no implementado. Leer avance-tarea-5.5.md, tarea-5-submodulos.md y requisitos-exportacion-impresion.md. No confundir reservas con RSS; coordinación/escritura incremental sigue en CLI 6. No repetir módulos completos ni pasar a fase 2 sin terminar fase 1 y confirmación. Grafo sigue anterior a tarea 2.
+Tarea 4 completa y 5.1–5.5 terminados. Usuario autorizó iniciar 5.6 por diseño y eligió 100 × 100 mm, sin sangrado. Propuesta guardada en superpowers/specs/2026-10-15-pdf-multipagina-design.md: contrato agregado nuevo que referencia generación v1, hashes separados, mapa incremental, cajas físicas y geometría/memoria. Esperar revisión del diseño antes del plan de implementación. Pasos propuestos 5.6.2 contratos/selección técnica, 5.6.3 página/recorte real, 5.6.4 ensamblado y 5.6.5 validación/revisión global. PDF no implementado; no instalar bibliotecas ni cambiar contratos publicados todavía. Leer avance-tarea-5.6.md. No confundir reservas con RSS; publicación/cancelación siguen en CLI 6. No pasar a fase 2 sin terminar fase 1 y confirmación. Grafo sigue anterior a tarea 2.
