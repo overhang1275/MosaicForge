@@ -1,0 +1,20 @@
+{
+  "requestId": "12345678-1234-1234-1234-123456789abc",
+  "variant": {
+    "schemaVersion": "1",
+    "index": "18446744073709551615",
+    "seed": "18446744073709551615",
+    "templateHash": "4458377bcee0af034d50f4cee0de424e0f0f27ebb93a3af40adede27a3656567",
+    "configurationHash": "1111111111111111111111111111111111111111111111111111111111111111",
+    "artifactHash": "900fbe934249ad120004bd24adf66aad8817d89586273c0cc50e187bddebb601",
+    "engineVersion": "0.1.0",
+    "rulesVersion": "1",
+    "backend": "cpu",
+    "device": "cpu",
+    "status": "accepted"
+  },
+  "artifact": {
+    "mimeType": "image/svg+xml",
+    "base64": "PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciLz4="
+  }
+}

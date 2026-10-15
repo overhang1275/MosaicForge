@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "GenerationResponse",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "requestId",
+    "variant"
+  ],
+  "properties": {
+    "requestId": {
+      "$ref": "common.schema.json#/definitions/RequestId"
+    },
+    "variant": {
+      "$ref": "../../engine/v1/result.schema.json"
+    },
+    "artifact": {
+      "anyOf": [
+        {
+          "$ref": "common.schema.json#/definitions/Artifact"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  }
+}

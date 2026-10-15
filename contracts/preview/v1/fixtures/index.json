@@ -1,0 +1,314 @@
+[
+  {
+    "file": "inspect.json",
+    "schema": "inspect-request",
+    "operation": "inspect",
+    "valid": true
+  },
+  {
+    "file": "metadata.json",
+    "schema": "inspect-response",
+    "operation": "inspect",
+    "valid": true
+  },
+  {
+    "file": "request-max-u64.json",
+    "schema": "generation-request",
+    "operation": "preview",
+    "valid": true
+  },
+  {
+    "file": "accepted-png.json",
+    "schema": "generation-response",
+    "operation": "preview",
+    "valid": true
+  },
+  {
+    "file": "rejected.json",
+    "schema": "generation-response",
+    "operation": "preview",
+    "valid": true
+  },
+  {
+    "file": "error.json",
+    "schema": "error",
+    "operation": "inspect",
+    "valid": true
+  },
+  {
+    "file": "export-svg.json",
+    "schema": "generation-request",
+    "operation": "export",
+    "valid": true
+  },
+  {
+    "file": "accepted-svg.json",
+    "schema": "generation-response",
+    "operation": "export",
+    "valid": true
+  },
+  {
+    "file": "invalid-count.json",
+    "schema": "generation-request",
+    "operation": "preview",
+    "valid": false
+  },
+  {
+    "file": "invalid-count-zero.json",
+    "schema": "generation-request",
+    "operation": "preview",
+    "valid": false
+  },
+  {
+    "file": "invalid-width.json",
+    "schema": "generation-request",
+    "operation": "preview",
+    "valid": false
+  },
+  {
+    "file": "invalid-height-zero.json",
+    "schema": "generation-request",
+    "operation": "preview",
+    "valid": false
+  },
+  {
+    "file": "invalid-preview-svg.json",
+    "schema": "generation-request",
+    "operation": "preview",
+    "valid": false
+  },
+  {
+    "file": "invalid-u64.json",
+    "schema": "generation-request",
+    "operation": "preview",
+    "valid": false
+  },
+  {
+    "file": "invalid-index-overflow.json",
+    "schema": "generation-request",
+    "operation": "preview",
+    "valid": false
+  },
+  {
+    "file": "invalid-numeric-seed.json",
+    "schema": "generation-request",
+    "operation": "preview",
+    "valid": false
+  },
+  {
+    "file": "invalid-leading-zero.json",
+    "schema": "generation-request",
+    "operation": "preview",
+    "valid": false
+  },
+  {
+    "file": "invalid-unknown-rule.json",
+    "schema": "generation-request",
+    "operation": "preview",
+    "valid": false
+  },
+  {
+    "file": "invalid-unknown-output.json",
+    "schema": "generation-request",
+    "operation": "preview",
+    "valid": false
+  },
+  {
+    "file": "invalid-reverse-range.json",
+    "schema": "generation-request",
+    "operation": "preview",
+    "valid": false
+  },
+  {
+    "file": "invalid-zero-scale.json",
+    "schema": "generation-request",
+    "operation": "preview",
+    "valid": false
+  },
+  {
+    "file": "invalid-opacity.json",
+    "schema": "generation-request",
+    "operation": "preview",
+    "valid": false
+  },
+  {
+    "file": "invalid-crop-overflow.json",
+    "schema": "generation-request",
+    "operation": "preview",
+    "valid": false
+  },
+  {
+    "file": "invalid-bad-palette.json",
+    "schema": "generation-request",
+    "operation": "preview",
+    "valid": false
+  },
+  {
+    "file": "invalid-bad-background.json",
+    "schema": "generation-request",
+    "operation": "preview",
+    "valid": false
+  },
+  {
+    "file": "unknown-request.json",
+    "schema": "generation-request",
+    "operation": "preview",
+    "valid": false
+  },
+  {
+    "file": "request-id.json",
+    "schema": "generation-request",
+    "operation": "preview",
+    "valid": false
+  },
+  {
+    "file": "empty-template.json",
+    "schema": "inspect-request",
+    "operation": "preview",
+    "valid": false
+  },
+  {
+    "file": "unknown-inspect.json",
+    "schema": "inspect-request",
+    "operation": "preview",
+    "valid": false
+  },
+  {
+    "file": "invalid-missing-artifact.json",
+    "schema": "generation-response",
+    "operation": "preview",
+    "valid": false
+  },
+  {
+    "file": "invalid-artifact-null.json",
+    "schema": "generation-response",
+    "operation": "preview",
+    "valid": false
+  },
+  {
+    "file": "invalid-bad-hash.json",
+    "schema": "generation-response",
+    "operation": "preview",
+    "valid": false
+  },
+  {
+    "file": "invalid-missing-hash.json",
+    "schema": "generation-response",
+    "operation": "preview",
+    "valid": false
+  },
+  {
+    "file": "invalid-bad-mime.json",
+    "schema": "generation-response",
+    "operation": "preview",
+    "valid": false
+  },
+  {
+    "file": "invalid-bad-base64.json",
+    "schema": "generation-response",
+    "operation": "preview",
+    "valid": false
+  },
+  {
+    "file": "invalid-noncanonical-base64.json",
+    "schema": "generation-response",
+    "operation": "preview",
+    "valid": false
+  },
+  {
+    "file": "invalid-unknown-artifact.json",
+    "schema": "generation-response",
+    "operation": "preview",
+    "valid": false
+  },
+  {
+    "file": "invalid-accepted-reason.json",
+    "schema": "generation-response",
+    "operation": "preview",
+    "valid": false
+  },
+  {
+    "file": "invalid-unknown-variant.json",
+    "schema": "generation-response",
+    "operation": "preview",
+    "valid": false
+  },
+  {
+    "file": "invalid-response-u64.json",
+    "schema": "generation-response",
+    "operation": "preview",
+    "valid": false
+  },
+  {
+    "file": "invalid-rejected-artifact.json",
+    "schema": "generation-response",
+    "operation": "preview",
+    "valid": false
+  },
+  {
+    "file": "invalid-rejected-hash.json",
+    "schema": "generation-response",
+    "operation": "preview",
+    "valid": false
+  },
+  {
+    "file": "invalid-rejected-reason.json",
+    "schema": "generation-response",
+    "operation": "preview",
+    "valid": false
+  },
+  {
+    "file": "invalid-meta-width.json",
+    "schema": "inspect-response",
+    "operation": "inspect",
+    "valid": false
+  },
+  {
+    "file": "invalid-meta-viewbox.json",
+    "schema": "inspect-response",
+    "operation": "inspect",
+    "valid": false
+  },
+  {
+    "file": "invalid-meta-segments.json",
+    "schema": "inspect-response",
+    "operation": "inspect",
+    "valid": false
+  },
+  {
+    "file": "invalid-meta-unknown.json",
+    "schema": "inspect-response",
+    "operation": "inspect",
+    "valid": false
+  },
+  {
+    "file": "invalid-error-message.json",
+    "schema": "error",
+    "operation": "inspect",
+    "valid": false
+  },
+  {
+    "file": "invalid-error-code.json",
+    "schema": "error",
+    "operation": "inspect",
+    "valid": false
+  },
+  {
+    "file": "invalid-error-unknown.json",
+    "schema": "error",
+    "operation": "inspect",
+    "valid": false
+  },
+  {
+    "file": "invalid-id-newline.json",
+    "schema": "inspect-request",
+    "operation": "inspect",
+    "valid": false
+  },
+  {
+    "file": "rejected-null-artifact.json",
+    "schema": "generation-response",
+    "operation": "preview",
+    "valid": true
+  }
+]

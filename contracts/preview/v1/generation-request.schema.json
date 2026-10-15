@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "GenerationRequest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "requestId",
+    "templateSvg",
+    "generation"
+  ],
+  "properties": {
+    "requestId": {
+      "$ref": "common.schema.json#/definitions/RequestId"
+    },
+    "templateSvg": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 5242880
+    },
+    "generation": {
+      "$ref": "../../engine/v1/generation.schema.json"
+    }
+  }
+}

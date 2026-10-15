@@ -1,0 +1,6 @@
+{
+  "requestId": "12345678-1234-1234-1234-123456789abc",
+  "code": "invalid_request",
+  "message": "Invalid request",
+  "extra": true
+}

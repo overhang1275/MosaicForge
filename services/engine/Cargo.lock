@@ -443,6 +443,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "mosaicforge-preview"
+version = "0.1.0"
+dependencies = [
+ "base64",
+ "mosaicforge-core",
+ "prettyplease",
+ "regress 0.10.5",
+ "serde",
+ "serde_json",
+ "sha2",
+ "syn 2.0.119",
+ "typify",
+]
+
+[[package]]
 name = "nix"
 version = "0.31.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"

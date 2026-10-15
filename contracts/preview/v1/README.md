@@ -10,7 +10,7 @@ Objetos cerrados, JSON Schema draft-07. Tipos generados; no copiar GenerationSpe
 | /v1/preview | GenerationRequest {requestId, templateSvg, generation} | GenerationResponse {requestId, variant, artifact?} |
 | /v1/export | GenerationRequest | GenerationResponse |
 
-requestId: UUID canónico minúsculo creado por BFF y devuelto por Rust; no participa en hashes. Artifact {mimeType, base64}, MIME image/png o image/svg+xml. Seed/startIndex/index: cadenas u64 canónicas, nunca Number. Un accepted requiere artefacto, SHA-256 coincidente y ningún motivo de rechazo; rejected requiere motivo y no lleva artefacto/hash. El formato solicitado se comprueba en la frontera con la petición; Operation::Preview exige PNG. Export acepta ambos formatos.
+requestId: UUID canónico minúsculo creado por BFF y devuelto por Rust; no participa en hashes. Artifact {mimeType, base64}, MIME image/png o image/svg+xml. Seed/startIndex/index: cadenas u64 canónicas, nunca Number. Un accepted requiere artefacto, SHA-256 coincidente y ningún motivo de rechazo; rejected requiere motivo y no lleva bytes/hash. artifact omitido o null representa ausencia, igual que los opcionales del contrato del motor; accepted requiere un Artifact real. El formato solicitado se comprueba en la frontera con la petición; Operation::Preview exige PNG. Export acepta ambos formatos.
 
 Importar SVG es responsabilidad del motor, no del validador de sobres. templateHash corresponde al SVG normalizado de Rust; el hash de configuración sigue el contrato engine/v1 y artifactHash corresponde a bytes exportados. Los identificadores de transporte no cambian esos hashes.
 

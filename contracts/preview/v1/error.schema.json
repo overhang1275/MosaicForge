@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PreviewError",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "requestId",
+    "code",
+    "message"
+  ],
+  "properties": {
+    "requestId": {
+      "$ref": "common.schema.json#/definitions/RequestId"
+    },
+    "code": {
+      "$ref": "common.schema.json#/definitions/ErrorCode"
+    },
+    "message": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    }
+  }
+}

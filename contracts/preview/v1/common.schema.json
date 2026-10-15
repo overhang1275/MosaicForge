@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "RequestId": {
+      "title": "RequestId",
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "Artifact": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Artifact",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mimeType",
+        "base64"
+      ],
+      "properties": {
+        "mimeType": {
+          "type": "string",
+          "enum": [
+            "image/png",
+            "image/svg+xml"
+          ]
+        },
+        "base64": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 16777216
+        }
+      }
+    },
+    "ErrorCode": {
+      "type": "string",
+      "enum": [
+        "invalid_request",
+        "invalid_template",
+        "unauthorized",
+        "forbidden",
+        "payload_too_large",
+        "unsupported_media_type",
+        "busy",
+        "internal_error",
+        "engine_unavailable",
+        "timeout"
+      ]
+    }
+  }
+}
