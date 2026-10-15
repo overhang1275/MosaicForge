@@ -6,7 +6,7 @@ Fecha: 2026-10-15. Base add1eff. Usuario autorizó continuar; detenerse antes de
 - [x] ~~Separar el fondo de transformaciones, opacidad y clips del dibujo.~~
 - [x] ~~Revalidar la salida y conservar los límites del importador.~~
 - [x] ~~Comprobar suite completa, tres muestras reales y revisión visual.~~
-- [ ] Registrar commit y punto de continuación.
+- [x] ~~Checkpoint funcional 4d7a1b9 registrado; pausa antes de 5.4.~~
 
 ## Implementación y decisiones
 

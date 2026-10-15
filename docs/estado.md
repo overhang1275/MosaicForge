@@ -97,6 +97,7 @@ Existen generador integrado, reglas/validación, exportación SVG final y raster
 | 8031f75 | Integración 4.5 y cierre de tarea 4 | 67 tests CPU, prueba local integrada, fmt/Clippy, dos P2 de revisión corregidos |
 | 8013a89 | Validación de salida y reserva base PNG 5.1 | 70 tests workspace, fmt/Clippy, revisión local |
 | 24b46db | Render PNG CPU y presupuesto de temporales 5.2 | 78 tests workspace, prueba local PNG, fmt/Clippy, revisión visual |
+| 4d7a1b9 | SVG final con fondo independiente y encuadre cover 5.3 | 82 tests, prueba local de tres SVG/PNG, fmt/Clippy, revisión visual |
 
 Autor técnico de commits: Codex <codex@localhost>, configuración por comando, sin cambiar identidad global. No se hizo push, merge, reset ni clean. No se versionan target/, dependencias descargadas ni resultados de usuarios.
 
