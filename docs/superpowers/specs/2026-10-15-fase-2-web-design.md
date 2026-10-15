@@ -1,10 +1,10 @@
 # Fase 2 — Editor web conectado al motor CPU
 
-Fecha: 2026-10-15. Estado: propuesta escrita para revisión del usuario; implementación no iniciada. Base funcional: e99fa75.
+Fecha: 2026-10-15. Estado: diseño aprobado explícitamente por el usuario el 2026-10-15; plan de 2.1 escrito, implementación no iniciada. Base funcional: e99fa75.
 
 ## Objetivo y autorización
 
-El usuario confirmó iniciar la fase 2 por submódulos tras cerrar la fase 1. El propósito ya está definido: cargar un SVG propio, ajustar reglas y seed, ver variantes reales reproducibles y descargar una variante SVG o PNG. La autorización de fase no convierte esta propuesta nueva en un diseño aprobado.
+El usuario confirmó iniciar la fase 2 por submódulos tras cerrar la fase 1. El propósito ya está definido: cargar un SVG propio, ajustar reglas y seed, ver variantes reales reproducibles y descargar una variante SVG o PNG. El usuario aprobó después esta especificación escrita. Plan ejecutable de 2.1: ../plans/2026-10-15-fase-2-1-contratos.md, pendiente de revisión antes de implementar.
 
 Éxito: navegador y CLI producen los mismos bytes para la misma plantilla, GenerationSpec, índice y entorno del motor. Rechazos visibles, solicitudes antiguas sin sustituir resultados nuevos, funcionamiento local sin Java, base de datos, broker, CUDA o ML.
 
