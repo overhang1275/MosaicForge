@@ -110,6 +110,7 @@ Existen generador, reglas/validación, SVG/PNG integrados y PDF vectorial único
 | d72883f | Integración SVG/PNG y hash de bytes finales 5.4 | 86 tests, fmt/Clippy, determinismo por subrangos/orden/tres hilos |
 | c5ef9c0 | Validación integrada con SVG del usuario 5.5 | 86 tests normales, nuevo local aparte, seis artefactos, hashes, rechazo y revisión visual |
 | 3b51db2 | PDF vectorial multipágina, contratos y recorte real 5.6 | 95 tests, formato/Clippy, QA Poppler/pypdf, revisión P1 corregida |
+| 22b82ae | CLI inspect seguro y exclusión de Fiery 6.1 | 102 tests, formato/Clippy, inspección real de SVG preparado |
 
 Autor técnico de commits: Codex <codex@localhost>, configuración por comando, sin cambiar identidad global. No se hizo push, merge, reset ni clean. No se versionan target/, dependencias descargadas ni resultados de usuarios.
 

@@ -6,7 +6,7 @@ Fecha: 2026-10-15. Base 3c7139c. Usuario inicia tarea 6; Fiery queda fuera. Plan
 - [x] ~~Implementar inspect con JSON estable e importación acotada.~~
 - [x] ~~Verificar errores, rutas y checks del workspace.~~
 - [x] ~~Inspección real y documentación de ejecución.~~
-- [ ] Commit y pausa antes de 6.2.
+- [x] ~~Checkpoint funcional 22b82ae guardado; pausa antes de 6.2.~~
 
 ## Evidencia
 
