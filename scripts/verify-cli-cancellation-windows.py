@@ -4,6 +4,7 @@ Uses the prepared user SVG. Run after building mosaicforge-cli, never during lin
 The child has its own hidden console; CTRL_C_EVENT cannot reach the user's console.
 """
 import ctypes
+import argparse
 from ctypes import wintypes
 import hashlib
 import json
@@ -18,19 +19,26 @@ def main():
     if sys.platform != "win32":
         raise SystemExit("Windows only")
     root = Path(__file__).resolve().parents[1]
-    job = root / "out/cli-6.4-cancel-signal"
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--pdf", action="store_true")
+    pdf = parser.parse_args().pdf
+    job = root / ("out/cli-6.5-pdf-cancel-signal" if pdf else "out/cli-6.4-cancel-signal")
     job.mkdir()  # Exclusive; refuse to overwrite an earlier run.
-    spec = json.loads((root / "out/cli-6.3-png.spec.json").read_text(encoding="utf-8-sig"))
-    spec["count"] = 10000
+    source = "out/pdf-5.6-release/job.json" if pdf else "out/cli-6.3-png.spec.json"
+    spec = json.loads((root / source).read_text(encoding="utf-8-sig"))
+    generation = spec["generation"] if pdf else spec
+    generation["count"] = 10000
     spec_path = job / "spec.json"
     spec_path.write_text(json.dumps(spec), encoding="utf-8")
     destination = job / "artifacts"
     startup = subprocess.STARTUPINFO()
     startup.dwFlags |= subprocess.STARTF_USESHOWWINDOW
     startup.wShowWindow = subprocess.SW_HIDE
-    command = [str(root / "services/engine/target/debug/mosaicforge.exe"), "generate",
+    command = [str(root / "services/engine/target/debug/mosaicforge.exe"), "generate-pdf" if pdf else "generate",
                "--template", str(root / "out/test-prepared.svg"), "--spec", str(spec_path),
-               "--out", str(destination), "--batch-size", "7", "--threads", "2"]
+               "--out", str(destination), "--batch-size", "7"]
+    if not pdf:
+        command += ["--threads", "2"]
     kernel = ctypes.WinDLL("kernel32", use_last_error=True)
     kernel.SetConsoleCtrlHandler.argtypes = [ctypes.c_void_p, wintypes.BOOL]
     kernel.SetConsoleCtrlHandler.restype = wintypes.BOOL
@@ -56,7 +64,7 @@ def main():
                 raise AssertionError("child exited before cancellation")
             if manifest_path.exists():
                 complete = manifest_path.read_bytes().split(b"\n")[:-1]
-                if any(json.loads(line)["kind"] == "variant" for line in complete):
+                if any(json.loads(line)["kind"] == ("pdf_page" if pdf else "variant") for line in complete):
                     break
             if time.monotonic() >= deadline:
                 raise TimeoutError("no completed variant within local check timeout")
@@ -87,21 +95,24 @@ def main():
     manifest = [json.loads(line) for line in manifest_path.read_bytes().splitlines()]
     assert manifest[0]["kind"] == "job"
     assert manifest[1:] == [json.loads(line) for line in stdout.splitlines()]
-    variants = [line["result"] for line in manifest if line["kind"] == "variant"]
+    variants = ([line["record"]["variant"] for line in manifest if line["kind"] == "pdf_page"] if pdf
+                else [line["result"] for line in manifest if line["kind"] == "variant"])
     summary = manifest[-1]
     assert summary["status"] == "cancelled"
-    assert 0 < len(variants) < spec["count"]
+    assert 0 < len(variants) < generation["count"]
     assert summary["accepted"] + summary["rejected"] == len(variants)
     indices = [int(result["index"]) for result in variants]
     assert indices == sorted(set(indices))
     expected = {"manifest.jsonl"}
     for result in variants:
-        if result["status"] == "accepted":
+        if result["status"] == "accepted" and not pdf:
             name = f"variant-{result['index']}.png"
             expected.add(name)
             assert hashlib.sha256((destination / name).read_bytes()).hexdigest() == result["artifactHash"]
     assert {path.name for path in destination.iterdir()} == expected
-    evidence = {"signal": "CTRL_C_EVENT", "exit": process.returncode,
+    if pdf:
+        assert not any(line["kind"] == "pdf_document" for line in manifest)
+    evidence = {"signal": "CTRL_C_EVENT", "format": "pdf" if pdf else "png", "exit": process.returncode,
                 "accepted": summary["accepted"], "rejected": summary["rejected"],
                 "manifestRecords": len(manifest), "unrecordedArtifacts": 0, "temporaries": 0}
     (job / "verification.json").write_text(json.dumps(evidence, indent=2), encoding="utf-8")

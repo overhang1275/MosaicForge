@@ -6,7 +6,10 @@ use mosaicforge_core::{
     contract::{PdfDocumentResult, PdfJobSpec, PdfPageRecord},
     template::Template,
 };
-use std::io::Write;
+use std::{
+    io::Write,
+    sync::atomic::{AtomicBool, Ordering},
+};
 /// Writes one complete PDF to a caller-owned temporary destination. Errors leave it unpublished.
 /// Records are emitted incrementally; callbacks must not treat them as a completed document.
 pub fn generate_pdf<W: Write, F: FnMut(PdfPageRecord) -> Result<(), EngineError>>(
@@ -14,8 +17,29 @@ pub fn generate_pdf<W: Write, F: FnMut(PdfPageRecord) -> Result<(), EngineError>
     job: &PdfJobSpec,
     batch_size: u64,
     output: &mut W,
-    mut records: F,
+    records: F,
 ) -> Result<PdfDocumentResult, EngineError> {
+    generate_pdf_cancellable(
+        template,
+        job,
+        batch_size,
+        output,
+        records,
+        &AtomicBool::new(false),
+    )?
+    .ok_or(EngineError::RenderFailed("unexpected PDF cancellation"))
+}
+
+/// None means cooperative cancellation; the caller must discard its temporary.
+/// Page records are provisional until a completed document is published.
+pub fn generate_pdf_cancellable<W: Write, F: FnMut(PdfPageRecord) -> Result<(), EngineError>>(
+    template: &Template,
+    job: &PdfJobSpec,
+    batch_size: u64,
+    output: &mut W,
+    mut records: F,
+    token: &AtomicBool,
+) -> Result<Option<PdfDocumentResult>, EngineError> {
     use mosaicforge_core::{
         configuration_hash,
         contract::pdf_result::*,
@@ -37,10 +61,19 @@ pub fn generate_pdf<W: Write, F: FnMut(PdfPageRecord) -> Result<(), EngineError>
     while processed < count {
         let group = (count - processed).min(batch_size);
         for local in 0..group {
+            if token.load(Ordering::Relaxed) {
+                return Ok(None);
+            }
             let index = start + processed + local;
             let exported = crate::export::generate_and_export(template, spec, index, 0)?;
+            if token.load(Ordering::Relaxed) {
+                return Ok(None);
+            }
             let page_number = if let Some(svg) = exported.artifact {
                 let page = geometry::optimize_page(&svg, job)?;
+                if token.load(Ordering::Relaxed) {
+                    return Ok(None);
+                }
                 writer.page(&page)?;
                 accepted += 1;
                 std::num::NonZeroU64::new(accepted)
@@ -55,6 +88,9 @@ pub fn generate_pdf<W: Write, F: FnMut(PdfPageRecord) -> Result<(), EngineError>
             records(record)?;
         }
         processed += group;
+    }
+    if token.load(Ordering::Relaxed) {
+        return Ok(None);
     }
     let digest = writer.finish()?;
     let encode = |_| EngineError::InvalidSpec("cannot encode PDF result");
@@ -79,5 +115,5 @@ pub fn generate_pdf<W: Write, F: FnMut(PdfPageRecord) -> Result<(), EngineError>
         },
     };
     mosaicforge_core::pdf::validate_pdf_document_result(&result)?;
-    Ok(result)
+    Ok(Some(result))
 }

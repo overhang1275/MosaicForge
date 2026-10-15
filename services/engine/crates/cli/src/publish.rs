@@ -9,6 +9,11 @@ use std::{
 
 static NEXT_TEMP: AtomicU64 = AtomicU64::new(0);
 struct Temporary(PathBuf);
+// Declaration order closes the handle before Temporary removes its name on Windows.
+pub struct PendingFile {
+    file: File,
+    temporary: Temporary,
+}
 impl Drop for Temporary {
     fn drop(&mut self) {
         let _ = fs::remove_file(&self.0);
@@ -24,27 +29,42 @@ pub fn publish_with(
     let directory = target
         .parent()
         .ok_or_else(|| io::Error::other("missing output directory"))?;
-    let (temporary, mut file) = (0..128)
-        .find_map(|_| {
-            let path = directory.join(format!(
-                ".mosaicforge-{}-{}.tmp",
-                std::process::id(),
-                NEXT_TEMP.fetch_add(1, Ordering::Relaxed)
-            ));
-            match OpenOptions::new().write(true).create_new(true).open(&path) {
-                Ok(file) => Some(Ok((Temporary(path), file))),
-                Err(e) if e.kind() == io::ErrorKind::AlreadyExists => None,
-                Err(e) => Some(Err(e)),
-            }
-        })
-        .unwrap_or_else(|| Err(io::Error::other("cannot create exclusive temporary")))?;
-    // Close before deleting on Windows, including the write-error path.
-    let written = write(&mut file).and_then(|_| file.sync_all());
-    drop(file);
-    written?;
-    fs::hard_link(&temporary.0, target)?;
-    fs::remove_file(&temporary.0)?;
-    Ok(())
+    let mut pending = PendingFile::create(directory)?;
+    write(pending.writer())?;
+    pending.publish(target)
+}
+impl PendingFile {
+    pub fn create(directory: &Path) -> io::Result<Self> {
+        (0..128)
+            .find_map(|_| {
+                let path = directory.join(format!(
+                    ".mosaicforge-{}-{}.tmp",
+                    std::process::id(),
+                    NEXT_TEMP.fetch_add(1, Ordering::Relaxed)
+                ));
+                match OpenOptions::new().write(true).create_new(true).open(&path) {
+                    Ok(file) => Some(Ok(Self {
+                        file,
+                        temporary: Temporary(path),
+                    })),
+                    Err(e) if e.kind() == io::ErrorKind::AlreadyExists => None,
+                    Err(e) => Some(Err(e)),
+                }
+            })
+            .unwrap_or_else(|| Err(io::Error::other("cannot create exclusive temporary")))
+    }
+    pub fn writer(&mut self) -> &mut File {
+        &mut self.file
+    }
+    pub fn publish(self, target: &Path) -> io::Result<()> {
+        let Self { file, temporary } = self;
+        let synced = file.sync_all();
+        drop(file);
+        synced?;
+        fs::hard_link(&temporary.0, target)?;
+        fs::remove_file(&temporary.0)?;
+        Ok(())
+    }
 }
 
 #[cfg(test)]

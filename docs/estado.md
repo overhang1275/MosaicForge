@@ -63,7 +63,8 @@
 - [x] ~~Usuario autorizó 6.2 y 6.3 juntos. 6.2 completo: generación SVG/PNG y publicación segura, 109 tests y checks pasan.~~
 - [x] ~~6.3 completo: grupos N, 1|2 hilos y presupuesto PNG compartido; 201 variantes reproducibles, 115 tests y checks pasan, revisión sin bloqueos.~~
 - [x] ~~6.4 autorizado y terminado: manifiesto persistente exclusivo, resultados de toda la ventana y Ctrl+C cooperativo; 122 tests y checks pasan, señal real Windows exit 130.~~
-- [ ] Confirmación antes de 6.5: PDF CLI único para todas las variantes aceptadas.
+- [x] ~~6.5 autorizado y terminado: generate-pdf, un PDF por trabajo, cancelación/publicación segura, 129 tests y QA real de tres páginas pasan.~~
+- [ ] Confirmación antes de 6.6: perfil por etapa/RAM, revisión independiente global y cierre de fase 1.
 - [ ] Evidencia de una variante SVG/PNG, determinismo y perfil CPU.
 - [ ] Confirmación explícita para pasar a fase 2.
 
@@ -116,6 +117,7 @@ Existen generador, reglas/validación, SVG/PNG integrados y PDF vectorial único
 | 22b82ae | CLI inspect seguro y exclusión de Fiery 6.1 | 102 tests, formato/Clippy, inspección real de SVG preparado |
 | c8094ac | CLI generate SVG/PNG y publicación exclusiva 6.2 | 109 tests, formato/Clippy, carrera/escritura fallida y CLI real |
 | 3088cc7 | CLI grupos y concurrencia CPU acotada 6.3 | 115 tests, formato/Clippy, 201 variantes reproducibles y prueba real |
+| 04a5359 | Manifiesto incremental y cancelación CLI 6.4 | 122 tests, formato/Clippy, Ctrl+C real Windows exit 130 |
 
 Autor técnico de commits: Codex <codex@localhost>, configuración por comando, sin cambiar identidad global. No se hizo push, merge, reset ni clean. No se versionan target/, dependencias descargadas ni resultados de usuarios.
 
@@ -133,4 +135,6 @@ Autor técnico de commits: Codex <codex@localhost>, configuración por comando, 
 
 ## Punto exacto para continuar
 
-Tareas 1–5 y 6.1–6.4 completas. CLI inspect y generate SVG/PNG: publicación exclusiva, grupos N, 1|2 hilos, manifest.jsonl incremental exclusivo y Ctrl+C/AtomicBool cooperativo; 122 tests normales, fmt y Clippy pasan. N=1/7/100 sobre 201 variantes, subrangos y u64::MAX conservados. Presupuesto compartido PNG 512 MiB estimados, no cota de RSS. El manifiesto guarda spec normalizado, resultados/rechazos y resumen completed/cancelled/failed; se drenan todos los resultados de la ventana ante cancelación/fallo. Prueba Windows real con consola propia oculta: exit 130, dos PNG completos, cuatro registros, cero temporales/artefactos sin registrar. Primer intento del verificador heredó ignorar Ctrl+C y agotó timeout; harness corregido, no motor. Ver avance-tarea-6.4.md y ejecucion-motor.md. **Esperar confirmación antes de 6.5** (PDF CLI único). 6.6: perfil por etapa/RAM, revisión independiente global y cierre de fase 1; Linux/macOS no ejecutados. Fiery excluido. No adelantar web/fase 2 sin terminar fase 1 y confirmar. Grafo antiguo sin reconstruir; no repetir tareas completas. PDF/X/CMYK/millones de páginas no implementados o validados.
+Tareas 1–5 y 6.1–6.5 completas. CLI inspect, generate SVG/PNG y generate-pdf, manifiesto exclusivo, Ctrl+C/AtomicBool y publicación sin reemplazo. 129 tests normales, fmt y Clippy pasan; nueve locales omitidos por defecto y QA real ejecutado aparte. PDF: un mosaic.pdf por trabajo, orden global y grupos N=1/7/100 comprobados sobre 201 variantes. Pipeline PDF secuencial, páginas provisionales en manifiesto; documento/hash final solo tras publicar. Cero aceptadas sin PDF vacío; errores/cancelación previa eliminan temporal. Cancelación real PDF Windows exit 130, una candidata provisional, ningún PDF final ni temporales. PDF real out/cli-6.5-pdf/mosaic.pdf: tres páginas 100×100 mm sin sangrado, 2 730 275 bytes, mismo hash que 5.6; QA pypdf/Poppler/visual pasa. Detalles en avance-tarea-6.5.md y ejecucion-motor.md.
+
+**Esperar confirmación antes de 6.6**: perfil por etapa/RAM, revisión independiente global y cierre de fase 1. No avanzar a web/fase 2 sin terminar fase 1 y confirmar. Linux/macOS, RSS y latencia máxima de cancelación no medidos aquí. Fiery excluido. SVG/PNG mantienen 1|2 hilos y reserva compartida estimada de buffers PNG de 512 MiB, no cota de RSS. No hay transacción archivo/manifiesto: si falla el registro después de publicar puede quedar un archivo completo sin resultado final. Sin reemplazo ni reanudación automática. Grafo antiguo sin reconstruir; no repetir tareas completas. PDF/X/CMYK/millones de páginas no implementados o validados.

@@ -35,6 +35,8 @@ Actualización CLI 6.4: 103 paquetes externos en metadata --locked --offline. ct
 
 Python/ctypes se usa solamente en el verificador local de señal Windows, como herramienta de QA; no es dependencia de generación. No se añaden servicios ni contratos entre lenguajes. Linux/macOS no se ejecutaron en esta sesión.
 
+CLI 6.5: sin dependencias externas nuevas ni cambios de versiones del lock (103 paquetes). Reutiliza PdfJobSpec/PdfPageRecord/PdfDocumentResult generados y el exportador CPU, std::fs para temporal/publicación y AtomicBool para cancelación. Python/pypdf/Pillow/numpy/Poppler se reutilizan exclusivamente para QA local, sin dependencia Python del producto.
+
 | Paquete añadido | Versión | Licencia declarada |
 |---|---|---|
 | i_float | 5.0.0 | MIT |

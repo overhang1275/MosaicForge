@@ -10,6 +10,7 @@ use std::{
 };
 mod generation;
 mod memory;
+mod pdf;
 mod publish;
 
 struct Failure {
@@ -78,6 +79,23 @@ fn run(args: impl IntoIterator<Item = OsString>, out: &mut impl Write, err: &mut
                         .default_value("1")
                         .value_parser(value_parser!(u64).range(1..=2)),
                 ),
+        )
+        .subcommand(
+            Command::new("generate-pdf")
+                .about("Generate one vector PDF for the whole PdfJobSpec")
+                .args(["template", "spec", "out"].map(|name| {
+                    Arg::new(name)
+                        .long(name)
+                        .value_name("PATH")
+                        .required(true)
+                        .value_parser(value_parser!(PathBuf))
+                }))
+                .arg(
+                    Arg::new("batch-size")
+                        .long("batch-size")
+                        .default_value("100")
+                        .value_parser(value_parser!(u64).range(1..=10_000)),
+                ),
         );
     let matches = match command.try_get_matches_from(args) {
         Ok(m) => m,
@@ -103,6 +121,12 @@ fn run(args: impl IntoIterator<Item = OsString>, out: &mut impl Write, err: &mut
             );
         }
     };
+    if let Some(("generate-pdf", arguments)) = matches.subcommand() {
+        return match pdf::run(arguments, out) {
+            Ok(()) => 0,
+            Err(e) => report(e, err),
+        };
+    }
     if let Some(("generate", arguments)) = matches.subcommand() {
         return match generation::run(arguments, out) {
             Ok(()) => 0,

@@ -22,14 +22,14 @@ use std::{
     },
 };
 
-fn cancelled() -> Failure {
+pub(super) fn cancelled() -> Failure {
     Failure {
         exit: 130,
         code: "cancelled",
         message: "generation cancelled".into(),
     }
 }
-fn check_cancelled(token: &AtomicBool) -> Result<(), Failure> {
+pub(super) fn check_cancelled(token: &AtomicBool) -> Result<(), Failure> {
     if token.load(Ordering::Relaxed) {
         Err(cancelled())
     } else {
@@ -45,7 +45,7 @@ struct Execution<'a> {
     token: &'a AtomicBool,
 }
 
-fn engine_failure(error: EngineError) -> Failure {
+pub(super) fn engine_failure(error: EngineError) -> Failure {
     Failure {
         exit: if matches!(error, EngineError::RenderFailed(_)) {
             3
@@ -56,14 +56,18 @@ fn engine_failure(error: EngineError) -> Failure {
         message: error.to_string(),
     }
 }
-fn invalid_spec(message: &'static str) -> Failure {
+pub(super) fn invalid_spec(message: &'static str) -> Failure {
     engine_failure(EngineError::InvalidSpec(message))
 }
-pub fn run(args: &clap::ArgMatches, out: &mut impl Write) -> Result<(), Failure> {
+pub(super) fn install_cancellation() -> Result<Arc<AtomicBool>, Failure> {
     let token = Arc::new(AtomicBool::new(false));
     let signal_token = Arc::clone(&token);
     ctrlc::set_handler(move || signal_token.store(true, Ordering::Relaxed))
         .map_err(|_| io_failure("cannot register Ctrl+C handler"))?;
+    Ok(token)
+}
+pub fn run(args: &clap::ArgMatches, out: &mut impl Write) -> Result<(), Failure> {
+    let token = install_cancellation()?;
     let template = read_template(
         args.get_one::<PathBuf>("template")
             .expect("required by clap"),
@@ -77,20 +81,11 @@ pub fn run(args: &clap::ArgMatches, out: &mut impl Write) -> Result<(), Failure>
         ));
     }
     let directory = args.get_one::<PathBuf>("out").expect("required by clap");
-    match fs::create_dir(directory) {
-        Ok(()) => (),
-        Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists && directory.is_dir() => (),
-        Err(_) => return Err(io_failure("cannot create output directory")),
-    }
     let batch_size = *args
         .get_one::<u64>("batch-size")
         .expect("defaulted by clap");
     let threads = *args.get_one::<u64>("threads").expect("defaulted by clap") as usize;
-    let mut manifest = OpenOptions::new()
-        .write(true)
-        .create_new(true)
-        .open(directory.join("manifest.jsonl"))
-        .map_err(|_| io_failure("cannot create manifest without replacement"))?;
+    let mut manifest = create_manifest(directory)?;
     generate(
         &Execution {
             template: &template,
@@ -105,6 +100,22 @@ pub fn run(args: &clap::ArgMatches, out: &mut impl Write) -> Result<(), Failure>
     )
 }
 fn read_spec(path: &Path) -> Result<GenerationSpec, Failure> {
+    serde_json::from_slice(&read_spec_bytes(path)?)
+        .map_err(|_| invalid_spec("invalid GenerationSpec JSON"))
+}
+pub(super) fn create_manifest(directory: &Path) -> Result<File, Failure> {
+    match fs::create_dir(directory) {
+        Ok(()) => (),
+        Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists && directory.is_dir() => (),
+        Err(_) => return Err(io_failure("cannot create output directory")),
+    }
+    OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(directory.join("manifest.jsonl"))
+        .map_err(|_| io_failure("cannot create manifest without replacement"))
+}
+pub(super) fn read_spec_bytes(path: &Path) -> Result<Vec<u8>, Failure> {
     if !fs::metadata(path)
         .map_err(|_| io_failure("cannot inspect spec file"))?
         .is_file()
@@ -127,9 +138,12 @@ fn read_spec(path: &Path) -> Result<GenerationSpec, Failure> {
     if bytes.len() as u64 > LIMIT {
         return Err(invalid_spec("spec byte limit exceeded"));
     }
-    serde_json::from_slice(&bytes).map_err(|_| invalid_spec("invalid GenerationSpec JSON"))
+    Ok(bytes)
 }
-fn write_record(writer: &mut impl Write, value: &serde_json::Value) -> std::io::Result<()> {
+pub(super) fn write_record(
+    writer: &mut impl Write,
+    value: &serde_json::Value,
+) -> std::io::Result<()> {
     let mut line = serde_json::to_vec(value)?;
     line.push(b'\n');
     writer.write_all(&line).and_then(|_| writer.flush())

@@ -49,6 +49,27 @@ impl Job {
     fn run(&self, name: &str) -> Output {
         self.command(name).output().unwrap()
     }
+    fn pdf_job(&self) -> Value {
+        json!({"schemaVersion":"1","generation":self.spec,"pdf":{"exporterVersion":"1","trimWidthMm":100,"trimHeightMm":100,"bleedMm":0}})
+    }
+    fn pdf_command(&self, name: &str, batch_size: u64) -> Command {
+        fs::write(
+            self.dir.join("pdf-job.json"),
+            serde_json::to_vec(&self.pdf_job()).unwrap(),
+        )
+        .unwrap();
+        let mut cmd = Command::new(env!("CARGO_BIN_EXE_mosaicforge"));
+        cmd.arg("generate-pdf")
+            .arg("--template")
+            .arg(self.dir.join("seed ñ.svg"))
+            .arg("--spec")
+            .arg(self.dir.join("pdf-job.json"))
+            .arg("--out")
+            .arg(self.dir.join(name))
+            .arg("--batch-size")
+            .arg(batch_size.to_string());
+        cmd
+    }
 }
 impl Drop for Job {
     fn drop(&mut self) {
@@ -304,4 +325,110 @@ fn invalid_group_and_thread_limits_fail_before_writing() {
         assert!(output.stdout.is_empty());
         assert!(!job.dir.join("out").exists());
     }
+}
+
+#[test]
+fn pdf_cli_writes_one_document_for_201_variants_independent_of_groups() {
+    let mut job = Job::new("svg");
+    job.spec["count"] = json!(201);
+    let template = import_svg(SVG).unwrap();
+    let spec = serde_json::from_value(job.pdf_job()).unwrap();
+    let (mut expected_bytes, mut expected_pages) = (Vec::new(), Vec::new());
+    let expected_result =
+        mosaicforge_cpu::pdf::generate_pdf(&template, &spec, 7, &mut expected_bytes, |r| {
+            expected_pages.push(json!({"kind":"pdf_page","record":r}));
+            Ok(())
+        })
+        .unwrap();
+    for n in [1, 7, 100] {
+        let name = format!("pdf-{n}");
+        let output = job.pdf_command(&name, n).output().unwrap();
+        let values = records(&output);
+        assert_eq!(values[..201], expected_pages);
+        assert_eq!(
+            values[201],
+            json!({"kind":"pdf_document","result":expected_result,"artifact":"mosaic.pdf"})
+        );
+        assert_eq!(
+            values[202],
+            json!({"kind":"summary","status":"completed","accepted":201,"rejected":0})
+        );
+        assert_eq!(
+            fs::read(job.dir.join(&name).join("mosaic.pdf")).unwrap(),
+            expected_bytes
+        );
+        assert_eq!(fs::read_dir(job.dir.join(&name)).unwrap().count(), 2);
+        let manifest = fs::read(job.dir.join(&name).join("manifest.jsonl")).unwrap();
+        let manifest: Vec<Value> = String::from_utf8(manifest)
+            .unwrap()
+            .lines()
+            .map(|s| serde_json::from_str(s).unwrap())
+            .collect();
+        assert_eq!(manifest[1..], values);
+        assert_eq!(manifest[1]["record"]["variant"]["index"], "9");
+        assert_eq!(manifest[201]["record"]["pageNumber"], 201);
+    }
+}
+#[test]
+fn pdf_cli_with_zero_accepted_variants_has_no_empty_pdf() {
+    let mut job = Job::new("svg");
+    job.spec["rules"]["opacity"] = json!({"min":0,"max":0});
+    let values = records(&job.pdf_command("no-pages", 7).output().unwrap());
+    assert_eq!(values[3]["result"]["status"], "no_pages");
+    assert!(values[3]["artifact"].is_null());
+    assert_eq!(
+        values[4],
+        json!({"kind":"summary","status":"completed","accepted":0,"rejected":3})
+    );
+    assert_eq!(fs::read_dir(job.dir.join("no-pages")).unwrap().count(), 1);
+}
+
+#[test]
+fn pdf_cli_keeps_dense_page_numbers_when_variants_are_rejected() {
+    let mut job = Job::new("svg");
+    job.spec["count"] = json!(24);
+    job.spec["rules"]["rotationDegrees"] = json!({"min":0,"max":90});
+    job.spec["rules"]["scaleX"] = json!({"min":1,"max":1.3});
+    job.spec["rules"]["scaleY"] = json!({"min":1,"max":1.3});
+    let values = records(&job.pdf_command("mixed", 7).output().unwrap());
+    let mut page = 0;
+    for (offset, value) in values[..24].iter().enumerate() {
+        assert_eq!(
+            value["record"]["variant"]["index"],
+            (9 + offset).to_string()
+        );
+        if value["record"]["variant"]["status"] == "accepted" {
+            page += 1;
+            assert_eq!(value["record"]["pageNumber"], page);
+        } else {
+            assert!(value["record"]["pageNumber"].is_null());
+        }
+    }
+    assert!(
+        page > 0 && page < 24,
+        "fixture must cover acceptances and rejections"
+    );
+    assert_eq!(values[24]["result"]["pageCount"], page);
+    assert_eq!(
+        values[25],
+        json!({"kind":"summary","status":"completed","accepted":page,"rejected":24-page})
+    );
+}
+#[test]
+fn pdf_cli_rejects_wrong_job_before_writing_and_never_replaces_existing_pdf() {
+    let bad = Job::new("png");
+    let output = bad.pdf_command("out", 7).output().unwrap();
+    assert_eq!(output.status.code(), Some(2));
+    assert!(!bad.dir.join("out").exists());
+    let job = Job::new("svg");
+    fs::create_dir(job.dir.join("out")).unwrap();
+    fs::write(job.dir.join("out/mosaic.pdf"), b"existing").unwrap();
+    let output = job.pdf_command("out", 7).output().unwrap();
+    assert_eq!(output.status.code(), Some(3));
+    assert_eq!(
+        fs::read(job.dir.join("out/mosaic.pdf")).unwrap(),
+        b"existing"
+    );
+    assert!(!String::from_utf8_lossy(&output.stdout).contains("pdf_document"));
+    assert_eq!(fs::read_dir(job.dir.join("out")).unwrap().count(), 2);
 }

@@ -1,6 +1,6 @@
 # Ejecución del motor CPU
 
-Actualizado: 2026-10-15, submódulos 6.1–6.4. La CLI expone **inspect**, **generate SVG/PNG**, grupos y uno/dos hilos, manifiesto incremental y cancelación Ctrl+C, --help y --version. PDF CLI pendiente de 6.5; las funciones Rust PDF ya existen.
+Actualizado: 2026-10-15, submódulos 6.1–6.5. La CLI expone **inspect**, **generate SVG/PNG**, **generate-pdf**, grupos, manifiesto incremental y cancelación Ctrl+C, --help y --version. SVG/PNG admiten uno/dos hilos; PDF procesa una página a la vez.
 
 ## Preparación
 
@@ -64,7 +64,31 @@ Se comprueba archivo regular antes de abrir y de nuevo sobre el handle abierto. 
 
 El inspector conserva todos los límites/restricciones de docs/svg-admitido.md. No instala fuentes ni permite recursos externos. Los metadatos del comando son una salida local; todavía no representan API HTTP ni contrato entre lenguajes.
 
-## Verificación
+## PDF único desde CLI (6.5)
+
+Desde la raíz:
+
+```powershell
+cargo run --manifest-path services/engine/Cargo.toml -p mosaicforge-cli --locked -- generate-pdf --template "archivo.svg" --spec "trabajo-pdf.json" --out "out/pdf-nuevo" --batch-size 7
+```
+
+trabajo-pdf.json usa el contrato existente contracts/engine/pdf/v1/job.schema.json: schemaVersion="1", generation con el GenerationSpec habitual (output.format="svg") y pdf con exporterVersion="1", trimWidthMm, trimHeightMm y bleedMm. Primera muestra: 100, 100 y 0 mm respectivamente. Esas dimensiones físicas son independientes del tamaño del viewport de generación. templateHash debe coincidir con inspect.
+
+El comando escribe **un solo mosaic.pdf para todo el trabajo**, una página por variante aceptada en orden de índice global. Un grupo N no crea otro documento; el grupo final puede estar incompleto. --batch-size admite 1..10000, por defecto 100. El pipeline PDF es secuencial, con una página/artefacto de variante a la vez y metadata de objetos/páginas; no acepta --threads. No se prometen mejoras de velocidad ni memoria de proceso por cambiar N.
+
+No publica SVG/PNG individuales. Escribe el PDF por objetos en un temporal exclusivo del directorio final, cierra el documento/xref, sincroniza y publica mediante el mismo hard_link sin reemplazo usado por SVG/PNG. Si no hay aceptadas, devuelve resultado no_pages y no crea PDF vacío. Un manifiesto o PDF existente no se sobrescribe. El contenido conserva el exportador vectorial con recorte real de 5.6; no es PDF/X ni conversión CMYK.
+
+manifest.jsonl empieza con kind=job, format=pdf y PdfJobSpec normalizado. Después emite kind=pdf_page con record del contrato PdfPageRecord: variant y pageNumber (base 1, solo aceptadas, sin huecos). artifactHash de cada variante corresponde al SVG previo al exportador PDF; **no es el hash de la página ni del documento**. Estas páginas son provisionales hasta el cierre y publicación.
+
+Solo después de publicar aparece kind=pdf_document con result del contrato PdfDocumentResult y artifact="mosaic.pdf"; documentHash es SHA-256 de todos los bytes finales. Con no_pages, artifact es null y documentHash ausente/null. El resumen completed/cancelled/failed conserva los recuentos de variantes procesadas. stdout replica los registros de progreso/documento/resumen; la cabecera solo queda en manifiesto.
+
+Ctrl+C se comprueba entre generación, optimización, páginas y antes de cierre/publicación: salida 130 y eliminación del temporal. Las páginas ya registradas quedan como progreso provisional, sin documento/hash final. No se interrumpe una operación individual en curso. Si la publicación ya comenzó al llegar la señal, puede finalizar con el PDF completo.
+
+Errores de manifiesto/stdout previos a publicar descartan el temporal; salida 3, sin PDF truncado publicado. Después de la publicación atómica, un fallo al registrar el documento puede dejar un PDF **completo** sin registro final, porque archivo y manifiesto no son una transacción. No interpretar las páginas provisionales ni un archivo preexistente como confirmación del nuevo trabajo. Nunca hay reemplazo ni reanudación automática.
+
+Prueba local de señal PDF Windows: scripts/verify-cli-cancellation-windows.py --pdf. Usa el mismo aislamiento de consola de 6.4 y un directorio exclusivo out/cli-6.5-pdf-cancel-signal; requiere la plantilla preparada y la spec de la prueba local previa.
+
+## Comandos de verificación
 
 Desde services/engine:
 
