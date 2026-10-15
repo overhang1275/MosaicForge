@@ -19,6 +19,22 @@ Actualización CLI 6.2: referencia al crate CPU existente, sin paquetes externos
 
 El primer cargo test sin permiso de red no pudo consultar crates.io; cargo fetch con permiso resolvió/descargó las seis dependencias. Las verificaciones posteriores usan --locked --offline.
 
+Actualización CLI 6.4: 103 paquetes externos en metadata --locked --offline. ctrlc 3.5.2 registra la señal de consola/SIGINT para activar un AtomicBool; el flujo principal sigue en Rust. Solo ctrlc/windows-sys/windows-link se compilan como nuevas dependencias en el Windows probado; las otras son transitivas para otros targets del lock. Licencias declaradas:
+
+| Paquete añadido en 6.4 | Versión | Licencia declarada |
+|---|---|---|
+| ctrlc | 3.5.2 | MIT/Apache-2.0 |
+| windows-sys | 0.61.2 | MIT OR Apache-2.0 |
+| windows-link | 0.2.1 | MIT OR Apache-2.0 |
+| cfg_aliases | 0.2.2 | MIT |
+| nix | 0.31.3 | MIT |
+| block2 | 0.6.2 | MIT |
+| dispatch2 | 0.3.1 | Zlib OR Apache-2.0 OR MIT |
+| objc2 | 0.6.5 | MIT |
+| objc2-encode | 4.1.0 | MIT |
+
+Python/ctypes se usa solamente en el verificador local de señal Windows, como herramienta de QA; no es dependencia de generación. No se añaden servicios ni contratos entre lenguajes. Linux/macOS no se ejecutaron en esta sesión.
+
 | Paquete añadido | Versión | Licencia declarada |
 |---|---|---|
 | i_float | 5.0.0 | MIT |

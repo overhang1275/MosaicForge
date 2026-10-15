@@ -106,8 +106,11 @@ fn svg_and_png_match_cpu_bytes_and_results_at_global_indices() {
                 expected.artifact.unwrap()
             );
         }
-        assert_eq!(got[3], json!({"kind":"summary","accepted":3,"rejected":0}));
-        assert_eq!(fs::read_dir(job.dir.join("out")).unwrap().count(), 3);
+        assert_eq!(
+            got[3],
+            json!({"kind":"summary","status":"completed","accepted":3,"rejected":0})
+        );
+        assert_eq!(fs::read_dir(job.dir.join("out")).unwrap().count(), 4);
         assert_eq!(fs::read(job.dir.join("seed ñ.svg")).unwrap(), SVG);
     }
 }
@@ -120,7 +123,7 @@ fn existing_output_is_never_replaced() {
     let output = job.run("out");
     assert_eq!(output.status.code(), Some(3));
     assert_eq!(fs::read(target).unwrap(), b"keep existing bytes");
-    assert_eq!(fs::read_dir(job.dir.join("out")).unwrap().count(), 3);
+    assert_eq!(fs::read_dir(job.dir.join("out")).unwrap().count(), 4);
 }
 #[test]
 fn invalid_spec_and_wrong_template_hash_create_no_output_directory() {
@@ -164,8 +167,35 @@ fn valid_rejections_have_success_status_and_no_artifacts() {
         assert_eq!(value["result"]["status"], "rejected");
         assert!(value["result"]["artifactHash"].is_null());
     }
-    assert_eq!(got[3], json!({"kind":"summary","accepted":0,"rejected":3}));
-    assert_eq!(fs::read_dir(job.dir.join("out")).unwrap().count(), 0);
+    assert_eq!(
+        got[3],
+        json!({"kind":"summary","status":"completed","accepted":0,"rejected":3})
+    );
+    assert_eq!(fs::read_dir(job.dir.join("out")).unwrap().count(), 1);
+}
+
+#[test]
+fn manifest_contains_job_then_exact_stdout_records_and_never_gets_replaced() {
+    let job = Job::new("svg");
+    let output = job.run("out");
+    let stdout = records(&output);
+    let path = job.dir.join("out/manifest.jsonl");
+    let bytes = fs::read(&path).expect("incremental manifest must exist");
+    let lines: Vec<Value> = String::from_utf8(bytes.clone())
+        .unwrap()
+        .lines()
+        .map(|s| serde_json::from_str(s).unwrap())
+        .collect();
+    assert_eq!(lines[0]["kind"], "job");
+    let typed: GenerationSpec = serde_json::from_value(job.spec.clone()).unwrap();
+    assert_eq!(lines[0]["spec"], serde_json::to_value(typed).unwrap());
+    assert_eq!(lines[0]["backend"], "cpu");
+    assert_eq!(lines[1..], stdout);
+    assert_eq!(lines.last().unwrap()["status"], "completed");
+    let again = job.run("out");
+    assert_eq!(again.status.code(), Some(3));
+    assert!(again.stdout.is_empty());
+    assert_eq!(fs::read(path).unwrap(), bytes);
 }
 
 #[test]
@@ -204,7 +234,7 @@ fn groups_threads_and_subranges_preserve_bytes_and_order_for_201_variants() {
             records(&output);
             assert_eq!(
                 fs::read_dir(job.dir.join(&name)).unwrap().count() as u64,
-                values[201]["accepted"].as_u64().unwrap()
+                values[201]["accepted"].as_u64().unwrap() + 1
             );
             assert_eq!(
                 output.stdout, baseline.stdout,

@@ -1,6 +1,6 @@
 # Ejecución del motor CPU
 
-Actualizado: 2026-10-15, submódulos 6.2–6.3. La CLI expone **inspect**, **generate SVG/PNG**, grupos y uno/dos hilos, --help y --version. PDF CLI pendiente de 6.5; las funciones Rust PDF ya existen.
+Actualizado: 2026-10-15, submódulos 6.1–6.4. La CLI expone **inspect**, **generate SVG/PNG**, grupos y uno/dos hilos, manifiesto incremental y cancelación Ctrl+C, --help y --version. PDF CLI pendiente de 6.5; las funciones Rust PDF ya existen.
 
 ## Preparación
 
@@ -29,21 +29,34 @@ Generación desde raíz (spec conforme a contracts/engine/v1, templateHash obten
 cargo run --manifest-path services/engine/Cargo.toml -p mosaicforge-cli --locked -- generate --template "out/test-prepared.svg" --spec "out/cli-6.2-svg.spec.json" --out "out/nuevo-trabajo" --batch-size 7 --threads 2
 ```
 
-El padre de --out debe existir. Permite un directorio existente, pero nunca reemplaza archivos: publica variant-{índice}.svg o .png según spec.output.format. El índice no depende de la posición en el grupo. stdout emite una línea JSON por resultado (kind=variant, result con el contrato VariantResult) y resumen final (kind=summary, accepted/rejected). El rechazo válido no escribe artefacto y devuelve 0. No se acumulan todos los artefactos del trabajo.
+El padre de --out debe existir. Permite un directorio existente que no tenga manifest.jsonl, pero nunca reemplaza archivos: publica variant-{índice}.svg o .png según spec.output.format. El índice no depende de la posición en el grupo. stdout emite una línea JSON por resultado (kind=variant, result con el contrato VariantResult) y resumen final (kind=summary, status, accepted/rejected). El rechazo válido no escribe artefacto y devuelve 0. No se acumulan todos los artefactos del trabajo.
 
-El JSON spec admite hasta 1 MiB; contrato/hash se comprueban antes de crear directorio. Temporales exclusivos se escriben/sincronizan/cierran antes de publicar por hard link. Se requiere filesystem compatible con hard links; falla con código 3 si no lo admite. No se usa rename con reemplazo. Ante error, archivos completos ya publicados permanecen; no equivale a transacción de todo el trabajo ni garantiza recuperación de energía. Un proceso terminado abruptamente puede dejar temporales. Manifiesto persistente y cancelación cooperativa llegan en 6.4.
+El JSON spec admite hasta 1 MiB; contrato/hash se comprueban antes de crear directorio. Temporales exclusivos se escriben/sincronizan/cierran antes de publicar por hard link. Se requiere filesystem compatible con hard links; falla con código 3 si no lo admite. No se usa rename con reemplazo. Ante error, archivos completos ya publicados permanecen; no equivale a transacción de todo el trabajo ni garantiza recuperación de energía. Un proceso terminado abruptamente puede dejar temporales.
 
 --batch-size admite 1..10000, por defecto 100; --threads admite 1 o 2, por defecto 1. Cada grupo se procesa en ventanas de hasta --threads variantes, publicando/liberando cada artefacto en el trabajador. No se guardan N imágenes en RAM. N=1 limita el trabajo a una variante simultánea aunque se soliciten dos hilos. El grupo final puede ser incompleto. Pool Rayon local, con número explícito de hilos, sin depender de RAYON_NUM_THREADS.
 
 Los trabajadores reservan el presupuesto estimado de su PNG antes de rasterizar; la suma de reservas no supera 512 MiB. Si dos imágenes no caben juntas, una espera hasta que la otra publique y libere los bytes. No se divide el límite por hilos, evitando rechazar una imagen que cabe sola. Esta cifra corresponde a buffers estimados por el planificador de resvg, **no a RSS total**: árboles, generación, asignador y runtime quedan fuera. SVG se acota por ventanas e importación. No hay afirmación de aceleración; perfil/medición de memoria quedan en 6.6.
 
-Los resultados de stdout salen en orden global, independientemente del orden de publicación de los trabajadores. Ante error, otro trabajador de la misma ventana puede haber publicado un archivo completo cuyo resultado todavía no se emitió; comprobar siempre exit code y contenido del directorio antes de reintentar. No existe todavía reanudación automática ni manifiesto persistente.
+Los resultados de stdout/manifiesto salen en orden global, independientemente del orden de publicación de los trabajadores. Se drena toda la ventana, incluso si un trabajador falla o se cancela. No existe reanudación automática.
+
+## Manifiesto incremental y Ctrl+C (6.4)
+
+Cada generate crea --out/manifest.jsonl con create_new; un manifiesto existente provoca exit 3 antes de generar variantes. La cabecera kind=job guarda el GenerationSpec normalizado, configurationHash y backend. A continuación persiste cada resultado/rechazo y, al terminar, un resumen status=completed|cancelled|failed con accepted/rejected reales. No hay timestamps ni se modifica el contrato v1. Los números de la spec se serializan según los tipos Rust (por ejemplo 1.0).
+
+Cada línea se escribe completa con write_all y flush antes de enviarla a stdout. Un rechazo válido no es cancelación ni fallo. Una variante que se cancela antes de publicar no cuenta como rechazada. Ante stdout roto, se sigue registrando el resto de publicaciones de la ventana y un resumen failed en manifiesto; exit 3. Si solo falla stdout al enviar el resumen final, el manifiesto puede estar completed porque los artefactos y sus registros sí terminaron; exit 3 sigue señalando la entrega incompleta a stdout.
+
+Ante fallo del manifiesto se detiene con exit 3, sin emitir resumen completed a stdout: puede quedar la última línea incompleta y algún artefacto completo sin registro, porque publicación y manifiesto no forman una transacción. Solo consumir líneas completas. Ausencia de resumen completed significa que el trabajo no está confirmado como completo. No se promete durabilidad ante pérdida de energía ni recuperación automática.
+
+Ctrl+C activa AtomicBool; se comprueba antes/después de generar, al reservar buffers, después de exportar y antes de cada ventana. La espera de presupuesto revisa el token cada 50 ms. Las llamadas individuales de generación/rasterización/escritura en curso no se interrumpen a mitad: puede tardar en responder hasta que termine la etapa. Una publicación ya iniciada termina de forma íntegra y se registra. Se esperan los trabajadores de la ventana, se escribe resumen cancelled y se devuelve 130. Si todas las variantes ya terminaron antes de observar la cancelación, el trabajo puede finalizar normalmente.
+
+Prueba local Windows: scripts/verify-cli-cancellation-windows.py abre una consola oculta propia y comprueba que solo participan el verificador y su hijo antes de enviar CTRL_C_EVENT. No afecta la consola del usuario. Limpia la opción heredable de ignorar Ctrl+C en el verificador antes de crear el hijo; un host que ignore esa señal también puede transmitir esa opción a procesos hijos. Crea out/cli-6.4-cancel-signal exclusivamente y requiere que esa ruta no exista al ejecutar la prueba.
 
 | Código | Estado |
 |---|---|
 | 0 | inspect/generate completado, ayuda o versión |
 | 2 | Argumentos/contrato inválidos, hash incorrecto, SVG inseguro/malformado o >5 MiB, spec >1 MiB |
 | 3 | Fallo al abrir/leer/escribir/publicar/renderizar, colisión o ruta no regular |
+| 130 | Cancelación cooperativa observada; artefactos completos y resultados previos conservados |
 
 stderr usa JSON con error.code y error.message. No incluye el contenido SVG. --help/--version producen texto en stdout. Un fallo del destino stdout devuelve 3; el consumidor debe comprobar el código de salida, porque un stream roto puede haber recibido datos parciales.
 

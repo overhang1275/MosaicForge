@@ -5,7 +5,7 @@ Fecha: 2026-10-15. Base 3c7139c. Usuario autorizó iniciar tarea 6 y **excluyó 
 - [x] ~~**6.1 Binario e inspect:** crate CLI, argumentos/help, lectura acotada, metadata JSON estable y errores/códigos comprobados; 102 tests workspace pasan.~~
 - [x] ~~**6.2 Generación y publicación segura:** generate SVG/PNG, temporales y publicación sin reemplazo; colisión, carrera y fallo de escritura comprobados. 109 tests y checks pasan.~~
 - [x] ~~**6.3 Grupos y concurrencia:** --batch-size N y --threads 1|2; pool Rayon, ventanas acotadas y presupuesto PNG compartido. 201 variantes SVG/PNG reproducibles con N=1/7/100, subrangos y grupo incompleto; 115 tests y checks pasan.~~
-- [ ] **6.4 Manifiesto y cancelación:** JSONL incremental con resultados/rechazos/resumen, Ctrl+C/AtomicBool cooperativo; pruebas con writer/token inyectados. Códigos 0 éxito, 2 entrada, 3 E/S/render y 130 cancelación. No confundir rechazo válido con fallo de proceso.
+- [x] ~~**6.4 Manifiesto y cancelación:** manifest.jsonl exclusivo, cabecera/resultados/rechazos/resumen; Ctrl+C/AtomicBool y espera interrumpible. Writer/token inyectados, señal Windows real exit 130, 122 tests y checks pasan.~~
 - [ ] **6.5 Integración PDF:** PdfJobSpec agregado, un solo documento final para todo el trabajo, mapa de páginas/hash y publicación después de cerrar; error/cancelación sin PDF truncado publicado ni sobreescritura. Cero aceptadas sin PDF vacío.
 - [ ] **6.6 Validación y cierre de fase 1:** corridas reales SVG/PNG/PDF mediante CLI, perfil por etapa y memoria separados, README de ejecución, revisión independiente global. Presentar evidencia y esperar confirmación antes de fase 2. **Fiery excluido**, no pendiente para cerrar.
 

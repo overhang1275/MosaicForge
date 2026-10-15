@@ -1,5 +1,11 @@
 use mosaicforge_core::EngineError;
-use std::sync::{Condvar, Mutex};
+use std::{
+    sync::{
+        Condvar, Mutex,
+        atomic::{AtomicBool, Ordering},
+    },
+    time::Duration,
+};
 
 pub struct BufferBudget {
     limit: u64,
@@ -18,7 +24,11 @@ impl BufferBudget {
             changed: Condvar::new(),
         }
     }
-    pub fn reserve(&self, bytes: u64) -> Result<Reservation<'_>, EngineError> {
+    pub fn reserve(
+        &self,
+        bytes: u64,
+        token: &AtomicBool,
+    ) -> Result<Option<Reservation<'_>>, EngineError> {
         if bytes > self.limit {
             return Err(EngineError::InvalidSpec(
                 "PNG reservation exceeds shared budget",
@@ -29,16 +39,23 @@ impl BufferBudget {
             .lock()
             .map_err(|_| EngineError::RenderFailed("shared PNG budget poisoned"))?;
         while bytes > self.limit - *used {
+            if token.load(Ordering::Relaxed) {
+                return Ok(None);
+            }
             used = self
                 .changed
-                .wait(used)
-                .map_err(|_| EngineError::RenderFailed("shared PNG budget poisoned"))?;
+                .wait_timeout(used, Duration::from_millis(50))
+                .map_err(|_| EngineError::RenderFailed("shared PNG budget poisoned"))?
+                .0;
+        }
+        if token.load(Ordering::Relaxed) {
+            return Ok(None);
         }
         *used += bytes;
-        Ok(Reservation {
+        Ok(Some(Reservation {
             budget: self,
             bytes,
-        })
+        }))
     }
 }
 impl Drop for Reservation<'_> {
@@ -53,17 +70,18 @@ impl Drop for Reservation<'_> {
 mod tests {
     use super::*;
     use std::{sync::mpsc, time::Duration};
+    static NEVER_CANCELLED: AtomicBool = AtomicBool::new(false);
     #[test]
     fn reservations_wait_without_rejecting_an_individually_valid_large_image() {
         let budget = BufferBudget::new(100);
-        let first = budget.reserve(70).unwrap();
+        let first = budget.reserve(70, &NEVER_CANCELLED).unwrap();
         std::thread::scope(|scope| {
             let (started_tx, started_rx) = mpsc::channel();
             let (done_tx, done_rx) = mpsc::channel();
             let budget = &budget;
             scope.spawn(move || {
                 started_tx.send(()).unwrap();
-                let _second = budget.reserve(90).unwrap();
+                let _second = budget.reserve(90, &NEVER_CANCELLED).unwrap();
                 assert_eq!(*budget.used.lock().unwrap(), 90);
                 done_tx.send(()).unwrap();
             });
@@ -78,18 +96,18 @@ mod tests {
     #[test]
     fn capacity_is_shared_and_released_on_error() {
         let budget = BufferBudget::new(100);
-        let first = budget.reserve(70).unwrap();
+        let first = budget.reserve(70, &NEVER_CANCELLED).unwrap();
         let fail = || -> Result<(), EngineError> {
-            let _second = budget.reserve(30)?;
+            let _second = budget.reserve(30, &NEVER_CANCELLED)?;
             assert_eq!(*budget.used.lock().unwrap(), 100);
             Err(EngineError::RenderFailed("injected renderer error"))
         };
         assert!(fail().is_err());
         assert_eq!(*budget.used.lock().unwrap(), 70);
-        assert!(budget.reserve(101).is_err());
+        assert!(budget.reserve(101, &NEVER_CANCELLED).is_err());
         drop(first);
         assert_eq!(*budget.used.lock().unwrap(), 0);
-        assert!(budget.reserve(100).is_ok());
+        assert!(budget.reserve(100, &NEVER_CANCELLED).unwrap().is_some());
     }
     #[test]
     fn maximum_canvas_is_not_rejected_by_dividing_budget_between_workers() {
@@ -98,6 +116,38 @@ mod tests {
         let plan = plan_png_render(br##"<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="#123456"/></svg>"##, &output, MAX_RENDER_BUFFER_BYTES).unwrap();
         assert!(plan.reserved_bytes > MAX_RENDER_BUFFER_BYTES / 2);
         let budget = BufferBudget::new(MAX_RENDER_BUFFER_BYTES);
-        assert!(budget.reserve(plan.reserved_bytes).is_ok());
+        assert!(
+            budget
+                .reserve(plan.reserved_bytes, &NEVER_CANCELLED)
+                .unwrap()
+                .is_some()
+        );
+    }
+    #[test]
+    fn cancellation_interrupts_capacity_wait_without_releasing_someone_elses_reservation() {
+        let budget = BufferBudget::new(100);
+        let first = budget.reserve(100, &NEVER_CANCELLED).unwrap();
+        let token = AtomicBool::new(false);
+        std::thread::scope(|scope| {
+            let (started_tx, started_rx) = mpsc::channel();
+            let (done_tx, done_rx) = mpsc::channel();
+            let budget = &budget;
+            let token = &token;
+            scope.spawn(move || {
+                started_tx.send(()).unwrap();
+                assert!(budget.reserve(10, token).unwrap().is_none());
+                done_tx.send(()).unwrap();
+            });
+            started_rx.recv_timeout(Duration::from_secs(5)).unwrap();
+            assert!(matches!(
+                done_rx.recv_timeout(Duration::from_millis(20)),
+                Err(mpsc::RecvTimeoutError::Timeout)
+            ));
+            token.store(true, Ordering::Relaxed);
+            done_rx.recv_timeout(Duration::from_secs(5)).unwrap();
+        });
+        assert_eq!(*budget.used.lock().unwrap(), 100);
+        drop(first);
+        assert_eq!(*budget.used.lock().unwrap(), 0);
     }
 }

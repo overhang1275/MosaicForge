@@ -1,6 +1,6 @@
 use crate::{Failure, io_failure, read_template};
 use mosaicforge_core::{
-    EngineError,
+    EngineError, configuration_hash,
     contract::{GenerationSpec, VariantResult, generation::OutputSpecFormat},
     generate::generate_variant,
     template::Template,
@@ -13,10 +13,37 @@ use mosaicforge_cpu::{
 use rayon::prelude::*;
 use serde_json::json;
 use std::{
-    fs::{self, File},
+    fs::{self, File, OpenOptions},
     io::{Read, Write},
     path::{Path, PathBuf},
+    sync::{
+        Arc,
+        atomic::{AtomicBool, Ordering},
+    },
 };
+
+fn cancelled() -> Failure {
+    Failure {
+        exit: 130,
+        code: "cancelled",
+        message: "generation cancelled".into(),
+    }
+}
+fn check_cancelled(token: &AtomicBool) -> Result<(), Failure> {
+    if token.load(Ordering::Relaxed) {
+        Err(cancelled())
+    } else {
+        Ok(())
+    }
+}
+struct Execution<'a> {
+    template: &'a Template,
+    spec: &'a GenerationSpec,
+    directory: &'a Path,
+    batch_size: u64,
+    threads: usize,
+    token: &'a AtomicBool,
+}
 
 fn engine_failure(error: EngineError) -> Failure {
     Failure {
@@ -33,6 +60,10 @@ fn invalid_spec(message: &'static str) -> Failure {
     engine_failure(EngineError::InvalidSpec(message))
 }
 pub fn run(args: &clap::ArgMatches, out: &mut impl Write) -> Result<(), Failure> {
+    let token = Arc::new(AtomicBool::new(false));
+    let signal_token = Arc::clone(&token);
+    ctrlc::set_handler(move || signal_token.store(true, Ordering::Relaxed))
+        .map_err(|_| io_failure("cannot register Ctrl+C handler"))?;
     let template = read_template(
         args.get_one::<PathBuf>("template")
             .expect("required by clap"),
@@ -55,7 +86,23 @@ pub fn run(args: &clap::ArgMatches, out: &mut impl Write) -> Result<(), Failure>
         .get_one::<u64>("batch-size")
         .expect("defaulted by clap");
     let threads = *args.get_one::<u64>("threads").expect("defaulted by clap") as usize;
-    generate(&template, &spec, directory, out, batch_size, threads)
+    let mut manifest = OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(directory.join("manifest.jsonl"))
+        .map_err(|_| io_failure("cannot create manifest without replacement"))?;
+    generate(
+        &Execution {
+            template: &template,
+            spec: &spec,
+            directory,
+            batch_size,
+            threads,
+            token: &token,
+        },
+        out,
+        &mut manifest,
+    )
 }
 fn read_spec(path: &Path) -> Result<GenerationSpec, Failure> {
     if !fs::metadata(path)
@@ -82,56 +129,99 @@ fn read_spec(path: &Path) -> Result<GenerationSpec, Failure> {
     }
     serde_json::from_slice(&bytes).map_err(|_| invalid_spec("invalid GenerationSpec JSON"))
 }
-fn emit(out: &mut impl Write, value: &serde_json::Value) -> Result<(), Failure> {
-    serde_json::to_writer(&mut *out, value)
-        .map_err(|_| io_failure("cannot write command output"))?;
-    out.write_all(b"\n")
-        .and_then(|_| out.flush())
-        .map_err(|_| io_failure("cannot write command output"))
+fn write_record(writer: &mut impl Write, value: &serde_json::Value) -> std::io::Result<()> {
+    let mut line = serde_json::to_vec(value)?;
+    line.push(b'\n');
+    writer.write_all(&line).and_then(|_| writer.flush())
 }
 fn generate(
-    template: &Template,
-    spec: &GenerationSpec,
-    directory: &Path,
+    job: &Execution<'_>,
     out: &mut impl Write,
-    batch_size: u64,
-    threads: usize,
+    manifest: &mut impl Write,
 ) -> Result<(), Failure> {
-    let start = spec
+    let start = job
+        .spec
         .start_index
         .parse::<u64>()
         .map_err(|_| invalid_spec("startIndex exceeds u64"))?;
+    write_record(manifest, &json!({"kind":"job","spec":job.spec,"configurationHash":configuration_hash(job.spec).map_err(engine_failure)?,"backend":"cpu"}))
+        .map_err(|_| io_failure("cannot write manifest"))?;
     let pool = rayon::ThreadPoolBuilder::new()
-        .num_threads(threads)
+        .num_threads(job.threads)
         .build()
         .map_err(|_| io_failure("cannot create worker pool"))?;
     let budget = crate::memory::BufferBudget::new(MAX_RENDER_BUFFER_BYTES);
     let mut accepted = 0u64;
-    for group_start in (0..spec.count.get()).step_by(batch_size as usize) {
-        let group_end = (group_start + batch_size).min(spec.count.get());
-        for window_start in (group_start..group_end).step_by(threads) {
+    let mut rejected = 0u64;
+    let mut failure = None;
+    'groups: for group_start in (0..job.spec.count.get()).step_by(job.batch_size as usize) {
+        let group_end = (group_start + job.batch_size).min(job.spec.count.get());
+        for window_start in (group_start..group_end).step_by(job.threads) {
+            if let Err(e) = check_cancelled(job.token) {
+                failure = Some(e);
+                break 'groups;
+            }
             // Only indices/results for this window survive; artifact bytes are
             // published and dropped by the worker, never queued for the batch.
-            let indices: Vec<_> = (window_start..(window_start + threads as u64).min(group_end))
+            let indices: Vec<_> = (window_start
+                ..(window_start + job.threads as u64).min(group_end))
                 .map(|offset| start + offset)
                 .collect();
             let results: Vec<_> = pool.install(|| {
                 indices
                     .par_iter()
-                    .map(|&index| generate_one(template, spec, index, directory, &budget))
+                    .map(|&index| {
+                        generate_one(
+                            job.template,
+                            job.spec,
+                            index,
+                            job.directory,
+                            &budget,
+                            job.token,
+                        )
+                    })
                     .collect()
             });
             for result in results {
-                let result = result?;
-                accepted += u64::from(result.artifact_hash.is_some());
-                emit(out, &json!({"kind":"variant","result":result}))?;
+                match result {
+                    Ok(result) => {
+                        // Persist every completed publication, even if a sibling
+                        // failed or stdout is broken. Manifest errors are fatal.
+                        write_record(manifest, &json!({"kind":"variant","result":result}))
+                            .map_err(|_| io_failure("cannot write manifest"))?;
+                        if result.artifact_hash.is_some() {
+                            accepted += 1;
+                        } else {
+                            rejected += 1;
+                        }
+                        if write_record(out, &json!({"kind":"variant","result":result})).is_err() {
+                            failure = Some(io_failure("cannot write command output"));
+                        }
+                    }
+                    Err(e) => {
+                        if failure.as_ref().is_none_or(|old: &Failure| old.exit == 130) {
+                            failure = Some(e);
+                        }
+                    }
+                }
+            }
+            if failure.is_some() {
+                break 'groups;
             }
         }
     }
-    emit(
-        out,
-        &json!({"kind":"summary","accepted":accepted,"rejected":spec.count.get()-accepted}),
-    )
+    let status = match failure.as_ref() {
+        None => "completed",
+        Some(e) if e.exit == 130 => "cancelled",
+        Some(_) => "failed",
+    };
+    let summary = json!({"kind":"summary","status":status,"accepted":accepted,"rejected":rejected});
+    write_record(manifest, &summary).map_err(|_| io_failure("cannot write manifest"))?;
+    write_record(out, &summary).map_err(|_| io_failure("cannot write command output"))?;
+    match failure {
+        Some(e) => Err(e),
+        None => Ok(()),
+    }
 }
 
 fn generate_one(
@@ -140,8 +230,11 @@ fn generate_one(
     index: u64,
     directory: &Path,
     budget: &crate::memory::BufferBudget,
+    token: &AtomicBool,
 ) -> Result<VariantResult, Failure> {
+    check_cancelled(token)?;
     let variant = generate_variant(template, spec, index).map_err(engine_failure)?;
+    check_cancelled(token)?;
     let bytes = if let Some(candidate) = &variant.template {
         if spec.output.format == OutputSpecFormat::Png {
             plan_png_render(
@@ -157,9 +250,13 @@ fn generate_one(
     } else {
         0
     };
-    let reservation = budget.reserve(bytes).map_err(engine_failure)?;
+    let reservation = budget
+        .reserve(bytes, token)
+        .map_err(engine_failure)?
+        .ok_or_else(cancelled)?;
     let exported = export_generated_variant(variant, &spec.output, MAX_RENDER_BUFFER_BYTES)
         .map_err(engine_failure)?;
+    check_cancelled(token)?;
     if let Some(bytes) = exported.artifact {
         let extension = match spec.output.format {
             OutputSpecFormat::Svg => "svg",
@@ -174,4 +271,236 @@ fn generate_one(
     }
     drop(reservation);
     Ok(exported.variant.result)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::{io, sync::atomic::AtomicU64};
+    static NEXT: AtomicU64 = AtomicU64::new(0);
+    const SVG: &[u8] = br##"<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><g><rect width="100" height="100" fill="#123456"/></g></svg>"##;
+    struct Fixture {
+        directory: PathBuf,
+        template: Template,
+        spec: GenerationSpec,
+    }
+    impl Fixture {
+        fn new() -> Self {
+            let directory = std::env::temp_dir().join(format!(
+                "mosaicforge-cancel-{}-{}",
+                std::process::id(),
+                NEXT.fetch_add(1, Ordering::Relaxed)
+            ));
+            fs::create_dir(&directory).unwrap();
+            let template = mosaicforge_core::template::import_svg(SVG).unwrap();
+            let mut spec: serde_json::Value =
+                serde_json::from_str(include_str!("../../../tests/fixtures/identity.json"))
+                    .unwrap();
+            spec["templateHash"] = json!(template.hash);
+            spec["startIndex"] = json!("9");
+            spec["count"] = json!(5);
+            spec["output"] =
+                json!({"format":"png","width":24,"height":24,"background":"transparent"});
+            Self {
+                directory,
+                template,
+                spec: serde_json::from_value(spec).unwrap(),
+            }
+        }
+        fn execution<'a>(&'a self, token: &'a AtomicBool, threads: usize) -> Execution<'a> {
+            Execution {
+                template: &self.template,
+                spec: &self.spec,
+                directory: &self.directory,
+                token,
+                threads,
+                batch_size: 3,
+            }
+        }
+    }
+    impl Drop for Fixture {
+        fn drop(&mut self) {
+            for entry in fs::read_dir(&self.directory).unwrap() {
+                fs::remove_file(entry.unwrap().path()).unwrap();
+            }
+            fs::remove_dir(&self.directory).unwrap();
+        }
+    }
+    fn lines(bytes: &[u8]) -> Vec<serde_json::Value> {
+        std::str::from_utf8(bytes)
+            .unwrap()
+            .lines()
+            .map(|s| serde_json::from_str(s).unwrap())
+            .collect()
+    }
+    struct CancelAfterRecord<'a> {
+        bytes: Vec<u8>,
+        token: &'a AtomicBool,
+    }
+    impl Write for CancelAfterRecord<'_> {
+        fn write(&mut self, bytes: &[u8]) -> io::Result<usize> {
+            self.bytes.extend_from_slice(bytes);
+            Ok(bytes.len())
+        }
+        fn flush(&mut self) -> io::Result<()> {
+            if lines(&self.bytes)
+                .iter()
+                .any(|line| line["kind"] == "variant")
+            {
+                self.token.store(true, Ordering::Relaxed);
+            }
+            Ok(())
+        }
+    }
+    #[test]
+    fn preset_cancellation_returns_130_without_artifacts_or_false_rejections() {
+        let fixture = Fixture::new();
+        let token = AtomicBool::new(true);
+        let (mut stdout, mut manifest) = (Vec::new(), Vec::new());
+        let error = generate(&fixture.execution(&token, 2), &mut stdout, &mut manifest)
+            .err()
+            .unwrap();
+        assert_eq!(error.exit, 130);
+        assert_eq!(fs::read_dir(&fixture.directory).unwrap().count(), 0);
+        assert_eq!(
+            lines(&manifest)[1],
+            json!({"kind":"summary","status":"cancelled","accepted":0,"rejected":0})
+        );
+        assert_eq!(lines(&manifest)[1..], lines(&stdout));
+    }
+    #[test]
+    fn cancellation_drains_published_siblings_then_stops_before_next_window() {
+        for (threads, batch_size) in [(1, 1), (1, 3), (2, 2), (2, 3)] {
+            let fixture = Fixture::new();
+            let token = AtomicBool::new(false);
+            let mut manifest = CancelAfterRecord {
+                bytes: Vec::new(),
+                token: &token,
+            };
+            let mut stdout = Vec::new();
+            let mut execution = fixture.execution(&token, threads);
+            execution.batch_size = batch_size;
+            let error = generate(&execution, &mut stdout, &mut manifest)
+                .err()
+                .unwrap();
+            assert_eq!(error.exit, 130);
+            let records = lines(&manifest.bytes);
+            assert_eq!(records.len(), threads + 2);
+            assert_eq!(
+                records.last().unwrap(),
+                &json!({"kind":"summary","status":"cancelled","accepted":threads,"rejected":0})
+            );
+            assert_eq!(records[1..], lines(&stdout));
+            assert_eq!(fs::read_dir(&fixture.directory).unwrap().count(), threads);
+            for index in 9..9 + threads {
+                assert!(
+                    fixture
+                        .directory
+                        .join(format!("variant-{index}.png"))
+                        .is_file()
+                );
+            }
+        }
+    }
+    struct FailAfterLines {
+        bytes: Vec<u8>,
+        complete: usize,
+        partial: bool,
+        flush_error: bool,
+    }
+    impl Write for FailAfterLines {
+        fn write(&mut self, bytes: &[u8]) -> io::Result<usize> {
+            if self.bytes.iter().filter(|&&b| b == b'\n').count() >= self.complete {
+                if self.partial {
+                    self.partial = false;
+                    self.bytes.extend_from_slice(&bytes[..7.min(bytes.len())]);
+                    return Ok(7.min(bytes.len()));
+                }
+                return Err(io::Error::other("injected disk full"));
+            }
+            self.bytes.extend_from_slice(bytes);
+            Ok(bytes.len())
+        }
+        fn flush(&mut self) -> io::Result<()> {
+            if self.flush_error {
+                Err(io::Error::other("injected flush error"))
+            } else {
+                Ok(())
+            }
+        }
+    }
+    #[test]
+    fn manifest_short_write_or_flush_failure_is_io_error_without_success_summary() {
+        for (complete, partial, flush_error) in
+            [(0, false, false), (2, true, false), (0, false, true)]
+        {
+            let fixture = Fixture::new();
+            let token = AtomicBool::new(false);
+            let mut manifest = FailAfterLines {
+                bytes: Vec::new(),
+                complete,
+                partial,
+                flush_error,
+            };
+            let mut stdout = Vec::new();
+            let error = generate(&fixture.execution(&token, 2), &mut stdout, &mut manifest)
+                .err()
+                .unwrap();
+            assert_eq!(error.exit, 3);
+            assert!(!String::from_utf8_lossy(&manifest.bytes).contains("completed"));
+            assert!(!String::from_utf8_lossy(&stdout).contains("completed"));
+            // Only complete PNG files may survive a manifest storage failure.
+            for entry in fs::read_dir(&fixture.directory).unwrap() {
+                let path = entry.unwrap().path();
+                assert_eq!(path.extension().unwrap(), "png");
+                assert!(fs::read(path).unwrap().starts_with(b"\x89PNG\r\n\x1a\n"));
+            }
+        }
+    }
+    #[test]
+    fn stdout_failure_still_records_all_published_siblings_and_failed_summary() {
+        let fixture = Fixture::new();
+        let token = AtomicBool::new(false);
+        let mut stdout = FailAfterLines {
+            bytes: Vec::new(),
+            complete: 0,
+            partial: false,
+            flush_error: false,
+        };
+        let mut manifest = Vec::new();
+        let error = generate(&fixture.execution(&token, 2), &mut stdout, &mut manifest)
+            .err()
+            .unwrap();
+        assert_eq!(error.exit, 3);
+        let records = lines(&manifest);
+        assert_eq!(records.len(), 4);
+        assert_eq!(
+            records[3],
+            json!({"kind":"summary","status":"failed","accepted":2,"rejected":0})
+        );
+        assert_eq!(fs::read_dir(&fixture.directory).unwrap().count(), 2);
+    }
+    #[test]
+    fn publication_error_does_not_lose_the_successful_siblings_record() {
+        let fixture = Fixture::new();
+        let token = AtomicBool::new(false);
+        fs::write(fixture.directory.join("variant-9.png"), b"existing").unwrap();
+        let (mut stdout, mut manifest) = (Vec::new(), Vec::new());
+        let error = generate(&fixture.execution(&token, 2), &mut stdout, &mut manifest)
+            .err()
+            .unwrap();
+        assert_eq!(error.exit, 3);
+        let records = lines(&manifest);
+        assert_eq!(records.len(), 3);
+        assert_eq!(records[1]["result"]["index"], "10");
+        assert_eq!(
+            records[2],
+            json!({"kind":"summary","status":"failed","accepted":1,"rejected":0})
+        );
+        assert_eq!(records[1..], lines(&stdout));
+        assert_eq!(
+            fs::read(fixture.directory.join("variant-9.png")).unwrap(),
+            b"existing"
+        );
+    }
 }

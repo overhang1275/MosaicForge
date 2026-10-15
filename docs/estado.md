@@ -62,7 +62,8 @@
 - [x] ~~6.1: binario mosaicforge e inspect, lectura acotada y metadata JSON; 102 tests y checks pasan.~~
 - [x] ~~Usuario autorizó 6.2 y 6.3 juntos. 6.2 completo: generación SVG/PNG y publicación segura, 109 tests y checks pasan.~~
 - [x] ~~6.3 completo: grupos N, 1|2 hilos y presupuesto PNG compartido; 201 variantes reproducibles, 115 tests y checks pasan, revisión sin bloqueos.~~
-- [ ] Confirmación antes de 6.4: manifiesto persistente y cancelación cooperativa.
+- [x] ~~6.4 autorizado y terminado: manifiesto persistente exclusivo, resultados de toda la ventana y Ctrl+C cooperativo; 122 tests y checks pasan, señal real Windows exit 130.~~
+- [ ] Confirmación antes de 6.5: PDF CLI único para todas las variantes aceptadas.
 - [ ] Evidencia de una variante SVG/PNG, determinismo y perfil CPU.
 - [ ] Confirmación explícita para pasar a fase 2.
 
@@ -114,6 +115,7 @@ Existen generador, reglas/validación, SVG/PNG integrados y PDF vectorial único
 | 3b51db2 | PDF vectorial multipágina, contratos y recorte real 5.6 | 95 tests, formato/Clippy, QA Poppler/pypdf, revisión P1 corregida |
 | 22b82ae | CLI inspect seguro y exclusión de Fiery 6.1 | 102 tests, formato/Clippy, inspección real de SVG preparado |
 | c8094ac | CLI generate SVG/PNG y publicación exclusiva 6.2 | 109 tests, formato/Clippy, carrera/escritura fallida y CLI real |
+| 3088cc7 | CLI grupos y concurrencia CPU acotada 6.3 | 115 tests, formato/Clippy, 201 variantes reproducibles y prueba real |
 
 Autor técnico de commits: Codex <codex@localhost>, configuración por comando, sin cambiar identidad global. No se hizo push, merge, reset ni clean. No se versionan target/, dependencias descargadas ni resultados de usuarios.
 
@@ -131,4 +133,4 @@ Autor técnico de commits: Codex <codex@localhost>, configuración por comando, 
 
 ## Punto exacto para continuar
 
-Tareas 1–5 y 6.1–6.3 completas. CLI disponible: inspect y generate SVG/PNG con publicación exclusiva, grupos N y 1|2 hilos; 115 tests normales, fmt y Clippy pasan. N=1/7/100 sobre 201 variantes, subrangos y u64::MAX comprobados; reserva compartida de buffers PNG hasta 512 MiB, no cota de RSS. CLI real con out/test-prepared.svg genera tres SVG y tres PNG con dos hilos, sin cambiar índice 0 respecto a 6.2; original intacto. Revisión estática independiente sin bloqueos. Leer avance-tarea-6.2.md, avance-tarea-6.3.md, tarea-6-submodulos.md y ejecucion-motor.md. **Esperar confirmación antes de 6.4** (manifiesto persistente/Ctrl+C). PDF CLI y perfil siguen en 6.5–6.6. Fiery excluido. No adelantar web/fase 2 sin terminar fase 1 y confirmar. Grafo antiguo sin reconstruir; no repetir tareas completas. PDF/X/CMYK/millones de páginas no implementados o validados.
+Tareas 1–5 y 6.1–6.4 completas. CLI inspect y generate SVG/PNG: publicación exclusiva, grupos N, 1|2 hilos, manifest.jsonl incremental exclusivo y Ctrl+C/AtomicBool cooperativo; 122 tests normales, fmt y Clippy pasan. N=1/7/100 sobre 201 variantes, subrangos y u64::MAX conservados. Presupuesto compartido PNG 512 MiB estimados, no cota de RSS. El manifiesto guarda spec normalizado, resultados/rechazos y resumen completed/cancelled/failed; se drenan todos los resultados de la ventana ante cancelación/fallo. Prueba Windows real con consola propia oculta: exit 130, dos PNG completos, cuatro registros, cero temporales/artefactos sin registrar. Primer intento del verificador heredó ignorar Ctrl+C y agotó timeout; harness corregido, no motor. Ver avance-tarea-6.4.md y ejecucion-motor.md. **Esperar confirmación antes de 6.5** (PDF CLI único). 6.6: perfil por etapa/RAM, revisión independiente global y cierre de fase 1; Linux/macOS no ejecutados. Fiery excluido. No adelantar web/fase 2 sin terminar fase 1 y confirmar. Grafo antiguo sin reconstruir; no repetir tareas completas. PDF/X/CMYK/millones de páginas no implementados o validados.
