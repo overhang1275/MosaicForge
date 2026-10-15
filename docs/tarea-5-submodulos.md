@@ -1,12 +1,12 @@
 # Tarea 5 — Exportación CPU por submódulos
 
-Actualizado: 2026-10-15. Usuario autorizó tarea 5 dividida en submódulos y después añadió PDF vectorial multipágina como 5.6. 5.1–5.4 terminados; pedir autorización antes de cada siguiente. Mantener fase 1; sin web, Java o GPU todavía. PDF autorizado en el plan, no implementado ni autorizado a empezar ahora.
+Actualizado: 2026-10-15. Usuario autorizó tarea 5 dividida en submódulos y después añadió PDF vectorial multipágina como 5.6. 5.1–5.5 terminados; pedir autorización antes de 5.6. Mantener fase 1; sin web, Java o GPU todavía. PDF autorizado en el plan, no implementado ni autorizado a empezar ahora.
 
 - [x] ~~**5.1 Validación y presupuesto base:** OutputSpec generado, validación común y plan base PNG con aritmética comprobada; sin reservar imágenes.~~
 - [x] ~~**5.2 PNG CPU:** render_png seguro, dimensiones/fondo, temporales de grupos/clips, PNG decodificado y encuadre sin letterboxing.~~
 - [x] ~~**5.3 SVG final:** dimensiones/fondo y encuadre cover compartido con PNG, vectores y seguridad conservados; límites de geometría oculta documentados en avance-tarea-5.3.md.~~
 - [x] ~~**5.4 Integración:** candidatos aceptados exportados a SVG/PNG con artifactHash de bytes finales, determinismo comprobado, rechazos sin artefactos y errores propagados. E/S/publicación siguen en tarea 6.~~
-- [ ] **5.5 Validación SVG/PNG:** casos reales con test.svg, pruebas de integración y documentación de resultados. La revisión independiente final de toda tarea 5 se traslada al final de 5.6 para incluir PDF.
+- [x] ~~**5.5 Validación SVG/PNG:** pipeline real con copia preparada de test.svg, seis exportaciones/repeticiones, hashes, paridad RGBA, rechazo y fuentes intactas comprobados; documentación en avance-tarea-5.5.md. Revisión independiente final al cerrar 5.6.~~
 - [ ] **5.6 PDF vectorial multipágina y cierre:** un único PDF con todas las variantes generadas, una página por variante y orden por índice; tamaño físico/sangrado, recorte geométrico real y limpieza de recursos. Procesar por grupos sin acumular todas las páginas rasterizadas/SVG en RAM; integrar hashes/manifiesto y publicación final con CLI en tarea 6. Revisión independiente final, comparación visual y métricas de peso/complejidad; Fiery pendiente hasta tener acceso.
 
 ## Requisitos aprobados para 5.6
@@ -37,4 +37,4 @@ Antes de render real, 5.2 debe añadir/validar el coste de superficies aisladas,
 
 ## Continuidad
 
-5.1–5.4 terminados. Quedan dos submódulos: 5.5–5.6. 86 tests workspace, formato y Clippy pasan; integración SVG/PNG con hash verificada, muestras reales integradas pendientes de 5.5. No comenzar 5.5 sin confirmación. PDF multipágina aprobado solo como ampliación del plan; no está implementado. Consultar avance-tarea-5.4.md, requisitos-exportacion-impresion.md y analisis-ejemplo-export.md, sin reutilizar assets propietarios.
+5.1–5.5 terminados. Solo queda 5.6. 86 tests workspace, formato y Clippy pasan; nuevo test local integrado ejecutado aparte sobre seis SVG/PNG, hashes y rechazo, con revisión visual. No comenzar 5.6 sin confirmación. Primero diseñar contrato agregado y tamaño físico/sangrado; PDF todavía no implementado. Consultar avance-tarea-5.5.md, requisitos-exportacion-impresion.md y analisis-ejemplo-export.md, sin reutilizar assets propietarios.
