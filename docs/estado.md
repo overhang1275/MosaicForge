@@ -150,3 +150,7 @@ Autor técnico de commits: Codex <codex@localhost>, configuración por comando, 
 Medición exploratoria PNG 512², 12 variantes: pico working set observado aproximadamente 27 MiB con un hilo y 41 MiB con dos. Una corrida por caso; no es una cota de RAM ni una aceleración general. SVG/PNG mantienen 1|2 hilos y reserva compartida estimada de buffers PNG de 512 MiB, distinta del consumo real. PDF secuencial y único por trabajo; páginas provisionales en manifiesto, documento/hash final solo tras publicar. No hay transacción archivo/manifiesto: un fallo del registro posterior a publicar puede dejar un archivo completo sin resultado final. Sin reemplazo ni reanudación automática.
 
 Prototipo local todavía sin publicar; LICENSE pendiente de elección antes de distribución pública y sin modificar. Linux/macOS, GPU, OOM real, latencia máxima de cancelación y millones de variantes no medidos. Fiery excluido. PDF/X/CMYK no implementados o validados. Grafo Graphify antiguo sin reconstruir; revisión contrastada con fuentes actuales. No repetir tareas completas.
+
+## Pausa actual — 2.4 en curso
+
+Usuario pausó por tokens el2026-10-15. UI/controlador implementados,14tests web/lint/tipado pasan; build inicial y prueba real con test.svg/copia preparada ejecutados. Últimos ajustes UI pendientes de rebuild/QAfinal. Leer avance-fase-2.4.md. No marcar2.4 terminado ni iniciar2.5. Objetivo1millón sigue obligatorio, planificadoenfase3; contratosactuales10000/ejecución y12previews no son capacidad masiva medida.

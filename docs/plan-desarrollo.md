@@ -87,6 +87,7 @@ Inicio autorizado. Checklist: fase-2-submodulos.md. Diseño aprobado en superpow
 - [ ] ADR de la frontera Java ↔ Rust y del paso web → Java; justificar coste frente al flujo local existente.
 - [ ] Introducir Java 21/Spring Boot/Spring Security y Maven Wrapper aquí, no antes.
 - [ ] Diseñar API OpenAPI y trabajo/eventos versionados; generar clientes y probar fronteras.
+- [ ] Trabajo de producción de hasta 1 000 000 variantes: contrato de trabajo propio y partición en bloques acotados, conservando (seed, índice), progreso durable y cancelación. GenerationSpec actual limita cada ejecución a 10 000; el editor local muestra hasta 12 previews y no materializa el millón en memoria.
 - [ ] Autenticación, autorización por proyecto/artefacto, presets y metadatos.
 - [ ] Incorporar PostgreSQL y Valkey aceptados como implementaciones de fronteras reales. No crear capas o puertos para responsabilidades inexistentes.
 - [ ] Estado duradero, outbox/reconciliación, bloques idempotentes, recuperación de pendientes y reintentos limitados.
@@ -104,6 +105,7 @@ Inicio autorizado. Checklist: fase-2-submodulos.md. Diseño aprobado en superpow
 5. Progreso se recupera tras desconexión; misma plantilla/reglas/seed/índice sigue reproduciendo lo generado por CLI.
 6. Tests de contratos, integración y E2E pasan; despliegue CPU reproducible sin CUDA/Python.
 7. Lotes progresivos se miden con memoria/disco/tiempo; capacidad anunciada solo hasta lo ensayado.
+8. Validar escalado 1 000 → 10 000 → 100 000 → 1 000 000 variantes, con memoria acotada por bloque/concurrencia, salida incremental y galería paginada. Registrar tiempo/disco y fallos/reanudación. Conservar requisito de PDF único por trabajo y comprobar su viabilidad a esa escala; no prometer capacidad por aceptar un número.
 
 ## Fase 4 — CUDA condicionada a evidencia
 

@@ -23,3 +23,5 @@ Verificación actual: 143 tests Rust, siete BFF y seis Node de contratos; format
 Skill solicitada: frontend-skill no existe con ese nombre en el catálogo curado. El usuario facilitó después openai/plugins, carpeta plugins/build-web-apps/skills/frontend-app-builder. Instalada mediante skill-installer en C:/Users/init/.codex/skills/frontend-app-builder; disponible en el siguiente turno. Es configuración local del asistente, no dependencia de MosaicForge.
 
 Herramientas adicionales instaladas y agente temporal de diseño completado: herramientas-diseno.md y diseno/fase-2-direccion-visual.md. Solicitud nueva: crear ui-ux-architect reutilizable; trabajo separado del servidor/producto.
+
+Pausa vigente: 2.4 autorizado e implementado parcialmente; cierre QA pendiente. Usuario solicitó parar por tokens. Ver avance-fase-2.4.md; continuar solo cuando lo pida.

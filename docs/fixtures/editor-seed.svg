@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="480" viewBox="0 0 480 480">
+  <rect width="480" height="480" fill="#16133b"/>
+  <g id="campos">
+    <rect x="0" y="0" width="240" height="240" fill="#772cf1"/>
+    <rect x="240" y="240" width="240" height="240" fill="#335ce9"/>
+    <polygon points="0,240 240,0 240,240" fill="#00d3df"/>
+    <polygon points="240,480 480,240 480,480" fill="#ee7ec5"/>
+  </g>
+  <g id="orbitas">
+    <circle cx="240" cy="240" r="132" fill="#0b1025"/>
+    <circle cx="240" cy="240" r="79" fill="#bd54ef"/>
+    <circle cx="240" cy="240" r="34" fill="#ffd8ad"/>
+    <circle cx="105" cy="105" r="57" fill="#ef99df"/>
+    <circle cx="375" cy="375" r="57" fill="#07d8e5"/>
+  </g>
+  <g id="ritmo" fill="#bd54ef">
+    <rect x="330" y="25" width="8" height="165"/>
+    <rect x="350" y="25" width="8" height="165"/>
+    <rect x="370" y="25" width="8" height="165"/>
+    <rect x="390" y="25" width="8" height="165"/>
+    <rect x="410" y="25" width="8" height="165"/>
+    <rect x="430" y="25" width="8" height="165"/>
+  </g>
+</svg>
