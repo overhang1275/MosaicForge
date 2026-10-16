@@ -68,7 +68,8 @@
 - [x] ~~Evidencia real SVG/PNG/PDF, determinismo y perfil CPU registrados en perfil-cpu-fase1.md y mediciones/.~~
 - [x] ~~Confirmación explícita del usuario para comenzar fase 2 por submódulos.~~
 - [x] ~~Usuario aprobó el diseño escrito de fase 2.~~
-- [ ] Revisar plan ejecutable de 2.1 y confirmar método antes de implementar; ver fase-2-submodulos.md.
+- [x] ~~2.1 aprobado y completado: contratos de preview Rust/TypeScript, 136 tests Rust + seis Node y revisión sin bloqueos.~~
+- [ ] Confirmar 2.2 antes de implementar HTTP Rust; ver fase-2-submodulos.md.
 
 Existen generador, reglas/validación, SVG/PNG integrados y PDF vectorial único con dimensiones físicas, sangrado, recorte real y hashes separados. Validado con copia preparada de test.svg, Poppler/pypdf y revisión independiente. CLI/publicación/cancelación y perfil por etapas completos. Web, Java e infraestructura corresponden a fases posteriores. La máscara pequeña sigue siendo solo validación de cobertura.
 
@@ -122,6 +123,8 @@ Existen generador, reglas/validación, SVG/PNG integrados y PDF vectorial único
 | 04a5359 | Manifiesto incremental y cancelación CLI 6.4 | 122 tests, formato/Clippy, Ctrl+C real Windows exit 130 |
 | 1b9499f | CLI PDF único por trabajo 6.5 | 129 tests, formato/Clippy, cancelación real y QA PDF de tres páginas |
 | e99fa75 | Cierre CPU 6.6 y cobertura final | 131 tests, formato/Clippy, perfil release, matriz CLI, QA PDF y revisión global |
+| 03c1323 | Contratos Rust preview 2.1 | 136 tests CPU, formato/Clippy, fixtures y modelos core reutilizados |
+| 5d9776d | Tipos TypeScript y herramientas contratos 2.1 | Seis tests Node, 52 fixtures, tipado/lint/formato/regeneración |
 
 Autor técnico de commits: Codex <codex@localhost>, configuración por comando, sin cambiar identidad global. No se hizo push, merge, reset ni clean. No se versionan target/, dependencias descargadas ni resultados de usuarios.
 
@@ -139,7 +142,7 @@ Autor técnico de commits: Codex <codex@localhost>, configuración por comando, 
 
 ## Punto exacto para continuar
 
-**Fase 1 funcional CPU/CLI completa; fase 2 autorizada por el usuario.** Tareas 1–6 terminadas. README.md documenta inspect, generate SVG/PNG y generate-pdf; avance-tarea-6.6.md registra el cierre y perfil-cpu-fase1.md enlaza las mediciones conservadas. Fase 2 en diseño: propuesta en superpowers/specs/2026-10-15-fase-2-web-design.md y checklist en fase-2-submodulos.md. Diseño aprobado; plan de 2.1 escrito en superpowers/plans/2026-10-15-fase-2-1-contratos.md, pendiente de revisión y método antes de implementar. Java e infraestructura siguen diferidos.
+**Fase 1 funcional CPU/CLI completa; fase 2 autorizada por el usuario.** Tareas 1–6 terminadas. README.md documenta inspect, generate SVG/PNG y generate-pdf; avance-tarea-6.6.md registra el cierre y perfil-cpu-fase1.md enlaza las mediciones conservadas. Fase 2 en diseño: propuesta en superpowers/specs/2026-10-15-fase-2-web-design.md y checklist en fase-2-submodulos.md. Diseño y plan aprobados; 2.1 completo (03c1323 Rust, 5d9776d TypeScript). Leer avance-fase-2.1.md y fase-2-submodulos.md. Esperar confirmación para 2.2; no hay HTTP/Next.js todavía. Agente reutilizable ui-ux-architect instalado y validado, incluida selección nativa y QA real sobre fixture; guía en ui-ux-architect/README.md. Dirección visual vigente en diseno/DESIGN.md: estudio oscuro violeta/cian basado en la referencia del usuario; landing al cierre del producto. Java e infraestructura siguen diferidos.
 
 131 tests normales pasan (74 core, 23 CPU, 34 CLI); formato y Clippy sin warnings pasan, build release CPU pasa. Diez tests locales ignorados por defecto: el perfil nuevo se ejecutó aparte, los otros nueve no se repitieron en 6.6. Ocho corridas reales CLI y QA pypdf/Poppler del PDF pasan; tres páginas de 100 × 100 mm sin sangrado, 2 730 275 bytes, idénticas a 5.6/6.5. Hashes SVG/PNG conservados entre N/hilos y baselines. Revisión independiente global sin bloqueos P1/P2 tras dos regresiones de cobertura: se valida el encuadre visible final y la composición de encuadres PDF, sin contar el fondo añadido como arte. Los casos afectados pueden cambiar respecto al snapshot previo: conservar el commit para reproducir versiones de desarrollo.
 

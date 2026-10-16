@@ -2,7 +2,7 @@
 
 Actualizado: 2026-10-15. Este orden reemplaza el plan anterior por instrucción directa del usuario. La aprobación anterior de tecnologías permanece; su incorporación se difiere a la fase que la necesita.
 
-Fiery excluido del alcance por instrucción del usuario del 2026-10-15; no condiciona el cierre de fase 1. Tarea 6 completada por submódulos según tarea-6-submodulos.md; fase 2 autorizada por el usuario, diseño detallado aprobado; plan de 2.1 en revisión.
+Fiery excluido del alcance por instrucción del usuario del 2026-10-15; no condiciona el cierre de fase 1. Tarea 6 completada por submódulos según tarea-6-submodulos.md; fase 2 autorizada por el usuario, diseño detallado aprobado; 2.1 implementado y verificado, 2.2 pendiente de confirmación.
 
 ## Alcance y punto de control
 
@@ -57,7 +57,7 @@ Cada fase tiene un documento ejecutable propio y termina con checks, evidencia e
 
 ## Fase 2 — Frontend conectado al motor CPU
 
-Inicio autorizado. Checklist: fase-2-submodulos.md. Diseño aprobado en superpowers/specs/2026-10-15-fase-2-web-design.md; plan de 2.1 escrito en superpowers/plans/2026-10-15-fase-2-1-contratos.md, pendiente revisión antes de implementar.
+Inicio autorizado. Checklist: fase-2-submodulos.md. Diseño aprobado en superpowers/specs/2026-10-15-fase-2-web-design.md; plan de 2.1 escrito en superpowers/plans/2026-10-15-fase-2-1-contratos.md, aprobado y completado con evidencia en avance-fase-2.1.md.
 
 **Objetivo:** cargar una plantilla, ajustar reglas/seed y obtener previsualizaciones reales del motor, todavía sin usuarios, proyectos persistentes o cola de producción.
 

@@ -1,6 +1,6 @@
 # Fase 2.1 — Plan de implementación de contratos de preview
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans or superpowers:subagent-driven-development to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans or superpowers:subagent-driven-development to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Fijar y verificar la frontera local web–Rust sin implementar todavía HTTP ni Next.js.
 
@@ -8,7 +8,7 @@
 
 **Tech Stack:** Rust 1.99, typify y serde existentes; Node disponible, pnpm, json-schema-to-typescript, TypeScript y Ajv draft-07 como herramientas de contratos. Fijar versiones exactas y lockfile durante la implementación, verificando compatibilidad y licencias; no usar dependencias globales o npx con descarga implícita.
 
-**Spec:** ../specs/2026-10-15-fase-2-web-design.md, aprobado por el usuario el 2026-10-15. Este plan todavía requiere revisión antes de ejecución.
+**Spec:** ../specs/2026-10-15-fase-2-web-design.md, aprobado por el usuario el 2026-10-15. Plan aprobado y ejecutado directamente; evidencia en ../../avance-fase-2.1.md.
 
 ## Restricciones globales
 
@@ -59,34 +59,36 @@ Una entrada de compilación TS alcanza todos los mensajes y referencias del moto
 
 ## Tarea A — ADR de frontera y contrato documentado
 
-- [ ] Escribir docs/adr/0006-preview-web-rust.md con HTTP local/BFF, alternativas CLI/WASM, coste de importación repetida, token solo servidor, loopback, límites, ausencia de almacenamiento y sustitución por Java en fase 3. Diseño aprobado; implementación todavía pendiente.
-- [ ] Escribir README de transporte con las interfaces anteriores, estado HTTP y reglas semánticas; distinguir mensajes de transporte de hashes/modelos del motor.
-- [ ] Revisar coherencia con el diseño y git diff --check; commit documental explícito, sin marcar implementados controles futuros.
+- [x] Escribir docs/adr/0006-preview-web-rust.md con HTTP local/BFF, alternativas CLI/WASM, coste de importación repetida, token solo servidor, loopback, límites, ausencia de almacenamiento y sustitución por Java en fase 3. Diseño aprobado; implementación todavía pendiente.
+- [x] Escribir README de transporte con las interfaces anteriores, estado HTTP y reglas semánticas; distinguir mensajes de transporte de hashes/modelos del motor.
+- [x] Revisar coherencia con el diseño y git diff --check; commit documental explícito, sin marcar implementados controles futuros.
 
 ## Tarea B — Contratos y tipos Rust verificados
 
-- [ ] Crear tests de fixtures con estas aserciones: request válido conserva seed="18446744073709551615"; desconocidos fallan; count=2, width=513, height=0 y PNG/SVG incorrecto para Preview fallan; u64 superior falla; Unicode que excede 5 MiB falla; accepted sin artefacto falla; rejected con artefacto falla; hash o MIME incorrecto falla; error con mensaje vacío falla.
-- [ ] Registrar el crate mínimo y ejecutar cargo test -p mosaicforge-preview --test contract --offline. Este primer comando puede actualizar el lockfile por el crate nuevo; si no hay dependencias disponibles no confundir ese bloqueo con RED de comportamiento. Observar fallo por interfaces/esquemas todavía ausentes; registrar RED real, no inferido.
-- [ ] Escribir esquemas y fixtures del manifiesto index.json. En build.rs resolver referencias locales con raíz canónica contracts/, sin red; referencias externas al árbol fallan con diagnóstico. Usar typify y reemplazos para modelos existentes, conservando nombres wire.
-- [ ] Implementar validación mínima y prueba build_rejects_reference_outside_contracts (con fixture de esquema de prueba), además de tamaños/relaciones anteriores. No duplicar generación, seguridad SVG o geometría: la importación real será 2.2.
-- [ ] Ejecutar cargo fmt --all -- --check, cargo clippy --workspace --all-targets --locked --offline -- -D warnings y cargo test --workspace --locked --offline. Exigir exit 0; informar pruebas locales ignoradas por separado. Guardar commit con archivos explícitos.
+- [x] Crear tests de fixtures con estas aserciones: request válido conserva seed="18446744073709551615"; desconocidos fallan; count=2, width=513, height=0 y PNG/SVG incorrecto para Preview fallan; u64 superior falla; Unicode que excede 5 MiB falla; accepted sin artefacto falla; rejected con artefacto falla; hash o MIME incorrecto falla; error con mensaje vacío falla.
+- [x] Registrar el crate mínimo y ejecutar cargo test -p mosaicforge-preview --test contract --offline. Este primer comando puede actualizar el lockfile por el crate nuevo; si no hay dependencias disponibles no confundir ese bloqueo con RED de comportamiento. Observar fallo por interfaces/esquemas todavía ausentes; registrar RED real, no inferido.
+- [x] Escribir esquemas y fixtures del manifiesto index.json. En build.rs resolver referencias locales con raíz canónica contracts/, sin red; referencias externas al árbol fallan con diagnóstico. Usar typify y reemplazos para modelos existentes, conservando nombres wire.
+- [x] Implementar validación mínima y prueba build_rejects_reference_outside_contracts (con fixture de esquema de prueba), además de tamaños/relaciones anteriores. No duplicar generación, seguridad SVG o geometría: la importación real será 2.2.
+- [x] Ejecutar cargo fmt --all -- --check, cargo clippy --workspace --all-targets --locked --offline -- -D warnings y cargo test --workspace --locked --offline. Exigir exit 0; informar pruebas locales ignoradas por separado. Guardar commit con archivos explícitos.
 
 ## Tarea C — Tipos TypeScript y mismos fixtures
 
-- [ ] Crear contract.test.mjs con pruebas shared_fixture_verdicts, u64_roundtrip, rejects_external_refs y generated_output_is_stable. Verificar que faltan generador/validadores al ejecutar node --test scripts/contracts/contract.test.mjs; registrar RED.
-- [ ] Crear paquete de herramientas privado y fijar dependencias verificadas con lockfile. json-schema-to-typescript genera declaraciones; Ajv valida draft-07 sin descargas y sin coerción/defaults/eliminación de campos. Registrar licencias y compatibilidad real de Node/pnpm. No instalar el frontend como efecto de este paquete.
-- [ ] Implementar generatePreviewTypes y validateFixture con las interfaces anteriores. Los fixtures inválidos tienen el mismo veredicto Rust/Node; si un caso depende de operación o semántica debe declararse en index.json y comprobarse en ambos.
-- [ ] Implementar --check que retorna exit 1 si el generado difiere o falta; no lo reescribe. Probar también que una modificación del esquema cambia salida o validación según corresponda, sin dejar cambios de prueba en el repositorio.
-- [ ] Ejecutar pnpm --dir scripts/contracts exec node --test contract.test.mjs, pnpm --dir scripts/contracts exec node generate.mjs --check y pnpm --dir scripts/contracts exec tsc --noEmit. Generar dos veces y comparar bytes; exigir exit 0 y ninguna modificación adicional. Guardar commit explícito.
+- [x] Crear contract.test.mjs con pruebas shared_fixture_verdicts, u64_roundtrip, rejects_external_refs y generated_output_is_stable. Verificar que faltan generador/validadores al ejecutar node --test scripts/contracts/contract.test.mjs; registrar RED.
+- [x] Crear paquete de herramientas privado y fijar dependencias verificadas con lockfile. json-schema-to-typescript genera declaraciones; Ajv valida draft-07 sin descargas y sin coerción/defaults/eliminación de campos. Registrar licencias y compatibilidad real de Node/pnpm. No instalar el frontend como efecto de este paquete.
+- [x] Implementar generatePreviewTypes y validateFixture con las interfaces anteriores. Los fixtures inválidos tienen el mismo veredicto Rust/Node; si un caso depende de operación o semántica debe declararse en index.json y comprobarse en ambos.
+- [x] Implementar --check que retorna exit 1 si el generado difiere o falta; no lo reescribe. Probar también que una modificación del esquema cambia salida o validación según corresponda, sin dejar cambios de prueba en el repositorio.
+- [x] Ejecutar pnpm --dir scripts/contracts exec node --test contract.test.mjs, pnpm --dir scripts/contracts exec node generate.mjs --check y pnpm --dir scripts/contracts exec tsc --noEmit. Generar dos veces y comparar bytes; exigir exit 0 y ninguna modificación adicional. Guardar commit explícito.
 
 ## Cierre de 2.1 y siguiente paso
 
-- [ ] Revisión local cruzada de cada fixture, fuentes de schemas, equivalencia de referencias y nombres generados. Un cambio en engine/v1 queda fuera: corregir el envoltorio nuevo, no el contrato existente.
-- [ ] Actualizar docs/fase-2-submodulos.md, docs/estado.md y docs/avance-fase-2.1.md con comandos, resultados, fallos corregidos, licencias y commits. No presentar paridad HTTP ni seguridad de servidor como probadas todavía.
-- [ ] Detenerse y pedir confirmación antes de 2.2. Los planes ejecutables de 2.2–2.6 se detallan al llegar, partiendo de contratos ya comprobados; no suponer sus interfaces implementadas.
+- [x] Revisión local cruzada de cada fixture, fuentes de schemas, equivalencia de referencias y nombres generados. Un cambio en engine/v1 queda fuera: corregir el envoltorio nuevo, no el contrato existente.
+- [x] Actualizar docs/fase-2-submodulos.md, docs/estado.md y docs/avance-fase-2.1.md con comandos, resultados, fallos corregidos, licencias y commits. No presentar paridad HTTP ni seguridad de servidor como probadas todavía.
+- [x] Detenerse y pedir confirmación antes de 2.2. Los planes ejecutables de 2.2–2.6 se detallan al llegar, partiendo de contratos ya comprobados; no suponer sus interfaces implementadas.
 
 ## Fuentes de herramientas y revisión del plan
 
 Documentación primaria consultada el 2026-10-15: [json-schema-to-typescript](https://github.com/bcherny/json-schema-to-typescript) (generación, MIT y requisitos de Node) y [Ajv JSON Schema](https://ajv.js.org/json-schema.html) (draft-07). Confirmar versiones exactas antes de instalar; estas lecturas no son pruebas de integración.
 
-Auto-revisión: alcance limitado a 2.1, nombres consistentes con envelopes, restricciones y los cinco focos asignados a B/C. Seguridad de sockets, streaming, credenciales, UI, BFF, mediciones y E2E quedan explícitamente en sus submódulos, sin marcarse probados. Ejecución recomendada: directa en este chat, por tareas, para conservar el coste de contexto; revisión global al cierre de fase 2. Esperar revisión del usuario y elección/confirmación del método antes de implementar.
+Auto-revisión: alcance limitado a 2.1, nombres consistentes con envelopes, restricciones y los cinco focos asignados a B/C. Seguridad de sockets, streaming, credenciales, UI, BFF, mediciones y E2E quedan explícitamente en sus submódulos, sin marcarse probados. Ejecución recomendada: directa en este chat, por tareas, para conservar el coste de contexto; revisión global al cierre de fase 2. Usuario aprobó revisión y ejecución directa. Implementación completada; detenerse antes de 2.2.
+
+Cierre: 136 tests Rust, seis Node, 52 fixtures compartidos, formato/Clippy/lint/tipado y regeneración pasan. Decisiones de ejecución y diferencias del plan (artifact:null como ausencia, scripts pnpm run, resolutores probados por separado) registradas en ../../avance-fase-2.1.md. Cada casilla describe trabajo ejecutado; las pausas y controles del servidor futuro no se consideran implementados.

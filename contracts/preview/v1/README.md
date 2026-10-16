@@ -1,6 +1,6 @@
 # Transporte local de preview v1
 
-Estado: contratos de fase 2.1 en implementación. Sin servidor HTTP en este checkpoint documental. ADR: ../../../docs/adr/0006-preview-web-rust.md.
+Estado: contratos de fase 2.1 implementados y verificados en Rust/Node. Sin servidor HTTP todavía. ADR: ../../../docs/adr/0006-preview-web-rust.md.
 
 Objetos cerrados, JSON Schema draft-07. Tipos generados; no copiar GenerationSpec/VariantResult del motor. Mensajes:
 
