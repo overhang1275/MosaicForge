@@ -1,6 +1,6 @@
-# Base web local — fase 2.3
+# Editor web local — fase 2.4
 
-Next.js App Router/TypeScript estricto. Tres Route Handlers Node: POST /api/inspect, /api/preview y /api/export. Página de estado mínima; editor, galería y diseño visual pertenecen a 2.4. Dirección visual aprobada: ../../docs/diseno/DESIGN.md.
+Next.js App Router/TypeScript estricto. Tres Route Handlers Node: POST /api/inspect, /api/preview y /api/export. Editor, controles, galería de hasta12muestras y descargas reales implementados en2.4. Dirección visual aprobada: ../../docs/diseno/DESIGN.md.
 
 ## Preparación y arranque
 
@@ -42,3 +42,5 @@ build usa webpack y copia .next/static al paquete standalone. No hay public/ en 
 Dependencias fijadas: Next.js 16.4.2, React 19.3.1, TypeScript 6.0.3. TypeScript 7.0.2 fue rechazado por typescript-eslint y se sustituyó en esta app; herramientas de contratos existentes conservan su versión. Inventario de licencias declaradas: ../../docs/dependencias-http-web.json. pnpm registró excepciones locales de antigüedad para estas versiones Next.js en pnpm-workspace.yaml; sin cambiar configuración global.
 
 Fuentes de implementación: [Next.js standalone](https://nextjs.org/docs/app/api-reference/config/next-config-js/output), [Route Handlers](https://nextjs.org/docs/app/getting-started/route-handlers), [Axum](https://docs.rs/axum/0.8.9/axum/), [Ajv standalone](https://ajv.js.org/standalone.html).
+
+QA del editor: ../../docs/qa/editor-2.4.md. test.svg original no pertenece al subconjunto SVG seguro; probar copia preparada según informe. Producción masiva de hasta1millón sigue planificada; no confundir límite de muestras con volumen del trabajo.

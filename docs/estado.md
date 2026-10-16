@@ -132,7 +132,7 @@ Autor técnico de commits: Codex <codex@localhost>, configuración por comando, 
 ## Decisiones / límites
 
 - Java 21/Spring Boot/Maven Wrapper, PostgreSQL y Valkey aceptados para fase 3; no introducirlos antes.
-- Web fase 2 requiere diseño y ADR del puente real al motor; HTTP local de preview y BFF implementados en 2.2–2.3, según ADR 0006; editor pendiente.
+- Web fase 2 requiere diseño y ADR del puente real al motor; HTTP local de preview y BFF implementados en 2.2–2.3, según ADR 0006; editor implementado y verificado en2.4.
 - Rust 1.99, Java 21, Node 24.19, pnpm 11.25 y Python 3.12 comprobados; algunas rutas no están en PATH.
 - Equipo: i5-1235U, 10 núcleos/12 hilos, 7.69 GiB RAM, Intel UHD; NVIDIA no detectada. CUDA real necesita otro entorno.
 - Contenedores no encontrados en las rutas comprobadas; despliegue todavía no probado.
@@ -143,7 +143,7 @@ Autor técnico de commits: Codex <codex@localhost>, configuración por comando, 
 
 ## Punto exacto para continuar
 
-**Fase 1 funcional CPU/CLI completa; fase 2 autorizada por el usuario.** Tareas 1–6 terminadas. README.md documenta inspect, generate SVG/PNG y generate-pdf; avance-tarea-6.6.md registra el cierre y perfil-cpu-fase1.md enlaza las mediciones conservadas. Fase 2 en diseño: propuesta en superpowers/specs/2026-10-15-fase-2-web-design.md y checklist en fase-2-submodulos.md. Diseño y plan aprobados; 2.1 completo (03c1323 Rust, 5d9776d TypeScript). Leer avance-fase-2.1.md y fase-2-submodulos.md. 2.2 y 2.3 autorizados juntos y completados: HTTP Rust/BFF Next.js con pruebas de procesos reales. Checkpoint Rust 4c0f902, evidencia en avance-fase-2.2-2.3.md. Esperar confirmación para 2.4; editor aún no implementado. Agente reutilizable ui-ux-architect instalado y validado, incluida selección nativa y QA real sobre fixture; guía en ui-ux-architect/README.md. Dirección visual vigente en diseno/DESIGN.md: estudio oscuro violeta/cian basado en la referencia del usuario; landing al cierre del producto. Java e infraestructura siguen diferidos.
+**Fase 1 funcional CPU/CLI completa; fase 2 autorizada por el usuario.** Tareas 1–6 terminadas. README.md documenta inspect, generate SVG/PNG y generate-pdf; avance-tarea-6.6.md registra el cierre y perfil-cpu-fase1.md enlaza las mediciones conservadas. Fase 2 en diseño: propuesta en superpowers/specs/2026-10-15-fase-2-web-design.md y checklist en fase-2-submodulos.md. Diseño y plan aprobados; 2.1 completo (03c1323 Rust, 5d9776d TypeScript). Leer avance-fase-2.1.md y fase-2-submodulos.md. 2.2 y 2.3 autorizados juntos y completados: HTTP Rust/BFF Next.js con pruebas de procesos reales. Checkpoint Rust 4c0f902, evidencia en avance-fase-2.2-2.3.md. 2.4 implementado y verificado; leer avance-fase-2.4.md y qa/editor-2.4.md. Esperar confirmación para2.5. Agente reutilizable ui-ux-architect instalado y validado, incluida selección nativa y QA real sobre fixture; guía en ui-ux-architect/README.md. Dirección visual vigente en diseno/DESIGN.md: estudio oscuro violeta/cian basado en la referencia del usuario; landing al cierre del producto. Java e infraestructura siguen diferidos.
 
 131 tests normales pasan (74 core, 23 CPU, 34 CLI); formato y Clippy sin warnings pasan, build release CPU pasa. Diez tests locales ignorados por defecto: el perfil nuevo se ejecutó aparte, los otros nueve no se repitieron en 6.6. Ocho corridas reales CLI y QA pypdf/Poppler del PDF pasan; tres páginas de 100 × 100 mm sin sangrado, 2 730 275 bytes, idénticas a 5.6/6.5. Hashes SVG/PNG conservados entre N/hilos y baselines. Revisión independiente global sin bloqueos P1/P2 tras dos regresiones de cobertura: se valida el encuadre visible final y la composición de encuadres PDF, sin contar el fondo añadido como arte. Los casos afectados pueden cambiar respecto al snapshot previo: conservar el commit para reproducir versiones de desarrollo.
 
@@ -151,6 +151,10 @@ Medición exploratoria PNG 512², 12 variantes: pico working set observado aprox
 
 Prototipo local todavía sin publicar; LICENSE pendiente de elección antes de distribución pública y sin modificar. Linux/macOS, GPU, OOM real, latencia máxima de cancelación y millones de variantes no medidos. Fiery excluido. PDF/X/CMYK no implementados o validados. Grafo Graphify antiguo sin reconstruir; revisión contrastada con fuentes actuales. No repetir tareas completas.
 
-## Pausa actual — 2.4 en curso
+## Pausa histórica — 2.4 en curso
 
 Usuario pausó por tokens el2026-10-15. UI/controlador implementados,14tests web/lint/tipado pasan; build inicial y prueba real con test.svg/copia preparada ejecutados. Últimos ajustes UI pendientes de rebuild/QAfinal. Leer avance-fase-2.4.md. No marcar2.4 terminado ni iniciar2.5. Objetivo1millón sigue obligatorio, planificadoenfase3; contratosactuales10000/ejecución y12previews no son capacidad masiva medida.
+
+## Estado vigente — 2026-10-16
+
+2.4 completo tras reanudación:14tests web, checks/build/smoke y navegador escritorio/móvil pasan. test.svg original intacto y rechazado por namespace; copia preparada genera tres variantes reales y sus SVG/PNG descargados coinciden byte a byte conCLI. Borde de controles corregido de1,76 a3,88:1. QAen qa/editor-2.4.md. No iniciar2.5 sin autorización. Objetivo1millón aún no medido/implementado como trabajo masivo.

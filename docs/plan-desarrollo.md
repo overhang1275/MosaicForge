@@ -2,7 +2,7 @@
 
 Actualizado: 2026-10-15. Este orden reemplaza el plan anterior por instrucción directa del usuario. La aprobación anterior de tecnologías permanece; su incorporación se difiere a la fase que la necesita.
 
-Fiery excluido del alcance por instrucción del usuario del 2026-10-15; no condiciona el cierre de fase 1. Tarea 6 completada por submódulos según tarea-6-submodulos.md; fase 2 autorizada por el usuario, diseño detallado aprobado; 2.1–2.3 implementados y verificados; 2.4 pendiente de confirmación.
+Fiery excluido del alcance por instrucción del usuario del 2026-10-15; no condiciona el cierre de fase 1. Tarea 6 completada por submódulos según tarea-6-submodulos.md; fase 2 autorizada por el usuario, diseño detallado aprobado; 2.1–2.4 implementados y verificados; 2.5 pendiente de confirmación.
 
 ## Alcance y punto de control
 

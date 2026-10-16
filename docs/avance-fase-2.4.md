@@ -3,10 +3,10 @@
 Base b2ffbf8. Plan superpowers/plans/2026-10-15-fase-2-4-editor.md; diseño y funciones ya aprobados. Autorización actual: implementar 2.4 y parar antes de 2.5.
 
 - [x] ~~Leer especificación, contratos, guía visual y BFF.~~
-- [ ] Controlador/cliente con pruebas.
-- [ ] UI con concepto, componentes y estados reales.
-- [ ] Navegador y checks completos.
-- [ ] Revisión/checkpoint/documentación.
+- [x] ~~Controlador/cliente con pruebas.~~
+- [x] ~~UI con concepto, componentes y estados reales.~~
+- [x] ~~Navegador y checks completos.~~
+- [x] ~~Revisión/checkpoint/documentación.~~
 
 Pre-flight: raíz posee src/editor y tests; ui-ux-architect posee componentes/app/CSS. Contrato de hook/estado comunicado antes de ejecutar. No modificar motor, contratos publicados, dependencias ni CI.
 
@@ -34,3 +34,7 @@ Requisito usuario: hasta1millón de variantes, registrado en requisito-produccio
 Revisión declined-to-judge: ReactStrictMode real no ejecutado; probes de lifecycle sí. ÚltimaCSSresponsive/contraste pendientes. Capacidad millón fuera de 2.4. No hubo push/merge ni cambios CPU/contratos/CI/LICENSE.
 
 Al retomar: leer este registro y concepto-2.4.md, ejecutar build web, iniciar scripts/start-preview.mjs y QA en sesión independiente del usuario. Completar 2.4 antes de preguntar por 2.5.
+
+## Cierre tras reanudación — 2026-10-16
+
+Usuario pidió continuar. 2.4 terminado con14tests web, lint/formato/tipado, build y smoke existentes; QA real test.svg/copia preparada, paridad CLI de descargas, desktop/móvil/teclado, rechazo y contraste corregido. Evidencia detallada en [qa/editor-2.4.md](qa/editor-2.4.md) y JSON/scripts asociados. La pausa anterior queda como registro histórico, no estado vigente. Esperar autorización para2.5.

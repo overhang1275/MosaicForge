@@ -1,6 +1,6 @@
 # MosaicForge — Sistema visual del editor
 
-Dirección indicada por el usuario el 2026-10-15. Fuente visual: referencia-usuario.md. Este documento guía el frontend de 2.4; no acredita una UI implementada. La landing comercial se difiere al cierre del producto.
+Dirección indicada por el usuario el 2026-10-15. Fuente visual: referencia-usuario.md. Este documento guía el frontend implementado en2.4; evidencia y límites en ../qa/editor-2.4.md. La landing comercial se difiere al cierre del producto.
 
 ## Identidad y tarea
 
@@ -40,6 +40,8 @@ Importación explícita; seed/índices decimales u64. Generación por botón y c
 
 Vacío con siguiente acción clara; carga sin imágenes inventadas; errores con causa/recuperación; controles deshabilitados solo cuando corresponde. Foco visible, teclado y mensajes anunciados. Microinteracciones breves, opcionales y respetuosas con reduced-motion.
 
-## Validación pendiente de 2.4–2.5
+## Validación 2.4 y continuación 2.5
 
 Concepto visual fiel a esta dirección, implementación con componentes reales y comparación de capturas. Revisar 1366×900, 390×844, contenido largo, zoom 200 %, teclado, errores y resultados rechazados. Medir contraste y revisar consola/red. Evidencia del motor y paridad CLI separadas de similitud visual. La fixture técnica del agente no es el concepto visual del producto.
+
+2.4: comprobados1366×900 y390×844, teclado/errores, capturas y pares de contraste representativos. Bordes de controles#657B9B; paneles#354663. Zoom200% nativo, lectores de pantalla y robustez ampliada siguen pendientes de2.5.

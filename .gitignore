@@ -11,3 +11,5 @@ graphify-out/
 !.env.example
 out/
 *.pdf
+
+**/.playwright-cli/

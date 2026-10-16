@@ -55,4 +55,4 @@ Los tests locales ignorados necesitan los archivos de QA indicados en sus mensaj
 
 ## Web local (fase 2.3)
 
-La base HTTP Rust y el BFF Next.js están disponibles. Preparación, arranque con token temporal en memoria y comandos de comprobación: [apps/web/README.md](apps/web/README.md). El editor visual se implementará en 2.4.
+La base HTTP Rust y el BFF Next.js están disponibles. Preparación, arranque con token temporal en memoria y comandos de comprobación: [apps/web/README.md](apps/web/README.md). Editor visual2.4 implementado con importación, controles, galería de muestras y descargasSVG/PNG; [evidencia QA](docs/qa/editor-2.4.md).

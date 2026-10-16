@@ -32,9 +32,9 @@ Reproducción muestra semilla/índice/hash/versiones del resultado seleccionado;
 - [x] UI conectada al hook/controlador del producto; sin SVG subido insertado en DOM.
 - [x] Foco visible, etiquetas, selección con `aria-pressed`, regiones anunciadas y movimiento reducido.
 - [x] Formato de los componentes y CSS con Prettier local; ESLint y typecheck (ver ejecución integrada para resultados finales).
-- [ ] Comparación concepto/captura del producto en 1366 × 900 y 390 × 844.
-- [ ] Flujo real de importación, generación y descargas, teclado y estados críticos en navegador.
-- [ ] Contraste medido, desbordamiento, consola/red y auditoría web.
+- [x] ~~Comparación concepto/captura del producto en 1366 × 900 y 390 × 844.~~
+- [x] ~~Flujo real de importación, generación y descargas, teclado y estados críticos en navegador.~~
+- [x] ~~Contraste medido, desbordamiento, consola/red y auditoría web.~~
 
 La verificación visual del producto la realiza la sesión principal sobre esta misma UI; su evidencia y resultados se registran en el avance 2.4. Los checkboxes pendientes aquí no acreditan QA por compilación.
 
@@ -48,3 +48,7 @@ La verificación visual del producto la realiza la sesión principal sobre esta 
 6. Responsive: preview primero, controles legibles y galería de dos columnas en móvil; hashes e índices largos sin overflow.
 
 No se afirma una conformidad WCAG completa ni una fidelidad visual verificada antes de revisar las capturas reales.
+
+## Comparación final — 2026-10-16
+
+Concepto y capturas desktop/móvil inspeccionados. Seis puntos de comparación, corrección de contraste y límites en [QA2.4](../qa/editor-2.4.md). Checker claro bajo PNG transparente y borde de controles#657B9B son ajustes funcionales medidos; el arte exportado no cambia. No se certifica WCAG completo.
