@@ -13,7 +13,7 @@ cargo clippy --workspace --all-targets --locked -- -D warnings
 
 Escucha exclusivamente 127.0.0.1, puerto MOSAICFORGE_ENGINE_PORT (4771 por defecto). MOSAICFORGE_ENGINE_TOKEN es obligatorio, entre 32 y 256 bytes ASCII gráficos. No imprimirlo, guardarlo en Git ni usar NEXT_PUBLIC. El launcher local scripts/start-preview.mjs genera el token en memoria y lo comparte con Next.js.
 
-POST /v1/inspect, /v1/preview y /v1/export siguen contracts/preview/v1. Host debe coincidir exactamente con la dirección/puerto de escucha; Authorization: Bearer con token, JSON obligatorio y ningún Origin permitido (el cliente es el BFF). Sin CORS, URLs remotas, rutas de archivos ni persistencia. Método incorrecto: 405.
+POST /v1/inspect, /v1/preview, /v1/export y /v1/export-pdf siguen contracts/preview/v1. Host debe coincidir exactamente con la dirección/puerto de escucha; Authorization: Bearer con token, JSON obligatorio y ningún Origin permitido (el cliente es el BFF). Sin CORS, URLs remotas, rutas de archivos ni persistencia. Método incorrecto: 405.
 
 Un permiso exclusivo cubre lectura y cómputo. Segunda operación: 429, sin cola. Cálculo/importación/parseo en spawn_blocking; desconexión no libera su permiso hasta terminar. El timeout de lectura es 30 s; no hay promesa de interrupción inmediata del render. Límite streaming JSON 32 MiB; campos SVG 5 MiB UTF-8/spec 1 MiB; salida serializada 16 MiB. No son cotas de RSS.
 

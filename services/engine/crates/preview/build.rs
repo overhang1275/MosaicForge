@@ -13,6 +13,8 @@ fn main() {
         "inspect-response",
         "generation-request",
         "generation-response",
+        "pdf-export-request",
+        "pdf-export-response",
         "error",
     ] {
         let schema = schema_bundle::bundle_schema(
@@ -31,6 +33,13 @@ fn main() {
             "mosaicforge_core::contract::VariantResult",
             std::iter::empty(),
         );
+        for name in ["PdfJobSpec", "PdfDocumentResult"] {
+            settings.with_replacement(
+                name,
+                format!("mosaicforge_core::contract::{name}"),
+                std::iter::empty(),
+            );
+        }
         let mut types = typify::TypeSpace::new(&settings);
         types
             .add_root_schema(serde_json::from_value(schema).unwrap())

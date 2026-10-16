@@ -77,8 +77,40 @@ function validResponse(value, operation) {
 }
 
 export function validateFixture(value, schemaName, operation) {
-  if (!['inspect', 'preview', 'export'].includes(operation)) return false;
+  if (!['inspect', 'preview', 'export', 'export-pdf'].includes(operation))
+    return false;
   if (!validators[schemaName]?.(value)) return false;
+  if (schemaName === 'pdf-export-request') {
+    const g = value.job.generation;
+    return (
+      utf8(value.templateSvg) &&
+      g.count >= 1 &&
+      g.count <= 12 &&
+      validSpec({ ...g, count: 1 }, 'export') &&
+      g.output.format === 'svg' &&
+      BigInt(g.startIndex) + BigInt(g.count) - 1n <= MAX_U64
+    );
+  }
+  if (schemaName === 'pdf-export-response') {
+    const d = value.document,
+      encoded = value.artifact.base64,
+      bytes = Buffer.from(encoded, 'base64');
+    return (
+      u64(d.seed) &&
+      u64(d.startIndex) &&
+      d.count >= 1 &&
+      d.count <= 12 &&
+      BigInt(d.startIndex) + BigInt(d.count) - 1n <= MAX_U64 &&
+      d.count === d.requestedCount &&
+      d.count === d.acceptedCount &&
+      d.count === d.pageCount &&
+      d.rejectedCount === 0 &&
+      d.status === 'completed' &&
+      bytes.subarray(0, 8).toString() === '%PDF-1.7' &&
+      bytes.toString('base64') === encoded &&
+      createHash('sha256').update(bytes).digest('hex') === d.documentHash
+    );
+  }
   if (schemaName === 'inspect-request') return utf8(value.templateSvg);
   if (schemaName === 'generation-request')
     return utf8(value.templateSvg) && validSpec(value.generation, operation);

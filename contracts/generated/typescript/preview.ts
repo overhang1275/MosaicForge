@@ -1,12 +1,19 @@
 /* Generated from contracts/preview/v1 and engine/v1. Run scripts/contracts/generate.mjs. */
 
-export type PreviewMessage = InspectRequest | InspectResponse | GenerationRequest | GenerationResponse | PreviewError;
+export type PreviewMessage =
+  | InspectRequest
+  | InspectResponse
+  | GenerationRequest
+  | GenerationResponse
+  | PdfExportRequest
+  | PdfExportResponse
+  | PreviewError;
 export type RequestId = string;
 export type Ref3 = string;
 export type Ref10 = string;
 export type Ref14 = string;
 export type Ref15 = string;
-export type Ref17 =
+export type Ref21 =
   | 'invalid_request'
   | 'invalid_template'
   | 'unauthorized'
@@ -113,8 +120,48 @@ export interface VariantResult {
   status: 'accepted' | 'rejected';
   templateHash: Ref14;
 }
+export interface PdfExportRequest {
+  job: PdfJobSpec;
+  requestId: RequestId;
+  templateSvg: string;
+}
+export interface PdfJobSpec {
+  generation: GenerationSpec;
+  pdf: PdfLayout;
+  schemaVersion: '1';
+}
+export interface PdfLayout {
+  bleedMm: number;
+  exporterVersion: '1';
+  trimHeightMm: number;
+  trimWidthMm: number;
+}
+export interface PdfExportResponse {
+  artifact: {
+    base64: string;
+    mimeType: 'application/pdf';
+  };
+  document: PdfDocumentResult;
+  requestId: RequestId;
+}
+export interface PdfDocumentResult {
+  acceptedCount: number;
+  count: number;
+  documentConfigurationHash: string;
+  documentHash?: string | null;
+  exporterVersion: '1';
+  generationConfigurationHash: string;
+  pageCount: number;
+  rejectedCount: number;
+  requestedCount: number;
+  schemaVersion: '1';
+  seed: string;
+  startIndex: string;
+  status: 'completed' | 'no_pages';
+  templateHash: string;
+}
 export interface PreviewError {
-  code: Ref17;
+  code: Ref21;
   message: string;
   requestId: RequestId;
 }

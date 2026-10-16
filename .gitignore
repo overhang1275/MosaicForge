@@ -13,3 +13,67 @@ out/
 *.pdf
 
 **/.playwright-cli/
+
+# Local tools, editor settings, and personal artwork.
+**/.codex/
+**/.agents/
+**/.vscode/
+**/.idea/
+**/AGENTS.md
+/CODEX.md
+/CLAUDE.md
+/test.svg
+/state/
+
+# Dependencies, builds, caches, reports, and temporary files.
+**/venv/
+**/.venv/
+**/vendor/
+**/dist/
+**/build/
+**/coverage/
+**/.cache/
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/
+*.log
+*.tmp
+*.temp
+*.pyc
+*.pyo
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Credentials and machine-specific configuration.
+**/.env
+**/.env.*
+!**/.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.sqlite
+*.sqlite3
+*.db
+
+# Local planning/checkpoint material stays on disk, not in distributions.
+/docs/avance-*.md
+/docs/PAUSA-*.md
+/docs/superpowers/
+/docs/ui-ux-architect/
+/docs/diseno/
+/docs/diseno-mvp.md
+/docs/estado.md
+/docs/graphify.md
+/docs/herramientas-diseno.md
+/docs/inventario-entorno.md
+/docs/plan-desarrollo.md
+/docs/fase-2-submodulos.md
+/docs/tarea-*-submodulos.md
+/docs/requisitos-fuente.txt
+/docs/analisis-ejemplo-export.md
+/docs/qa/*
+!/docs/qa/inspect-vector-pdf.py

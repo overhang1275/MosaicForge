@@ -19,6 +19,10 @@ fn valid(value: Value, schema: &str, op: Operation) -> bool {
             .is_ok_and(|v| validate_generation_request(&v, op).is_ok()),
         "generation-response" => serde_json::from_value::<GenerationResponse>(value)
             .is_ok_and(|v| validate_generation_response(&v, op).is_ok()),
+        "pdf-export-request" => serde_json::from_value::<PdfExportRequest>(value)
+            .is_ok_and(|v| validate_pdf_export_request(&v).is_ok()),
+        "pdf-export-response" => serde_json::from_value::<PdfExportResponse>(value)
+            .is_ok_and(|v| validate_pdf_export_response(&v).is_ok()),
         "error" => {
             serde_json::from_value::<PreviewError>(value).is_ok_and(|v| validate_error(&v).is_ok())
         }

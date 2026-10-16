@@ -1,6 +1,6 @@
 # ADR 0003 — Dominio Philox y muestreo independiente del lote
 
-Fecha: 2026-10-14. Estado: implementación de tarea 2; verificaciones registradas en avance-tarea-2.md.
+Fecha: 2026-10-14. Estado: implementado; verificaciones en las pruebas de determinismo y contratos del motor.
 
 ## Decisión
 

@@ -190,3 +190,44 @@ async fn caps_body_without_content_length_and_decoded_utf8_fields() {
     req["templateSvg"] = json!("é".repeat(5 * 1024 * 1024 / 2 + 1));
     assert_eq!(call("/v1/inspect", req).await.0, StatusCode::BAD_REQUEST);
 }
+
+#[tokio::test]
+async fn pdf_is_one_vector_document_and_matches_cpu_exporter() {
+    let mut req = fixture("export-pdf");
+    let template =
+        mosaicforge_core::template::import_svg(req["templateSvg"].as_str().unwrap().as_bytes())
+            .unwrap();
+    req["job"]["generation"]["templateHash"] = json!(template.hash);
+    let job: mosaicforge_core::contract::PdfJobSpec =
+        serde_json::from_value(req["job"].clone()).unwrap();
+    let mut expected = Vec::new();
+    mosaicforge_cpu::pdf::generate_pdf(&template, &job, 1, &mut expected, |_| Ok(())).unwrap();
+    let (status, value) = call("/v1/export-pdf", req.clone()).await;
+    assert_eq!(status, StatusCode::OK, "{value}");
+    assert_eq!(value["document"]["pageCount"], 3);
+    assert_eq!(value["artifact"]["mimeType"], "application/pdf");
+    let bytes = STANDARD
+        .decode(value["artifact"]["base64"].as_str().unwrap())
+        .unwrap();
+    assert_eq!(bytes, expected);
+    let pdf = String::from_utf8_lossy(&bytes);
+    assert!(pdf.starts_with("%PDF-1.7"));
+    assert!(pdf.contains("/Count 3"));
+    assert!(!pdf.contains("/Subtype /Image"));
+    assert_eq!(call("/v1/export-pdf", req.clone()).await.1, value);
+    for (key, bad) in [
+        ("count", json!(13)),
+        ("startIndex", json!("18446744073709551615")),
+    ] {
+        let mut invalid = req.clone();
+        invalid["job"]["generation"][key] = bad;
+        assert_eq!(
+            call("/v1/export-pdf", invalid).await.0,
+            StatusCode::BAD_REQUEST
+        );
+    }
+    req["job"]["generation"]["rules"]["translateX"] = json!({"min":10000,"max":10000});
+    let (status, value) = call("/v1/export-pdf", req).await;
+    assert_ne!(status, StatusCode::OK);
+    assert!(value.get("artifact").is_none());
+}

@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PdfExportResponse",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "requestId",
+    "document",
+    "artifact"
+  ],
+  "properties": {
+    "requestId": {
+      "$ref": "common.schema.json#/definitions/RequestId"
+    },
+    "document": {
+      "$ref": "../../engine/pdf/v1/result.schema.json"
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mimeType",
+        "base64"
+      ],
+      "properties": {
+        "mimeType": {
+          "type": "string",
+          "enum": [
+            "application/pdf"
+          ]
+        },
+        "base64": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 16777216,
+          "pattern": "^[A-Za-z0-9+/]+={0,2}$"
+        }
+      }
+    }
+  }
+}

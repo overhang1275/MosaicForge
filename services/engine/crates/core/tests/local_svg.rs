@@ -14,11 +14,16 @@ fn supplied_svg_exercises_geometry_and_appearance() {
         .canonicalize()
         .unwrap();
     let bytes = fs::read(root.join("test.svg")).unwrap();
-    let error = import_svg(&bytes).unwrap_err();
-    println!("Original test.svg rejected: {error}");
-    let source = import_svg(&fs::read(root.join("out/test-prepared.svg")).unwrap()).unwrap();
+    let source = import_svg(&bytes).unwrap();
+    let prepared = import_svg(&fs::read(root.join("out/test-prepared.svg")).unwrap()).unwrap();
+    assert_eq!(source.normalized_svg, prepared.normalized_svg);
+    assert_eq!(source.hash, prepared.hash);
+    assert_eq!(
+        source.hash,
+        "e8cfd87f3c8684427494222a03db48bbc8f2bfa1e5c6170ede7a556046474cac"
+    );
     println!(
-        "Prepared template: viewBox={:?}, layers={}, segments={}, hash={}",
+        "Original template: viewBox={:?}, layers={}, segments={}, hash={}",
         source.view_box,
         source.layer_ids.len(),
         source.segment_count,

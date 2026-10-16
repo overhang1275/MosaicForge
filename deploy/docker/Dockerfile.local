@@ -1,0 +1,32 @@
+# syntax=docker/dockerfile:1
+FROM rust:1.99-bookworm AS engine-build
+WORKDIR /build/services/engine
+COPY services/engine/ ./
+COPY contracts/ /build/contracts/
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/build/services/engine/target \
+    cargo build --locked --release -p mosaicforge-preview && \
+    cp target/release/mosaicforge-preview /build/mosaicforge-preview
+
+FROM node:24.19.0-bookworm-slim AS web-build
+ENV NEXT_TELEMETRY_DISABLED=1
+WORKDIR /build/apps/web
+RUN npm install --global pnpm@11.25.0
+COPY apps/web/package.json apps/web/pnpm-lock.yaml apps/web/pnpm-workspace.yaml ./
+RUN pnpm install --frozen-lockfile --ignore-scripts
+COPY apps/web/ ./
+COPY contracts/ /build/contracts/
+COPY scripts/contracts/ /build/scripts/contracts/
+RUN pnpm build
+
+FROM node:24.19.0-bookworm-slim AS runtime
+ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000
+WORKDIR /app
+COPY --from=engine-build /build/mosaicforge-preview /app/mosaicforge-preview
+COPY --from=web-build --chown=node:node /build/apps/web/.next/standalone/ /app/
+COPY --chown=node:node deploy/docker/start-local.mjs deploy/docker/healthcheck.mjs /app/
+COPY --chown=node:node LICENSE /app/LICENSE
+USER node
+EXPOSE 3000
+HEALTHCHECK --interval=15s --timeout=5s --start-period=30s CMD ["node", "/app/healthcheck.mjs"]
+CMD ["node", "/app/start-local.mjs"]

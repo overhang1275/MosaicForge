@@ -5,10 +5,12 @@ import {
   type EditorSettings,
   type PreviewCard,
   type RangeName,
+  type PdfSettings,
 } from './model.ts';
 import type {
   GenerationResponse,
   InspectResponse,
+  PdfExportRequest,
 } from '../../../../contracts/generated/typescript/preview.ts';
 export interface EditorPorts {
   inspect(svg: string, signal: AbortSignal): Promise<InspectResponse>;
@@ -16,6 +18,10 @@ export interface EditorPorts {
   export(
     snapshot: Snapshot,
     format: 'svg' | 'png',
+    signal: AbortSignal,
+  ): Promise<Blob>;
+  exportPdf(
+    request: Omit<PdfExportRequest, 'requestId'>,
     signal: AbortSignal,
   ): Promise<Blob>;
   createUrl(blob: Blob): string;
@@ -99,6 +105,8 @@ export function createEditor(ports: EditorPorts) {
     template: null,
     isInspecting: false,
     isGenerating: false,
+    isExportingPdf: false,
+    pdfSettings: { trimWidthMm: '100', trimHeightMm: '100', bleedMm: '0' },
     settings: initialSettings(),
     cards: [],
     selectedIndex: null,
@@ -112,6 +120,7 @@ export function createEditor(ports: EditorPorts) {
     revision = 0,
     active: AbortController | null = null,
     downloadAbort: AbortController | null = null;
+  let seriesSnapshot: Snapshot | null = null;
   function update(patch: Partial<EditorState>) {
     state = { ...state, ...patch };
     listeners.forEach((listener) => listener());
@@ -121,6 +130,7 @@ export function createEditor(ports: EditorPorts) {
       if (card.url) ports.revokeUrl(card.url);
     });
     snapshots.clear();
+    seriesSnapshot = null;
   }
   function invalidate() {
     revision++;
@@ -167,6 +177,7 @@ export function createEditor(ports: EditorPorts) {
         selectedIndex: null,
         error: null,
         downloading: null,
+        isExportingPdf: false,
         message: file
           ? 'Archivo seleccionado. Pulsa Importar SVG para enviarlo al motor.'
           : 'Importa un SVG para comenzar.',
@@ -178,6 +189,9 @@ export function createEditor(ports: EditorPorts) {
         return;
       }
       invalidate();
+      downloadAbort?.abort();
+      downloadAbort = null;
+      update({ downloading: null, isExportingPdf: false });
       const ticket = revision,
         file = candidate;
       const abort = new AbortController();
@@ -229,8 +243,11 @@ export function createEditor(ports: EditorPorts) {
         message: 'Ajustes modificados. Genera una nueva serie para aplicarlos.',
       });
     },
+    updatePdfSettings: (patch: Partial<PdfSettings>) => {
+      update({ pdfSettings: { ...state.pdfSettings, ...patch }, error: null });
+    },
     generate: async () => {
-      if (state.downloading) {
+      if (state.downloading || state.isExportingPdf) {
         update({ error: 'Espera a que termine la descarga.' });
         return;
       }
@@ -264,6 +281,9 @@ export function createEditor(ports: EditorPorts) {
         abort = new AbortController();
       active = abort;
       clearCards();
+      seriesSnapshot = structuredClone(requests[0]);
+      seriesSnapshot.generation.count = requests.length;
+      seriesSnapshot.generation.output.format = 'svg';
       requests.forEach((s) =>
         snapshots.set(s.generation.startIndex, structuredClone(s)),
       );
@@ -336,6 +356,7 @@ export function createEditor(ports: EditorPorts) {
         !saved ||
         state.cards.find((c) => c.index === index)?.status !== 'accepted' ||
         state.isGenerating ||
+        state.isExportingPdf ||
         state.downloading
       )
         return;
@@ -354,6 +375,76 @@ export function createEditor(ports: EditorPorts) {
         if (downloadAbort === abort) {
           downloadAbort = null;
           update({ downloading: null });
+        }
+      }
+    },
+    exportPdf: async () => {
+      if (state.downloading || state.isExportingPdf) return;
+      if (
+        !seriesSnapshot ||
+        state.isGenerating ||
+        state.isInspecting ||
+        state.cards.length !== seriesSnapshot.generation.count ||
+        state.cards.some((item) => item.status !== 'accepted')
+      ) {
+        update({
+          error:
+            'El PDF requiere una serie completa con todas las variantes aceptadas. Vuelve a generar si hay rechazos o errores.',
+        });
+        return;
+      }
+      let request: Omit<PdfExportRequest, 'requestId'>;
+      try {
+        const trimWidthMm = number(state.pdfSettings.trimWidthMm);
+        const trimHeightMm = number(state.pdfSettings.trimHeightMm);
+        const bleedMm = number(state.pdfSettings.bleedMm);
+        if (
+          trimWidthMm < 1 ||
+          trimWidthMm > 2000 ||
+          trimHeightMm < 1 ||
+          trimHeightMm > 2000 ||
+          bleedMm < 0 ||
+          bleedMm > 50
+        )
+          throw new Error(
+            'El ancho y alto del PDF deben estar entre 1 y 2000 mm; el sangrado, entre 0 y 50 mm.',
+          );
+        const saved = structuredClone(seriesSnapshot);
+        request = {
+          templateSvg: saved.templateSvg,
+          job: {
+            schemaVersion: '1',
+            generation: saved.generation,
+            pdf: { exporterVersion: '1', trimWidthMm, trimHeightMm, bleedMm },
+          },
+        };
+      } catch (error) {
+        update({ error: message(error) });
+        return;
+      }
+      const abort = new AbortController();
+      downloadAbort = abort;
+      update({
+        isExportingPdf: true,
+        error: null,
+        message: `Preparando PDF vectorial de ${state.cards.length} páginas…`,
+      });
+      try {
+        const blob = await ports.exportPdf(request, abort.signal);
+        if (abort.signal.aborted) return;
+        ports.save(blob, 'mosaic.pdf');
+        update({ message: 'PDF vectorial completo preparado para descargar.' });
+      } catch (error) {
+        if (!abort.signal.aborted)
+          update({
+            error: message(error),
+            message:
+              'No se descargó el PDF. Corrige el error y vuelve a intentarlo.',
+          });
+      } finally {
+        if (downloadAbort === abort) {
+          downloadAbort = null;
+          update({ isExportingPdf: false });
         }
       }
     },

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
+import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { once } from 'node:events';
@@ -73,11 +74,12 @@ function request(
   headers: Record<string, string> = {},
   signal?: AbortSignal,
 ) {
-  return new Request(`${origin}/api/preview`, {
+  const requestOrigin = headers.origin ?? origin;
+  return new Request(`${requestOrigin}/api/preview`, {
     method: 'POST',
     headers: {
-      origin,
-      host: '127.0.0.1:3000',
+      origin: requestOrigin,
+      host: new URL(requestOrigin).host,
       'content-type': 'application/json',
       ...headers,
     },
@@ -135,6 +137,30 @@ test('rejects foreign Origin, media, oversized body and invalid contract before 
     403,
   );
   assert.equal(
+    (
+      await proxy(
+        request(req, {
+          origin: 'http://localhost:3000',
+          host: 'localhost:3000',
+        }),
+        'inspect',
+      )
+    ).status,
+    502,
+  );
+  assert.equal(
+    (
+      await proxy(
+        request(req, {
+          origin: 'http://localhost:3000',
+          host: '127.0.0.1:3000',
+        }),
+        'inspect',
+      )
+    ).status,
+    403,
+  );
+  assert.equal(
     (await proxy(request(req, { 'content-type': 'text/plain' }), 'inspect'))
       .status,
     415,
@@ -178,10 +204,11 @@ test('forwards generated requestId, preserves max u64, strips client secrets and
   });
   try {
     const res = await createProxy({ engineUrl: srv.url, token, origin })(
-      new Request(
-        'http://localhost:3000/api/inspect',
-        request(await fixture('inspect'), { authorization: 'SECRET-CLIENT' }),
-      ),
+      request(await fixture('inspect'), {
+        origin: 'http://localhost:3000',
+        host: 'localhost:3000',
+        authorization: 'SECRET-CLIENT',
+      }),
       'inspect',
     );
     assert.equal(res.status, 200);
@@ -283,5 +310,98 @@ test('sanitizes unavailable, timeout, redirects, malformed and oversized upstrea
     } finally {
       await srv.close();
     }
+  }
+});
+
+test('PDF forwards complete job and downloads one verified document; rejects partial or mismatched responses', async () => {
+  const input = await fixture('export-pdf');
+  const bytes = Buffer.from('%PDF-1.7\nBFF transport fixture');
+  const g = input.job.generation;
+  const document = {
+    schemaVersion: '1',
+    exporterVersion: '1',
+    templateHash: g.templateHash,
+    seed: g.seed,
+    startIndex: g.startIndex,
+    count: g.count,
+    requestedCount: g.count,
+    acceptedCount: g.count,
+    rejectedCount: 0,
+    pageCount: g.count,
+    status: 'completed',
+    generationConfigurationHash: '0'.repeat(64),
+    documentConfigurationHash: '0'.repeat(64),
+    documentHash: createHash('sha256').update(bytes).digest('hex'),
+  };
+  for (const mode of ['ok', 'partial', 'seed', 'hash', 'mime', 'pages']) {
+    const srv = await upstream((req, res) => {
+      let body = '';
+      req.on('data', (c) => (body += c));
+      req.on('end', () => {
+        const received = JSON.parse(body);
+        assert.deepEqual(received.job, input.job);
+        assert.equal(req.url, '/v1/export-pdf');
+        const result = {
+          requestId: received.requestId,
+          document: { ...document },
+          artifact: {
+            mimeType: 'application/pdf',
+            base64: bytes.toString('base64'),
+          },
+        };
+        if (mode === 'partial')
+          Object.assign(result.document, {
+            acceptedCount: 2,
+            rejectedCount: 1,
+            pageCount: 2,
+          });
+        if (mode === 'pages') result.document.pageCount = 2;
+        if (mode === 'seed') result.document.seed = '1';
+        if (mode === 'hash') result.document.documentHash = '1'.repeat(64);
+        if (mode === 'mime') result.artifact.mimeType = 'image/png';
+        res.setHeader('content-type', 'application/json');
+        res.end(JSON.stringify(result));
+      });
+    });
+    try {
+      const res = await createProxy({ engineUrl: srv.url, token, origin })(
+        request(input),
+        'export-pdf',
+      );
+      assert.equal(res.status, mode === 'ok' ? 200 : 502, mode);
+      if (mode === 'ok') {
+        assert.equal(res.headers.get('content-type'), 'application/pdf');
+        assert.equal(
+          res.headers.get('content-disposition'),
+          'attachment; filename="mosaic.pdf"',
+        );
+        assert.deepEqual(Buffer.from(await res.arrayBuffer()), bytes);
+      }
+    } finally {
+      await srv.close();
+    }
+  }
+});
+
+test('PDF has its own bounded deadline and reports timeout without publishing bytes', async () => {
+  const srv = await upstream(() => {});
+  try {
+    const proxy = createProxy({
+      engineUrl: srv.url,
+      token,
+      origin,
+      pdfTimeoutMs: 30,
+    });
+    const response = await proxy(
+      request(await fixture('export-pdf')),
+      'export-pdf',
+    );
+    assert.equal(response.status, 504);
+    assert.equal((await response.json()).code, 'timeout');
+    assert.throws(() =>
+      createProxy({ engineUrl: srv.url, token, origin, pdfTimeoutMs: 120001 }),
+    );
+  } finally {
+    await srv.close();
   }
 });

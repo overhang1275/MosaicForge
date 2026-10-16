@@ -38,12 +38,19 @@ export interface EditorState {
   template: { name: string; svg: string; metadata: InspectResponse } | null;
   isInspecting: boolean;
   isGenerating: boolean;
+  isExportingPdf: boolean;
+  pdfSettings: PdfSettings;
   settings: EditorSettings;
   cards: PreviewCard[];
   selectedIndex: string | null;
   error: string | null;
   message: string;
   downloading: string | null;
+}
+export interface PdfSettings {
+  trimWidthMm: string;
+  trimHeightMm: string;
+  bleedMm: string;
 }
 export interface Snapshot {
   templateSvg: string;

@@ -53,6 +53,16 @@ export const browserPorts: EditorPorts = {
     }
     return await response.blob();
   },
+  exportPdf: async (request, signal) => {
+    const response = await post('export-pdf', request, signal);
+    if (
+      response.headers.get('content-type')?.split(';')[0] !== 'application/pdf'
+    ) {
+      const error: unknown = await response.json().catch(() => null);
+      throw new Error(failure(error));
+    }
+    return await response.blob();
+  },
   createUrl: (blob) => URL.createObjectURL(blob),
   revokeUrl: (url) => URL.revokeObjectURL(url),
   save: (blob, name) => {

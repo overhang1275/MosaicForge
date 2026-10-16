@@ -1,6 +1,6 @@
 # Transporte local de preview v1
 
-Estado: contratos, HTTP Rust y BFF local implementados en 2.1–2.3 y verificados en Rust/Node y con procesos reales. ADR: ../../../docs/adr/0006-preview-web-rust.md. Editor pendiente de 2.4.
+Estado: contratos, HTTP Rust y BFF local implementados en 2.1–2.3 y verificados en Rust/Node y con procesos reales. ADR: ../../../docs/adr/0006-preview-web-rust.md. Editor 2.4 verificado; ampliación aditiva PDF vectorial el 2026-10-16.
 
 Objetos cerrados, JSON Schema draft-07. Tipos generados; no copiar GenerationSpec/VariantResult del motor. Mensajes:
 
@@ -37,3 +37,11 @@ PreviewError {requestId, code, message}: mensaje de 1..256 caracteres, sin fuent
 | timeout (BFF) | 504 |
 
 Método incorrecto: 405. No reflejar texto de parsers o contenido de entrada en errores. Los campos desconocidos se rechazan también en objetos referenciados. Ajv y Rust deben coincidir en fixtures/index.json y casos de borde; generar tipos no ejecuta por sí mismo todo JSON Schema.
+
+## Exportación principal PDF vectorial
+
+POST /v1/export-pdf recibe PdfExportRequest {requestId, templateSvg, job}, con referencia al PdfJobSpec publicado de engine/pdf/v1. Responde PdfExportResponse {requestId, document: PdfDocumentResult, artifact: {mimeType: application/pdf, base64}}. El BFF /api/export-pdf devuelve los mismos bytes como attachment mosaic.pdf. No amplía Artifact de SVG/PNG ni cambia sus mensajes publicados.
+
+En este transporte local, generation.count es 1..12, dimensiones lógicas 1..512 y formato svg obligatorio; seed e índices u64 exactos, sin desbordamiento. Tamaño físico 1..2000 mm por eje y sangrado 0..50 mm, según contrato PDF existente. El PDF reúne toda la serie: un rechazo aborta la respuesta y nunca publica páginas parciales. Resultado completado exige requestedCount = count = acceptedCount = pageCount, rejectedCount = 0, base64 canónico, firma PDF y SHA-256 coincidente.
+
+Se reutiliza mosaicforge_cpu::pdf: geometría vectorial recortada/optimizada, nunca páginas construidas desde PNG. Lote interno de una página; buffer binario acotado a 12 MiB menos 64 KiB para mantener el JSON final bajo 16 MiB. No representa una ruta de producción para un millón de variantes; esa entrega necesita trabajos asíncronos por bloques en fase 3.

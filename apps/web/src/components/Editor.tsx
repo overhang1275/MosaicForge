@@ -3,6 +3,7 @@
 import { useEditor } from '../editor/use-editor';
 import { Inspector } from './Inspector';
 import { Gallery, Preview } from './Results';
+import { PdfExport } from './PdfExport';
 
 export function Editor() {
   const context = useEditor();
@@ -18,6 +19,7 @@ export function Editor() {
       <main className="studio">
         <Inspector {...context} />
         <div className="workspace">
+          <PdfExport {...context} />
           <Preview {...context} />
           <div className="feedback" aria-live="polite" aria-atomic="true">
             <p>{context.state.message}</p>

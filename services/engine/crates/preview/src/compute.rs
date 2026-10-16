@@ -47,6 +47,27 @@ fn compute(path: &str, bytes: &[u8]) -> Result<Value, (&'static str, u16, String
         validate_inspect_response(&response).map_err(|_| ("internal_error", 500, id))?;
         return Ok(value);
     }
+    if path == "/v1/export-pdf" {
+        let request: PdfExportRequest = serde_json::from_value(input).map_err(|_| invalid())?;
+        validate_pdf_export_request(&request).map_err(|_| invalid())?;
+        let template = import_svg(request.template_svg.as_bytes()).map_err(engine_error)?;
+        let mut output = PdfBuffer(Vec::new());
+        let document =
+            mosaicforge_cpu::pdf::generate_pdf(&template, &request.job, 1, &mut output, |record| {
+                if record.variant.status.to_string() == "rejected" {
+                    return Err(EngineError::InvalidSpec(
+                        "PDF series contains rejected variants",
+                    ));
+                }
+                Ok(())
+            })
+            .map_err(engine_error)?;
+        let value = json!({"requestId":id,"document":document,"artifact":{"mimeType":"application/pdf","base64":STANDARD.encode(output.0)}});
+        let response: PdfExportResponse = serde_json::from_value(value.clone())
+            .map_err(|_| ("internal_error", 500, id.clone()))?;
+        validate_pdf_export_response(&response).map_err(|_| ("internal_error", 500, id))?;
+        return Ok(value);
+    }
     let op = if path == "/v1/preview" {
         Operation::Preview
     } else {
@@ -87,4 +108,32 @@ pub fn execute(path: &str, bytes: &[u8]) -> (u16, Vec<u8>) {
         return (500,json!({"requestId":value["requestId"],"code":"internal_error","message":"Response exceeds limit"}).to_string().into_bytes());
     }
     (status, body)
+}
+
+// Leave space for JSON metadata and base64 expansion inside the 16 MiB response cap.
+struct PdfBuffer(Vec<u8>);
+impl std::io::Write for PdfBuffer {
+    fn write(&mut self, bytes: &[u8]) -> std::io::Result<usize> {
+        if bytes.len() > (12 * 1024 * 1024 - 64 * 1024_usize).saturating_sub(self.0.len()) {
+            return Err(std::io::Error::other(
+                "PDF response exceeds local preview limit",
+            ));
+        }
+        self.0.extend_from_slice(bytes);
+        Ok(bytes.len())
+    }
+    fn flush(&mut self) -> std::io::Result<()> {
+        Ok(())
+    }
+}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::Write;
+    #[test]
+    fn pdf_buffer_never_grows_past_limit() {
+        let mut b = PdfBuffer(Vec::new());
+        assert!(b.write_all(&vec![0; 12 * 1024 * 1024]).is_err());
+        assert!(b.0.is_empty());
+    }
 }

@@ -4,15 +4,18 @@ import type {
   GenerationResponse,
   InspectRequest,
   PreviewError,
+  PdfExportRequest,
+  PdfExportResponse,
 } from '../../../../contracts/generated/typescript/preview.ts';
 import { validateFixture } from '../../../../scripts/contracts/validate.mjs';
 
-export type Operation = 'inspect' | 'preview' | 'export';
+export type Operation = 'inspect' | 'preview' | 'export' | 'export-pdf';
 export interface ProxyConfig {
   engineUrl: string;
   token: string;
   origin: string;
   timeoutMs?: number;
+  pdfTimeoutMs?: number;
 }
 const MAX_BODY = 32 * 1024 * 1024,
   MAX_RESPONSE = 16 * 1024 * 1024;
@@ -121,25 +124,41 @@ const errorStatus: Partial<Record<PreviewError['code'], number>> = {
 export function createProxy(config: ProxyConfig) {
   const upstream = localAddress(config.engineUrl);
   const webAddress = localAddress(config.origin);
+  const allowedOrigins = new Set([config.origin]);
+  if (webAddress.hostname === '127.0.0.1') {
+    const localhostOrigin = new URL(config.origin);
+    localhostOrigin.hostname = 'localhost';
+    allowedOrigins.add(localhostOrigin.origin);
+  }
   if (!/^[\x21-\x7e]{32,256}$/.test(config.token))
     throw new Error('Private engine token required');
   const timeoutMs = config.timeoutMs ?? 30_000;
+  const pdfTimeoutMs = config.pdfTimeoutMs ?? 120_000;
+  if (
+    !Number.isInteger(pdfTimeoutMs) ||
+    pdfTimeoutMs < 1 ||
+    pdfTimeoutMs > 120_000
+  )
+    throw new Error('Invalid PDF timeout');
   if (!Number.isInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 30_000)
     throw new Error('Invalid timeout');
   return async (request: Request, operation: Operation): Promise<Response> => {
     const id = randomUUID();
     if (request.method !== 'POST')
       return new Response(null, { status: 405, headers: { allow: 'POST' } });
-    if (
-      request.headers.get('origin') !== config.origin ||
-      request.headers.get('host') !== webAddress.host
-    )
+    const requestOrigin = request.headers.get('origin');
+    let originHost: string | undefined;
+    if (requestOrigin && allowedOrigins.has(requestOrigin))
+      originHost = new URL(requestOrigin).host;
+    if (!originHost || request.headers.get('host') !== originHost)
       return error(403, id, 'forbidden');
     if (!isJson(request.headers))
       return error(415, id, 'unsupported_media_type');
-    const deadline = AbortSignal.timeout(timeoutMs),
+    const deadline = AbortSignal.timeout(
+        operation === 'export-pdf' ? pdfTimeoutMs : timeoutMs,
+      ),
       signal = AbortSignal.any([deadline, request.signal]);
-    let input: InspectRequest | GenerationRequest;
+    let input: InspectRequest | GenerationRequest | PdfExportRequest;
     try {
       const bytes = await bounded(
         request.body,
@@ -156,12 +175,16 @@ export function createProxy(config: ProxyConfig) {
       if (
         !validateFixture(
           envelope,
-          operation === 'inspect' ? 'inspect-request' : 'generation-request',
+          operation === 'inspect'
+            ? 'inspect-request'
+            : operation === 'export-pdf'
+              ? 'pdf-export-request'
+              : 'generation-request',
           operation,
         )
       )
         return error(400, id, 'invalid_request');
-      input = envelope as InspectRequest | GenerationRequest;
+      input = envelope as InspectRequest | GenerationRequest | PdfExportRequest;
     } catch (cause) {
       return error(
         cause instanceof BodyLimit ? 413 : deadline.aborted ? 504 : 400,
@@ -212,7 +235,11 @@ export function createProxy(config: ProxyConfig) {
       if (
         !validateFixture(
           value,
-          operation === 'inspect' ? 'inspect-response' : 'generation-response',
+          operation === 'inspect'
+            ? 'inspect-response'
+            : operation === 'export-pdf'
+              ? 'pdf-export-response'
+              : 'generation-response',
           operation,
         )
       )
@@ -226,6 +253,28 @@ export function createProxy(config: ProxyConfig) {
             'x-content-type-options': 'nosniff',
           },
         });
+      if (operation === 'export-pdf') {
+        const output = value as PdfExportResponse,
+          spec = (input as PdfExportRequest).job.generation;
+        const d = output.document;
+        if (
+          d.seed !== spec.seed ||
+          d.startIndex !== spec.startIndex ||
+          d.templateHash !== spec.templateHash ||
+          d.count !== spec.count
+        )
+          return error(502, id, 'engine_unavailable');
+        return new Response(Buffer.from(output.artifact.base64, 'base64'), {
+          headers: {
+            'content-type': 'application/pdf',
+            'content-disposition': 'attachment; filename="mosaic.pdf"',
+            'content-security-policy': "default-src 'none'; sandbox",
+            'x-content-type-options': 'nosniff',
+            'cache-control': 'no-store',
+            'x-request-id': id,
+          },
+        });
+      }
       const output = value as GenerationResponse,
         spec = (input as GenerationRequest).generation;
       if (

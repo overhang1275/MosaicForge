@@ -7,6 +7,7 @@ pub mod generate;
 pub mod pdf;
 pub mod rng;
 pub mod rules;
+mod svg_compat;
 mod svg_values;
 pub mod template;
 pub mod validation;

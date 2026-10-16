@@ -57,6 +57,16 @@ struct Frame {
 }
 
 pub fn import_svg(bytes: &[u8]) -> Result<Template, EngineError> {
+    match import_svg_strict(bytes) {
+        Ok(template) => Ok(template),
+        Err(original) => {
+            let normalized = crate::svg_compat::normalize(bytes).map_err(|_| original)?;
+            import_svg_strict(&normalized)
+        }
+    }
+}
+
+fn import_svg_strict(bytes: &[u8]) -> Result<Template, EngineError> {
     if bytes.len() > MAX_SVG_BYTES {
         return Err(invalid("SVG byte limit exceeded"));
     }

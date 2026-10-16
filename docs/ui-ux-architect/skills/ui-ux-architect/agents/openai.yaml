@@ -1,4 +1,0 @@
-interface:
-  display_name: "UI/UX Architect"
-  short_description: "Diseño de producto, frontend y control visual"
-  default_prompt: "Usa $ui-ux-architect para diseñar, implementar y validar visualmente la interfaz de este proyecto respetando su alcance."

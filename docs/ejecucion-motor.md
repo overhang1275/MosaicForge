@@ -4,10 +4,10 @@ Actualizado: 2026-10-15, submódulos 6.1–6.5. La CLI expone **inspect**, **gen
 
 ## Preparación
 
-Rust/Cargo 1.99 y toolchain MSVC disponibles en esta sesión. En PowerShell, si Cargo no está en PATH:
+Se requieren Rust/Cargo 1.99 y un linker compatible (MSVC en Windows). En PowerShell, si Cargo no está en PATH:
 
 ```powershell
-$env:PATH = 'C:\Users\init\.cargo\bin;' + $env:PATH
+$env:PATH = (Join-Path $env:USERPROFILE '.cargo/bin') + ';' + $env:PATH
 ```
 
 Desde la raíz del repositorio:
@@ -19,7 +19,7 @@ cargo run --manifest-path services/engine/Cargo.toml -p mosaicforge-cli --locked
 
 Para inspeccionar otro archivo, sustituir la ruta; usar comillas si tiene espacios. La CLI acepta rutas del sistema operativo, también Unicode. No escribe archivos ni altera la plantilla. stdout contiene un objeto JSON con templateHash, width, height, viewBox, layerIds y segmentCount, seguido de un salto de línea. El hash pertenece al SVG normalizado, no a los bytes originales del editor.
 
-test.svg del usuario contiene CSS y metadatos no admitidos por el importador seguro. La copia out/test-prepared.svg se obtiene con scripts/prepare-test-svg.py, conversor específico de esta muestra, no importador general. El original se rechaza explícitamente; no se eliminan atributos automáticamente de cualquier entrada.
+El importador admite un subconjunto limitado de clases CSS declarativas de presentación. Los formatos no admitidos se rechazan. Consultar [SVG admitido](svg-admitido.md); los scripts de preparación de muestras locales no son conversores generales.
 
 ## Errores y límites
 

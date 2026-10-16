@@ -29,9 +29,12 @@ fn supplied_artwork_runs_full_generation_export_and_hash_pipeline() {
         .canonicalize()
         .unwrap();
     let original = fs::read(root.join("test.svg")).unwrap();
-    assert!(import_svg(&original).is_err());
+    let source = import_svg(&original).unwrap();
     let prepared = fs::read(root.join("out/test-prepared.svg")).unwrap();
-    let source = import_svg(&prepared).unwrap();
+    assert_eq!(
+        source.normalized_svg,
+        import_svg(&prepared).unwrap().normalized_svg
+    );
     let mut value: Value =
         serde_json::from_str(include_str!("../../../tests/fixtures/identity.json")).unwrap();
     value["templateHash"] = json!(source.hash);

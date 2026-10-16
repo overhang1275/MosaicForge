@@ -1,6 +1,6 @@
 # ADR 0005 — Documento PDF vectorial y escritura por objetos
 
-Fecha: 2026-10-15. Decisión implementada en fase 1, tarea 5.6; evidencia en avance-tarea-5.6.md. Diseño aprobado por usuario; después pidió terminar el módulo sin más pausas.
+Fecha: 2026-10-15. Decisión implementada en el motor CPU; pruebas de contrato, documento y geometría PDF en services/engine/crates.
 
 ## Contrato y fronteras
 

@@ -251,11 +251,12 @@ export function Inspector({ state, editor }: EditorContext) {
       </div>
       <div className="generate-actions">
         <button
-          className="button primary full"
+          className="button secondary full"
           disabled={
             !state.template ||
             state.isInspecting ||
             state.isGenerating ||
+            state.isExportingPdf ||
             state.downloading !== null
           }
           onClick={() => void editor.generate()}

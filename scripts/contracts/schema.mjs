@@ -10,6 +10,8 @@ export const schemaNames = [
   'inspect-response',
   'generation-request',
   'generation-response',
+  'pdf-export-request',
+  'pdf-export-response',
   'error',
 ];
 

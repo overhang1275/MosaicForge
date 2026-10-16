@@ -310,5 +310,53 @@
     "schema": "generation-response",
     "operation": "preview",
     "valid": true
+  },
+  {
+    "file": "export-pdf.json",
+    "schema": "pdf-export-request",
+    "operation": "export-pdf",
+    "valid": true
+  },
+  {
+    "file": "invalid-pdf-count.json",
+    "schema": "pdf-export-request",
+    "operation": "export-pdf",
+    "valid": false
+  },
+  {
+    "file": "invalid-pdf-overflow.json",
+    "schema": "pdf-export-request",
+    "operation": "export-pdf",
+    "valid": false
+  },
+  {
+    "file": "invalid-pdf-raster.json",
+    "schema": "pdf-export-request",
+    "operation": "export-pdf",
+    "valid": false
+  },
+  {
+    "file": "invalid-pdf-size.json",
+    "schema": "pdf-export-request",
+    "operation": "export-pdf",
+    "valid": false
+  },
+  {
+    "file": "accepted-pdf.json",
+    "schema": "pdf-export-response",
+    "operation": "export-pdf",
+    "valid": true
+  },
+  {
+    "file": "invalid-pdf-partial.json",
+    "schema": "pdf-export-response",
+    "operation": "export-pdf",
+    "valid": false
+  },
+  {
+    "file": "invalid-pdf-hash.json",
+    "schema": "pdf-export-response",
+    "operation": "export-pdf",
+    "valid": false
   }
 ]

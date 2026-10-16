@@ -19,7 +19,7 @@ La raíz exige width+height o viewBox. viewBox tiene cuatro valores finitos y an
 - IDs ASCII únicos, máximo 256 bytes; inicial letra/underscore, posteriores letras/dígitos/underscore/punto/guion.
 - clip-path solo none o url(#id) hacia clipPath existente. Se resuelven IDs antes de normalizar; referencias externas o malformadas se rechazan después de decodificar entidades del atributo.
 
-Todo elemento/atributo fuera de la lista se rechaza, incluyendo style/CSS, clases, imágenes, texto/fuentes, gradients/patterns, filtros, eventos, animation, foreignObject y use. El usuario debe convertir texto a paths. El whitespace interelemento/fuera de raíz se limita a los cuatro caracteres XML S (espacio, tab, CR, LF); la declaración conserva el orden version → encoding → standalone. No se eliminan silenciosamente características visuales no soportadas.
+Todo elemento/atributo fuera de la lista se rechaza, incluyendo CSS fuera de la compatibilidad declarativa descrita abajo, imágenes, texto/fuentes, gradients/patterns, filtros, eventos, animation, foreignObject y use. El usuario debe convertir texto a paths. El whitespace interelemento/fuera de raíz se limita a los cuatro caracteres XML S (espacio, tab, CR, LF); la declaración conserva el orden version → encoding → standalone. No se eliminan silenciosamente características visuales no soportadas.
 
 ## Límites de recursos
 
@@ -48,3 +48,11 @@ Las restricciones de visibilidad, cobertura, recorte del contenido e integridad 
 Tres fixtures originales (basic/layers/clip), XML hostil/malformado, atributos inesperados, referencias externas/escapadas/cíclicas, recursos excesivos, coordenadas inválidas, transforms acumulados, todas las figuras admitidas y unidades absolutas. Tests en cada límite y justo por encima, generando en memoria entradas grandes. Los resultados reales y el commit se registran en avance-tarea-3.md.
 
 Fuentes técnicas: [quick-xml 0.42](https://docs.rs/quick-xml/0.42.0/quick_xml/), [usvg Options](https://docs.rs/usvg/0.47.0/usvg/struct.Options.html), [usvg Tree](https://docs.rs/usvg/0.47.0/usvg/struct.Tree.html), [resolvers](https://docs.rs/usvg/0.47.0/usvg/struct.ImageHrefResolver.html).
+
+## Compatibilidad declarativa de exportaciones (2026-10-16)
+
+Antes de rechazar una exportación segura, Rust puede normalizar clases simples `.identificador { propiedad: valor; }` a atributos de presentación. Solo fill/stroke, anchos, reglas de relleno/recorte, uniones/extremos y opacidades admitidas por el validador estricto. Se conserva el orden de las reglas CSS; su presentación prevalece sobre atributos. No se admiten selectores generales/compuestos, URLs, importaciones, !important, estilos inline ni clases sin regla conocida.
+
+Se retiran únicamente title de texto en raíz, data-name y la declaración xlink estándar sin uso; cualquier atributo xlink real se sigue rechazando. style solo en raíz/defs, con texto y opcional type=text/css. DTD, entidades, CDATA, instrucciones de procesamiento y nodos activos siguen rechazados.
+
+Límites: archivo y expansión normalizada 5 MiB, 20000 elementos, profundidad64, CSS64 KiB/1024reglas, identificadores256 bytes y listas64clases/4096bytes. El SVG resultante vuelve a pasar por el importador estricto completo. Los archivos ya admitidos conservan su normalización y hash. test.svg original produce el mismo hash que la copia preparada anterior, sin modificar sus bytes.

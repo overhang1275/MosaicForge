@@ -29,6 +29,7 @@ pub fn router(token: String, host: String) -> Router {
         .route("/v1/inspect", any(handle))
         .route("/v1/preview", any(handle))
         .route("/v1/export", any(handle))
+        .route("/v1/export-pdf", any(handle))
         .with_state(ServerState {
             token,
             host,

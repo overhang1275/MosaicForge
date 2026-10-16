@@ -5,6 +5,7 @@ import type { Snapshot } from '../src/editor/model.ts';
 import type {
   GenerationResponse,
   InspectResponse,
+  PdfExportRequest,
 } from '../../../contracts/generated/typescript/preview.ts';
 
 const meta: InspectResponse = {
@@ -41,7 +42,8 @@ function setup(overrides: Partial<EditorPorts> = {}) {
   const sent: Snapshot[] = [],
     revoked: string[] = [],
     saved: string[] = [],
-    exports: Snapshot[] = [];
+    exports: Snapshot[] = [],
+    pdfExports: Omit<PdfExportRequest, 'requestId'>[] = [];
   let inspections = 0,
     urls = 0;
   const ports: EditorPorts = {
@@ -57,6 +59,10 @@ function setup(overrides: Partial<EditorPorts> = {}) {
       exports.push(snap);
       return new Blob(['artifact']);
     },
+    exportPdf: async (request) => {
+      pdfExports.push(structuredClone(request));
+      return new Blob(['%PDF-test'], { type: 'application/pdf' });
+    },
     createUrl: () => `blob:test-${++urls}`,
     revokeUrl: (url) => revoked.push(url),
     save: (_blob, name) => saved.push(name),
@@ -69,6 +75,7 @@ function setup(overrides: Partial<EditorPorts> = {}) {
     revoked,
     saved,
     exports,
+    pdfExports,
     get inspections() {
       return inspections;
     },
@@ -92,6 +99,180 @@ test('engine failure stops queued requests and leaves errors without invented pr
   );
   assert.ok(ctx.editor.getSnapshot().cards.every((c) => !c.url));
   assert.equal(ctx.editor.getSnapshot().isGenerating, false);
+});
+
+test('PDF includes the entire immutable generated series as vector SVG, preserving exact u64 indices', async () => {
+  const ctx = await imported();
+  ctx.editor.updateSettings({
+    count: '3',
+    seed: '7',
+    startIndex: '18446744073709551613',
+  });
+  await ctx.editor.generate();
+  ctx.editor.updateSettings({ count: '12', seed: '99', startIndex: '0' });
+  ctx.editor.updatePdfSettings({
+    trimWidthMm: '120',
+    trimHeightMm: '80',
+    bleedMm: '3',
+  });
+  await ctx.editor.exportPdf();
+  assert.equal(ctx.pdfExports.length, 1);
+  const request = ctx.pdfExports[0];
+  assert.equal(request.templateSvg, '<svg/>');
+  assert.equal(request.job.generation.seed, '7');
+  assert.equal(request.job.generation.startIndex, '18446744073709551613');
+  assert.equal(request.job.generation.count, 3);
+  assert.equal(request.job.generation.output.format, 'svg');
+  assert.deepEqual(request.job.pdf, {
+    exporterVersion: '1',
+    trimWidthMm: 120,
+    trimHeightMm: 80,
+    bleedMm: 3,
+  });
+  assert.deepEqual(ctx.saved, ['mosaic.pdf']);
+  assert.equal(ctx.editor.getSnapshot().isExportingPdf, false);
+});
+
+test('PDF refuses a series with rejected or failed variants rather than silently omitting pages', async () => {
+  for (const failure of ['rejected', 'error'] as const) {
+    const ctx = await imported({
+      preview: async (snapshot) => {
+        if (snapshot.generation.startIndex === '1') {
+          if (failure === 'error') throw new Error('Error de motor');
+          const response = accepted(snapshot);
+          response.variant.status = 'rejected';
+          delete response.artifact;
+          return response;
+        }
+        return accepted(snapshot);
+      },
+    });
+    ctx.editor.updateSettings({ count: '3' });
+    await ctx.editor.generate();
+    await ctx.editor.exportPdf();
+    assert.equal(ctx.pdfExports.length, 0);
+    assert.equal(ctx.saved.length, 0);
+    assert.match(
+      ctx.editor.getSnapshot().error ?? '',
+      /completa|aceptadas|todas/i,
+    );
+  }
+});
+
+test('PDF requires a complete series and cannot export pending pages', async () => {
+  let release!: (value: GenerationResponse) => void;
+  let pendingSnapshot!: Snapshot;
+  const ctx = await imported({
+    preview: (snapshot) => {
+      pendingSnapshot = snapshot;
+      return new Promise((resolve) => {
+        release = resolve;
+      });
+    },
+  });
+  await ctx.editor.exportPdf();
+  assert.equal(ctx.pdfExports.length, 0);
+  ctx.editor.updateSettings({ count: '1' });
+  const pending = ctx.editor.generate();
+  await ctx.editor.exportPdf();
+  assert.equal(ctx.pdfExports.length, 0);
+  release(accepted(pendingSnapshot));
+  await pending;
+});
+
+test('PDF physical settings validate before transport and default to 100 mm without bleed', async () => {
+  const ctx = await imported();
+  assert.deepEqual(ctx.editor.getSnapshot().pdfSettings, {
+    trimWidthMm: '100',
+    trimHeightMm: '100',
+    bleedMm: '0',
+  });
+  ctx.editor.updateSettings({ count: '1' });
+  await ctx.editor.generate();
+  for (const patch of [
+    { trimWidthMm: '' },
+    { trimWidthMm: '0' },
+    { trimWidthMm: '0.5' },
+    { trimWidthMm: '2001' },
+    { trimWidthMm: '100', trimHeightMm: '-1' },
+    { trimHeightMm: '100', bleedMm: '-1' },
+    { bleedMm: '51' },
+  ]) {
+    ctx.editor.updatePdfSettings(patch);
+    await ctx.editor.exportPdf();
+    assert.equal(ctx.pdfExports.length, 0);
+    assert.ok(ctx.editor.getSnapshot().error);
+  }
+  ctx.editor.updatePdfSettings({ bleedMm: '0' });
+  await ctx.editor.exportPdf();
+  assert.equal(ctx.pdfExports.length, 1);
+});
+
+test('reimporting the template aborts an active PDF and never saves its obsolete result', async () => {
+  let release!: (value: Blob) => void;
+  let signal!: AbortSignal;
+  const ctx = await imported({
+    exportPdf: (_request, receivedSignal) => {
+      signal = receivedSignal;
+      return new Promise((resolve) => {
+        release = resolve;
+      });
+    },
+  });
+  ctx.editor.updateSettings({ count: '1' });
+  await ctx.editor.generate();
+  const exporting = ctx.editor.exportPdf();
+  await ctx.editor.importTemplate();
+  assert.equal(signal.aborted, true);
+  release(new Blob(['%PDF-test'], { type: 'application/pdf' }));
+  await exporting;
+  assert.equal(ctx.saved.length, 0);
+});
+
+test('PDF server rejection never saves a partial document and permits retry', async () => {
+  let attempts = 0;
+  const ctx = await imported({
+    exportPdf: async () => {
+      if (++attempts === 1)
+        throw new Error('El trabajo omitiría páginas rechazadas.');
+      return new Blob(['%PDF-test'], { type: 'application/pdf' });
+    },
+  });
+  ctx.editor.updateSettings({ count: '1' });
+  await ctx.editor.generate();
+  await ctx.editor.exportPdf();
+  assert.equal(ctx.saved.length, 0);
+  assert.match(ctx.editor.getSnapshot().error ?? '', /omitiría/);
+  assert.equal(ctx.editor.getSnapshot().isExportingPdf, false);
+  await ctx.editor.exportPdf();
+  assert.deepEqual(ctx.saved, ['mosaic.pdf']);
+});
+
+test('new template aborts PDF export and obsolete transport response cannot trigger a download', async () => {
+  let release!: (value: Blob) => void;
+  let signal!: AbortSignal;
+  const ctx = await imported({
+    exportPdf: (_request, receivedSignal) => {
+      signal = receivedSignal;
+      return new Promise((resolve) => {
+        release = resolve;
+      });
+    },
+  });
+  ctx.editor.updateSettings({ count: '1' });
+  await ctx.editor.generate();
+  const exporting = ctx.editor.exportPdf();
+  assert.equal(ctx.editor.getSnapshot().isExportingPdf, true);
+  await ctx.editor.generate();
+  await ctx.editor.download('0', 'svg');
+  assert.equal(ctx.sent.length, 1);
+  assert.equal(ctx.exports.length, 0);
+  ctx.editor.chooseFile(new File(['<svg/>'], 'other.svg'));
+  assert.equal(signal.aborted, true);
+  release(new Blob(['%PDF-test'], { type: 'application/pdf' }));
+  await exporting;
+  assert.equal(ctx.saved.length, 0);
+  assert.equal(ctx.editor.getSnapshot().isExportingPdf, false);
 });
 async function imported(overrides: Partial<EditorPorts> = {}) {
   const ctx = setup(overrides);

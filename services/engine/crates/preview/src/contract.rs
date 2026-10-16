@@ -18,3 +18,12 @@ pub use generation_response::GenerationResponse;
 pub use inspect_request::InspectRequest;
 pub use inspect_response::InspectResponse;
 pub use preview_error::PreviewError;
+
+pub mod pdf_export_request {
+    include!(concat!(env!("OUT_DIR"), "/pdf_export_request.rs"));
+}
+pub mod pdf_export_response {
+    include!(concat!(env!("OUT_DIR"), "/pdf_export_response.rs"));
+}
+pub use pdf_export_request::PdfExportRequest;
+pub use pdf_export_response::PdfExportResponse;

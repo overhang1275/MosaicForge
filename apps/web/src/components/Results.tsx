@@ -17,26 +17,31 @@ function Downloads({
   editor,
   downloading,
   isGenerating,
+  isExportingPdf,
 }: {
   card: PreviewCard;
   isGenerating: boolean;
+  isExportingPdf: boolean;
   editor: EditorContext['editor'];
   downloading: string | null;
 }) {
   return (
-    <div className="downloads">
-      {(['svg', 'png'] as const).map((format) => (
-        <button
-          key={format}
-          className="button secondary"
-          disabled={downloading !== null || isGenerating}
-          aria-label={`Descargar ${format.toUpperCase()} de la variante ${card.index}`}
-          onClick={() => void editor.download(card.index, format)}
-        >
-          {format.toUpperCase()}
-        </button>
-      ))}
-    </div>
+    <details className="secondary-downloads">
+      <summary>SVG / PNG</summary>
+      <div className="downloads">
+        {(['svg', 'png'] as const).map((format) => (
+          <button
+            key={format}
+            className="button secondary"
+            disabled={downloading !== null || isGenerating || isExportingPdf}
+            aria-label={`Descargar ${format.toUpperCase()} de la variante ${card.index}`}
+            onClick={() => void editor.download(card.index, format)}
+          >
+            {format.toUpperCase()}
+          </button>
+        ))}
+      </div>
+    </details>
   );
 }
 
@@ -100,6 +105,7 @@ export function Preview({ state, editor }: EditorContext) {
             editor={editor}
             downloading={state.downloading}
             isGenerating={state.isGenerating}
+            isExportingPdf={state.isExportingPdf}
           />
         )}
       </div>
@@ -200,6 +206,7 @@ export function Gallery({ state, editor }: EditorContext) {
                   editor={editor}
                   downloading={state.downloading}
                   isGenerating={state.isGenerating}
+                  isExportingPdf={state.isExportingPdf}
                 />
               )}
             </article>

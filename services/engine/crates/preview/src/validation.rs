@@ -105,3 +105,42 @@ pub fn validate_generation_response(
 pub fn validate_error(error: &PreviewError) -> Result<(), EngineError> {
     require((1..=256).contains(&error.message.chars().count()))
 }
+
+pub fn validate_pdf_export_request(request: &PdfExportRequest) -> Result<(), EngineError> {
+    template(&request.template_svg)?;
+    mosaicforge_core::pdf::validate_pdf_job(&request.job)?;
+    let g = &request.job.generation;
+    require(g.count.get() <= 12 && g.output.width.get() <= 512 && g.output.height.get() <= 512)?;
+    require(
+        serde_json::to_vec(&request.job)
+            .map_err(|_| EngineError::InvalidSpec("invalid PDF job"))?
+            .len()
+            <= MAX_SPEC_BYTES,
+    )
+}
+pub fn validate_pdf_export_response(response: &PdfExportResponse) -> Result<(), EngineError> {
+    mosaicforge_core::pdf::validate_pdf_document_result(&response.document)?;
+    let r = &response.document;
+    require(
+        r.count <= 12
+            && r.page_count == r.count
+            && r.rejected_count == 0
+            && r.status.to_string() == "completed",
+    )?;
+    let v = serde_json::to_value(&response.artifact)
+        .map_err(|_| EngineError::InvalidSpec("invalid PDF artifact"))?;
+    let encoded = v["base64"]
+        .as_str()
+        .ok_or(EngineError::InvalidSpec("invalid PDF encoding"))?;
+    require(encoded.len() <= 16 * 1024 * 1024)?;
+    let bytes = STANDARD
+        .decode(encoded)
+        .map_err(|_| EngineError::InvalidSpec("invalid PDF encoding"))?;
+    require(
+        STANDARD.encode(&bytes) == encoded
+            && bytes.starts_with(b"%PDF-1.7")
+            && r.document_hash
+                .as_ref()
+                .is_some_and(|h| h.to_string() == format!("{:x}", Sha256::digest(&bytes))),
+    )
+}

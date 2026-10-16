@@ -4,7 +4,7 @@ Medición local exploratoria, una corrida por caso. No es una promesa de rendimi
 
 ## Entorno e insumos
 
-- Windows x64, kernel reportado Microsoft Windows 10.0.26200; Intel Core i5-1235U. RAM inventariada en esta máquina: 7.69 GiB. Aplicaciones de escritorio/observador Agenttrail seguían disponibles: no se aisló el equipo ni la caché.
+- Windows x64, kernel reportado Microsoft Windows 10.0.26200; Intel Core i5-1235U. RAM inventariada en esta máquina: 7.69 GiB. Otras aplicaciones de escritorio seguían disponibles: no se aisló el equipo ni la caché.
 - rustc 1.99.0 b940084d7, Cargo 1.99.0 5f94df478, LLVM 23.1.1, target x86_64-pc-windows-msvc; build release. Sin CUDA ni Python en el proceso del motor.
 - test.svg original intacto, SHA-256 ceae058483698070aee16a8d1337715167142b198c47a28e626a0bb8683fbbf8. Se usa out/test-prepared.svg (777922 bytes), preparado con el conversor específico ya documentado; hash normalizado e8cfd87f3c8684427494222a03db48bbc8f2bfa1e5c6170ede7a556046474cac.
 - Salida SVG/PNG 512×512, fondo blanco, seed u64 máximo y reglas de 6.3. 12 índices 0..11 por caso; PDF usa tres índices 0..2, 100×100 mm sin sangrado. No comparar throughput PDF contra SVG/PNG como si fueran cargas iguales.

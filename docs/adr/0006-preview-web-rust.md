@@ -24,6 +24,6 @@ Espera BFF de 30 segundos; desconectar no garantiza interrumpir el cálculo ya i
 
 Fase 3 sustituye el upstream web directo por Java; este contrato local no sustituye la API pública ni autenticación/autorización multiusuario. Sin base de datos, broker, usuarios o proyectos en fase 2. No exponer a LAN/Internet.
 
-2.1 verifica modelos, restricciones y fixtures cruzados. 2.2 verifica HTTP y paridad de bytes/hashes con CLI; 2.3 verifica proxy y desconexiones; 2.4–2.6 editor, respuestas obsoletas, accesibilidad y E2E real. Estos controles futuros no se consideran implementados por escribir este ADR. Diseño: ../superpowers/specs/2026-10-15-fase-2-web-design.md.
+2.1 verifica modelos, restricciones y fixtures cruzados. 2.2 verifica HTTP y paridad de bytes/hashes con CLI; 2.3 verifica proxy y desconexiones; 2.4–2.6 editor, respuestas obsoletas, accesibilidad y E2E real. Estos controles futuros no se consideran implementados por escribir este ADR.
 
-Evidencia ejecutada: ../avance-fase-2.2-2.3.md. Host HTTP exacto y Origin configurado se verifican en BFF; Next.js normaliza la URL interna loopback a localhost. Errores Rust previos al parseo usan UUID cero y el BFF publica correlación propia.
+Host HTTP exacto y Origin configurado se verifican en BFF; Next.js normaliza la URL interna loopback a localhost. Errores Rust previos al parseo usan UUID cero y el BFF publica correlación propia.

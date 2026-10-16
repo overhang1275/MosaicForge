@@ -16,7 +16,7 @@ La exportación final para impresión debe evitar arrastrar toda la plantilla de
 
 - [x] ~~Implementar descarte/recorte real de rellenos y contornos de trazos en PDF, con curvas, transforms, fill-rule y clips; fixture de bordes y agujeros probado.~~
 - [x] ~~Emitir solo grupos/pinturas útiles y recursos referenciados; auditoría pypdf de alcanzabilidad y uso pasa.~~
-- [x] ~~Medir diferencia visual entre recorte y baseline, además de referencia resvg; umbrales de regresión a 300 DPI fijados con evidencia en avance-tarea-5.6.md.~~
+- [x] ~~Medir diferencia visual entre recorte y baseline, además de referencia resvg; umbrales de regresión a 300 DPI fijados con pruebas de geometría PDF del motor y mediciones registradas.~~
 - [x] ~~Medir bytes, objetos y puntos de contornos en baseline/optimizado del mismo diseño: 2284331→824466 bytes, seis objetos en ambos y 267606→96195 puntos.~~ No equiparar puntos poligonales con comandos Bézier SVG.
 - [x] ~~Probar cajas físicas, corte de 100 mm y sangrado positivo de 3 mm; cero Image XObjects y comparación visual independiente.~~
 - [ ] Completar perfil CPU por etapa y memoria/errores mediante CLI. Comparación de imagen/tamaño/complejidad ya medida en 5.6; rendimiento RIP/Fiery queda fuera.
