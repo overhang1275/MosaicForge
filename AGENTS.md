@@ -80,7 +80,10 @@ cargo bench                         # benchmarks CPU vs GPU
 # <lint + tipado estático + pytest: definir al elegir el gestor de entorno>
 
 # Web (apps/web)
-# <instalar, lint, tsc --noEmit, tests de componentes, e2e>
+pnpm install --frozen-lockfile --ignore-scripts
+pnpm format && pnpm lint && pnpm typecheck && pnpm test && pnpm build
+# Desde raíz, tras compilar Rust y web: node scripts/preview-smoke.mjs
+# Editor/componentes y E2E de navegador: pendientes de 2.4–2.6.
 ```
 
 Antes de dar una tarea por terminada: formateo, lint, tipado y tests del componente tocado deben pasar. Si no puedes ejecutarlos, dilo explícitamente.

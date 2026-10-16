@@ -2,7 +2,7 @@
 
 Actualizado: 2026-10-15. Este orden reemplaza el plan anterior por instrucción directa del usuario. La aprobación anterior de tecnologías permanece; su incorporación se difiere a la fase que la necesita.
 
-Fiery excluido del alcance por instrucción del usuario del 2026-10-15; no condiciona el cierre de fase 1. Tarea 6 completada por submódulos según tarea-6-submodulos.md; fase 2 autorizada por el usuario, diseño detallado aprobado; 2.1 implementado y verificado, 2.2 pendiente de confirmación.
+Fiery excluido del alcance por instrucción del usuario del 2026-10-15; no condiciona el cierre de fase 1. Tarea 6 completada por submódulos según tarea-6-submodulos.md; fase 2 autorizada por el usuario, diseño detallado aprobado; 2.1–2.3 implementados y verificados; 2.4 pendiente de confirmación.
 
 ## Alcance y punto de control
 
@@ -17,7 +17,7 @@ Cada fase tiene un documento ejecutable propio y termina con checks, evidencia e
 - [x] ~~Registrar preferencia open source y excepción CUDA opcional.~~
 - [x] ~~Guardar diseño inicial, checklist, documentación de continuidad y baseline Git.~~
 - [x] ~~Aceptar la corrección de orden: Rust → web → Java → CUDA → Python condicional.~~
-- [x] ~~Usuario autorizó continuar la fase 1 con tarea 2 después de Graphify.~~ El paso a fase 2 sigue pendiente de confirmación explícita.
+- [x] ~~Usuario autorizó continuar la fase 1 con tarea 2 después de Graphify.~~ El paso a fase 2 fue aprobado y 2.1–2.3 se completaron.
 - [ ] Elegir LICENSE con aprobación explícita antes de distribución.
 
 ## Fase 1 — Motor Rust CPU y CLI

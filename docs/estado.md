@@ -125,13 +125,14 @@ Existen generador, reglas/validación, SVG/PNG integrados y PDF vectorial único
 | e99fa75 | Cierre CPU 6.6 y cobertura final | 131 tests, formato/Clippy, perfil release, matriz CLI, QA PDF y revisión global |
 | 03c1323 | Contratos Rust preview 2.1 | 136 tests CPU, formato/Clippy, fixtures y modelos core reutilizados |
 | 5d9776d | Tipos TypeScript y herramientas contratos 2.1 | Seis tests Node, 52 fixtures, tipado/lint/formato/regeneración |
+| 4c0f902 | HTTP Rust local 2.2 | 143 tests CPU, formato/Clippy y paridad real CLI/HTTP SVG/PNG |
 
 Autor técnico de commits: Codex <codex@localhost>, configuración por comando, sin cambiar identidad global. No se hizo push, merge, reset ni clean. No se versionan target/, dependencias descargadas ni resultados de usuarios.
 
 ## Decisiones / límites
 
 - Java 21/Spring Boot/Maven Wrapper, PostgreSQL y Valkey aceptados para fase 3; no introducirlos antes.
-- Web fase 2 requiere diseño y ADR del puente real al motor; HTTP local de preview es una propuesta, no implementada.
+- Web fase 2 requiere diseño y ADR del puente real al motor; HTTP local de preview y BFF implementados en 2.2–2.3, según ADR 0006; editor pendiente.
 - Rust 1.99, Java 21, Node 24.19, pnpm 11.25 y Python 3.12 comprobados; algunas rutas no están en PATH.
 - Equipo: i5-1235U, 10 núcleos/12 hilos, 7.69 GiB RAM, Intel UHD; NVIDIA no detectada. CUDA real necesita otro entorno.
 - Contenedores no encontrados en las rutas comprobadas; despliegue todavía no probado.
@@ -142,7 +143,7 @@ Autor técnico de commits: Codex <codex@localhost>, configuración por comando, 
 
 ## Punto exacto para continuar
 
-**Fase 1 funcional CPU/CLI completa; fase 2 autorizada por el usuario.** Tareas 1–6 terminadas. README.md documenta inspect, generate SVG/PNG y generate-pdf; avance-tarea-6.6.md registra el cierre y perfil-cpu-fase1.md enlaza las mediciones conservadas. Fase 2 en diseño: propuesta en superpowers/specs/2026-10-15-fase-2-web-design.md y checklist en fase-2-submodulos.md. Diseño y plan aprobados; 2.1 completo (03c1323 Rust, 5d9776d TypeScript). Leer avance-fase-2.1.md y fase-2-submodulos.md. Esperar confirmación para 2.2; no hay HTTP/Next.js todavía. Agente reutilizable ui-ux-architect instalado y validado, incluida selección nativa y QA real sobre fixture; guía en ui-ux-architect/README.md. Dirección visual vigente en diseno/DESIGN.md: estudio oscuro violeta/cian basado en la referencia del usuario; landing al cierre del producto. Java e infraestructura siguen diferidos.
+**Fase 1 funcional CPU/CLI completa; fase 2 autorizada por el usuario.** Tareas 1–6 terminadas. README.md documenta inspect, generate SVG/PNG y generate-pdf; avance-tarea-6.6.md registra el cierre y perfil-cpu-fase1.md enlaza las mediciones conservadas. Fase 2 en diseño: propuesta en superpowers/specs/2026-10-15-fase-2-web-design.md y checklist en fase-2-submodulos.md. Diseño y plan aprobados; 2.1 completo (03c1323 Rust, 5d9776d TypeScript). Leer avance-fase-2.1.md y fase-2-submodulos.md. 2.2 y 2.3 autorizados juntos y completados: HTTP Rust/BFF Next.js con pruebas de procesos reales. Checkpoint Rust 4c0f902, evidencia en avance-fase-2.2-2.3.md. Esperar confirmación para 2.4; editor aún no implementado. Agente reutilizable ui-ux-architect instalado y validado, incluida selección nativa y QA real sobre fixture; guía en ui-ux-architect/README.md. Dirección visual vigente en diseno/DESIGN.md: estudio oscuro violeta/cian basado en la referencia del usuario; landing al cierre del producto. Java e infraestructura siguen diferidos.
 
 131 tests normales pasan (74 core, 23 CPU, 34 CLI); formato y Clippy sin warnings pasan, build release CPU pasa. Diez tests locales ignorados por defecto: el perfil nuevo se ejecutó aparte, los otros nueve no se repitieron en 6.6. Ocho corridas reales CLI y QA pypdf/Poppler del PDF pasan; tres páginas de 100 × 100 mm sin sangrado, 2 730 275 bytes, idénticas a 5.6/6.5. Hashes SVG/PNG conservados entre N/hilos y baselines. Revisión independiente global sin bloqueos P1/P2 tras dos regresiones de cobertura: se valida el encuadre visible final y la composición de encuadres PDF, sin contar el fondo añadido como arte. Los casos afectados pueden cambiar respecto al snapshot previo: conservar el commit para reproducir versiones de desarrollo.
 

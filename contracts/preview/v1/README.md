@@ -1,10 +1,10 @@
 # Transporte local de preview v1
 
-Estado: contratos de fase 2.1 implementados y verificados en Rust/Node. Sin servidor HTTP todavía. ADR: ../../../docs/adr/0006-preview-web-rust.md.
+Estado: contratos, HTTP Rust y BFF local implementados en 2.1–2.3 y verificados en Rust/Node y con procesos reales. ADR: ../../../docs/adr/0006-preview-web-rust.md. Editor pendiente de 2.4.
 
 Objetos cerrados, JSON Schema draft-07. Tipos generados; no copiar GenerationSpec/VariantResult del motor. Mensajes:
 
-| POST futuro | Entrada | Salida 200 |
+| POST | Entrada | Salida 200 |
 |---|---|---|
 | /v1/inspect | InspectRequest {requestId, templateSvg} | InspectResponse {requestId, templateHash, width, height, viewBox, layerIds, segmentCount, engineVersion, rulesVersion} |
 | /v1/preview | GenerationRequest {requestId, templateSvg, generation} | GenerationResponse {requestId, variant, artifact?} |
@@ -20,7 +20,7 @@ Importar SVG es responsabilidad del motor, no del validador de sobres. templateH
 - count=1; dimensiones 1..512 por eje; preview solo PNG. Generación conserva las validaciones semánticas del motor.
 - InspectResponse: dimensiones positivas finitas, viewBox de cuatro números finitos con ancho/alto positivos, capas y segmentos acotados a límites del importador.
 - Artefacto base64 canónico; hash, MIME y aceptación/rechazo coherentes. Rechazos válidos retornan 200 sin imagen. Este contrato no comprueba seguridad SVG ni decodificación real PNG del artefacto: solo el motor puede producirlos para publicar.
-- El servidor futuro debe limitar cuerpo JSON a 32 MiB durante lectura y respuesta a 16 MiB; el BFF también. Validar tipos no sustituye esas restricciones de transporte.
+- Servidor y BFF limitan cuerpo JSON a 32 MiB durante lectura y respuesta a 16 MiB. Validar tipos no sustituye esas restricciones de transporte.
 
 PreviewError {requestId, code, message}: mensaje de 1..256 caracteres, sin fuente ni secretos. Códigos y HTTP:
 

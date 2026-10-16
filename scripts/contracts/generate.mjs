@@ -2,6 +2,7 @@ import { compile } from 'json-schema-to-typescript';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 import { bundleSchema, schemaNames } from './schema.mjs';
+import { writeValidators } from './validators.mjs';
 
 const output = new URL(
   '../../contracts/generated/typescript/preview.ts',
@@ -39,6 +40,7 @@ if (
   import.meta.url === pathToFileURL(process.argv[1]).href
 ) {
   const expected = await generatePreviewTypes();
+  await writeValidators(process.argv.includes('--check'));
   if (process.argv.includes('--check')) {
     if (!(await checkGenerated(expected))) {
       process.stderr.write(

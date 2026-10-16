@@ -51,4 +51,8 @@ cargo clippy --workspace --all-targets --locked -- -D warnings
 cargo test --workspace --locked
 ```
 
-Los tests locales ignorados necesitan los archivos de QA indicados en sus mensajes; no son dependencias del producto. El perfil release, las mediciones de memoria y la revisión final se registran en [avance-tarea-6.6.md](docs/avance-tarea-6.6.md). Linux/macOS y CUDA no se han ejecutado en este entorno. El paso a fase 2 requiere confirmación explícita tras cerrar fase 1.
+Los tests locales ignorados necesitan los archivos de QA indicados en sus mensajes; no son dependencias del producto. El perfil release, las mediciones de memoria y la revisión final se registran en [avance-tarea-6.6.md](docs/avance-tarea-6.6.md). Linux/macOS y CUDA no se han ejecutado en este entorno. Fase 2 autorizada; submódulos 2.1–2.3 completos.
+
+## Web local (fase 2.3)
+
+La base HTTP Rust y el BFF Next.js están disponibles. Preparación, arranque con token temporal en memoria y comandos de comprobación: [apps/web/README.md](apps/web/README.md). El editor visual se implementará en 2.4.
