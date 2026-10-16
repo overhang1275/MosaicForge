@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="es">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f3f4f4">
+<link rel="icon" href="data:,">
+<title>Prueba de UI/UX Architect</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 16px/1.55 system-ui, sans-serif; color: #192323; background: #f3f4f4; }
+  main { width: min(960px, 100%); margin: 0 auto; padding: clamp(20px, 5vw, 64px); }
+  header { border-bottom: 1px solid #788787; padding-bottom: 24px; margin-bottom: 32px; }
+  h1 { font-size: clamp(28px, 5vw, 44px); line-height: 1.15; margin: 8px 0 20px; }
+  h2 { font-size: 22px; margin-top: 0; }
+  p { max-width: 65ch; }
+  .layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; }
+  label { display: block; font-weight: 650; margin-bottom: 8px; }
+  input, button { font: inherit; border: 1px solid #788787; border-radius: 6px; min-height: 44px; }
+  input { width: 100%; padding: 10px 12px; background: #fff; color: inherit; }
+  button { margin-top: 16px; padding: 10px 18px; background: #192323; color: #fff; cursor: pointer; }
+  button:hover { background: #005f67; }
+  :focus-visible { outline: 3px solid #005f67; outline-offset: 3px; }
+  a { color: #005f67; }
+  a:hover { text-decoration-thickness: 2px; }
+  h1, h2 { text-wrap: balance; }
+  #criterios { scroll-margin-top: 24px; }
+  .skip-link { position: absolute; top: -100px; left: 16px; background: #fff; padding: 12px; }
+  .skip-link:focus-visible { top: 8px; }
+  #result { min-height: 48px; padding-top: 12px; overflow-wrap: anywhere; }
+  li { margin-bottom: 10px; }
+  @media (max-width: 640px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+</style>
+<a class="skip-link" href="#main">Ir al contenido</a>
+<main id="main" tabindex="-1">
+  <header>
+    <p>Diagnóstico local · ui-ux-architect</p>
+    <h1>Una interfaz comprobable.</h1>
+    <p>Esta pantalla prueba las herramientas del agente. No es el frontend de MosaicForge ni genera variantes.</p>
+    <a href="#criterios">Ver criterios de la prueba</a>
+  </header>
+  <div class="layout">
+    <section aria-labelledby="interaction-heading">
+      <h2 id="interaction-heading">Interacción real</h2>
+      <form id="test-form">
+        <label for="label">Nombre de la prueba</label>
+        <input id="label" name="testName" autocomplete="off" required maxlength="120" value="Escritorio y móvil">
+        <button type="submit">Comprobar interacción</button>
+      </form>
+      <p id="result" role="status">Pendiente de comprobar.</p>
+    </section>
+    <section id="criterios" aria-labelledby="criteria-heading">
+      <h2 id="criteria-heading">Criterios visibles</h2>
+      <ul>
+        <li>Formulario con etiqueta y respuesta anunciada.</li>
+        <li>Contenido que se adapta al ancho de pantalla.</li>
+        <li>Navegación, teclado y foco identificables.</li>
+        <li>Evidencia separada de la aplicación del producto.</li>
+      </ul>
+    </section>
+  </div>
+</main>
+<script>
+  document.querySelector('#test-form').addEventListener('submit', event => {
+    event.preventDefault();
+    document.querySelector('#result').textContent = `Interacción comprobada: ${document.querySelector('#label').value}.`;
+  });
+</script>
+</html>
