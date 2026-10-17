@@ -2,6 +2,7 @@
 import type { PreviewCard } from '../editor/model';
 import type { useEditor } from '../editor/use-editor';
 import { ImageIcon } from './Fields';
+import { rejectionCopy } from './rejection-copy';
 
 type EditorContext = ReturnType<typeof useEditor>;
 const statusLabels: Record<PreviewCard['status'], string> = {
@@ -88,9 +89,10 @@ export function Preview({ state, editor }: EditorContext) {
             <p>
               {!card
                 ? 'Importa una plantilla SVG y genera una primera serie.'
-                : (card.result?.reason ??
-                  card.error ??
-                  'Los resultados aparecerán al finalizar el cálculo.')}
+                : card.result?.reason
+                  ? rejectionCopy(card.result.reason)
+                  : (card.error ??
+                    'Los resultados aparecerán al finalizar el cálculo.')}
             </p>
           </div>
         )}
@@ -109,7 +111,7 @@ export function Preview({ state, editor }: EditorContext) {
           />
         )}
       </div>
-      <details className="variant-metadata" open>
+      <details className="variant-metadata">
         <summary>Información de la variante</summary>
         {card?.result ? (
           <dl>
@@ -124,6 +126,12 @@ export function Preview({ state, editor }: EditorContext) {
             </dd>
             <dt>Reglas</dt>
             <dd>{card.result.rulesVersion}</dd>
+            {card.result.reason && (
+              <>
+                <dt>Código de rechazo</dt>
+                <dd>{card.result.reason}</dd>
+              </>
+            )}
             <dt>Hash de plantilla</dt>
             <dd className="hash">{card.result.templateHash}</dd>
             <dt>Hash de configuración</dt>
@@ -197,7 +205,9 @@ export function Gallery({ state, editor }: EditorContext) {
               </button>
               {(card.result?.reason || card.error) && (
                 <p className="card-reason">
-                  {card.result?.reason ?? card.error}
+                  {card.result?.reason
+                    ? rejectionCopy(card.result.reason)
+                    : card.error}
                 </p>
               )}
               {card.status === 'accepted' && (

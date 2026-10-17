@@ -145,14 +145,15 @@ The importer rejects scripts, external resources, embedded images, fonts, and un
 
 ## Troubleshooting
 
-| Problem                 | Check                                                                                                              |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| SVG rejected            | Review the supported subset; convert text to paths and remove unsupported features.                                |
-| Port occupied           | Choose a free port and keep the browser origin and configuration consistent.                                       |
-| HTTP 429                | The local engine runs one operation at a time; retry after it finishes.                                            |
-| HTTP 504                | Normal proxy operations allow 30 seconds; vector PDF allows 120 seconds. Reduce series size or artwork complexity. |
-| PDF export fails        | All web samples must be accepted and physical page coverage must pass. JSON responses are capped at 16 MiB.        |
-| Windows file-lock error | Stop the process serving the affected executable or standalone directory before rebuilding.                        |
+| Problem                 | Check                                                                                                                      |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| SVG rejected            | Review the supported subset; convert text to paths and remove unsupported features.                                        |
+| Port occupied           | Choose a free port and keep the browser origin and configuration consistent.                                               |
+| PDF returns HTTP 413    | The document exceeds the local export size limit. Reduce the sample count or SVG complexity; no partial PDF is downloaded. |
+| HTTP 429                | The local engine runs one operation at a time; retry after it finishes.                                                    |
+| HTTP 504                | Normal proxy operations allow 30 seconds; vector PDF allows 120 seconds. Reduce series size or artwork complexity.         |
+| PDF export fails        | All web samples must be accepted and physical page coverage must pass. JSON responses are capped at 16 MiB.                |
+| Windows file-lock error | Stop the process serving the affected executable or standalone directory before rebuilding.                                |
 
 PDF output is vector RGB. PDF/X, CMYK conversion, printer/RIP integration, and automatic resume are not implemented. Cancellation is cooperative; a running stage may finish before stopping.
 
@@ -176,6 +177,8 @@ pnpm --dir apps/web test
 pnpm --dir apps/web build
 node scripts/preview-smoke.mjs
 ```
+
+For manual browser checks on Windows, put Playwright CLI on `PATH` and run `./scripts/playwright.ps1 --help`. The [design audit](docs/design-audit/latest.md) records visual and keyboard checks.
 
 Run checks sequentially. The smoke test needs debug Rust binaries and the web build. Ignored tests require optional local artwork or baselines and are excluded from the default suite.
 

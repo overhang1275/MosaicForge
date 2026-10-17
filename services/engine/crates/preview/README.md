@@ -20,3 +20,5 @@ Un permiso exclusivo cubre lectura y cómputo. Segunda operación: 429, sin cola
 requestId válido se devuelve desde el contrato parseado. Los errores anteriores al parseo (auth, cuerpo, ocupación) usan UUID cero, que el BFF sustituye por su correlación propia; nunca se refleja contenido del error interno. Los rechazos de variantes son 200 sin artefacto. Errores internos/panic se convierten en 500, con liberación del permiso.
 
 Prueba real desde raíz: node scripts/preview-smoke.mjs --engine-only. Requiere binarios debug compilados; usa puertos efímeros y token temporal en memoria, conserva resultados en out y cierra sus procesos. Incluye límite chunked, 429/desconexión, rechazo y bytes/hashes SVG/PNG iguales a CLI, con seed/índice u64 máximo.
+
+Si el PDF supera el buffer binario de exportación local, la operación devuelve 413 payload_too_large y descarta los bytes provisionales. La web indica reducir cantidad o complejidad; los límites y contratos permanecen iguales.

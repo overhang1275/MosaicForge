@@ -498,6 +498,9 @@ details[open] > summary .disclosure {
   border-radius: 4px;
   overflow-wrap: anywhere;
 }
+.error-message:focus-visible {
+  outline-offset: -3px;
+}
 .gallery {
   background: var(--panel);
   border: 1px solid var(--border);

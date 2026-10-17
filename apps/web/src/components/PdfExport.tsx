@@ -28,7 +28,9 @@ export function PdfExport({ state, editor }: ReturnType<typeof useEditor>) {
         </button>
         <p>
           {state.cards.length > 0
-            ? `Un PDF vectorial · ${state.cards.length} ${state.cards.length === 1 ? 'página' : 'páginas'} · serie completa guardada.`
+            ? ready
+              ? `Un PDF vectorial · ${state.cards.length} ${state.cards.length === 1 ? 'página' : 'páginas'} · serie completa guardada.`
+              : `Serie de ${state.cards.length} ${state.cards.length === 1 ? 'variante' : 'variantes'} · PDF disponible cuando todas estén aceptadas.`
             : 'Un solo PDF vectorial con la serie completa de hasta 12 variantes.'}
         </p>
       </div>

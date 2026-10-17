@@ -3,7 +3,11 @@ use base64::{Engine, engine::general_purpose::STANDARD};
 use mosaicforge_core::{EngineError, template::import_svg};
 use serde_json::{Value, json};
 
-fn compute(path: &str, bytes: &[u8]) -> Result<Value, (&'static str, u16, String)> {
+fn compute(
+    path: &str,
+    bytes: &[u8],
+    pdf_limit: usize,
+) -> Result<Value, (&'static str, u16, String)> {
     let input: Value = serde_json::from_slice(bytes)
         .map_err(|_| ("invalid_request", 400, crate::http::UNKNOWN_REQUEST.into()))?;
     let id = input
@@ -51,7 +55,7 @@ fn compute(path: &str, bytes: &[u8]) -> Result<Value, (&'static str, u16, String
         let request: PdfExportRequest = serde_json::from_value(input).map_err(|_| invalid())?;
         validate_pdf_export_request(&request).map_err(|_| invalid())?;
         let template = import_svg(request.template_svg.as_bytes()).map_err(engine_error)?;
-        let mut output = PdfBuffer(Vec::new());
+        let mut output = PdfBuffer::new(pdf_limit);
         let document =
             mosaicforge_cpu::pdf::generate_pdf(&template, &request.job, 1, &mut output, |record| {
                 if record.variant.status.to_string() == "rejected" {
@@ -60,9 +64,12 @@ fn compute(path: &str, bytes: &[u8]) -> Result<Value, (&'static str, u16, String
                     ));
                 }
                 Ok(())
-            })
-            .map_err(engine_error)?;
-        let value = json!({"requestId":id,"document":document,"artifact":{"mimeType":"application/pdf","base64":STANDARD.encode(output.0)}});
+            });
+        if output.exceeded {
+            return Err(("payload_too_large", 413, id));
+        }
+        let document = document.map_err(engine_error)?;
+        let value = json!({"requestId":id,"document":document,"artifact":{"mimeType":"application/pdf","base64":STANDARD.encode(output.bytes)}});
         let response: PdfExportResponse = serde_json::from_value(value.clone())
             .map_err(|_| ("internal_error", 500, id.clone()))?;
         validate_pdf_export_response(&response).map_err(|_| ("internal_error", 500, id))?;
@@ -96,7 +103,7 @@ fn compute(path: &str, bytes: &[u8]) -> Result<Value, (&'static str, u16, String
     Ok(value)
 }
 pub fn execute(path: &str, bytes: &[u8]) -> (u16, Vec<u8>) {
-    let (status, value) = match compute(path, bytes) {
+    let (status, value) = match compute(path, bytes, MAX_PDF_BYTES) {
         Ok(value) => (200, value),
         Err((code, status, id)) => (
             status,
@@ -111,15 +118,30 @@ pub fn execute(path: &str, bytes: &[u8]) -> (u16, Vec<u8>) {
 }
 
 // Leave space for JSON metadata and base64 expansion inside the 16 MiB response cap.
-struct PdfBuffer(Vec<u8>);
+const MAX_PDF_BYTES: usize = 12 * 1024 * 1024 - 64 * 1024;
+struct PdfBuffer {
+    bytes: Vec<u8>,
+    limit: usize,
+    exceeded: bool,
+}
+impl PdfBuffer {
+    fn new(limit: usize) -> Self {
+        Self {
+            bytes: Vec::new(),
+            limit,
+            exceeded: false,
+        }
+    }
+}
 impl std::io::Write for PdfBuffer {
     fn write(&mut self, bytes: &[u8]) -> std::io::Result<usize> {
-        if bytes.len() > (12 * 1024 * 1024 - 64 * 1024_usize).saturating_sub(self.0.len()) {
+        if bytes.len() > self.limit.saturating_sub(self.bytes.len()) {
+            self.exceeded = true;
             return Err(std::io::Error::other(
                 "PDF response exceeds local preview limit",
             ));
         }
-        self.0.extend_from_slice(bytes);
+        self.bytes.extend_from_slice(bytes);
         Ok(bytes.len())
     }
     fn flush(&mut self) -> std::io::Result<()> {
@@ -131,9 +153,19 @@ mod tests {
     use super::*;
     use std::io::Write;
     #[test]
+    fn oversized_pdf_returns_payload_error_without_document() {
+        let input = include_bytes!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../../../contracts/preview/v1/fixtures/export-pdf.json"
+        ));
+        let error = compute("/v1/export-pdf", input, 16).unwrap_err();
+        assert_eq!((error.0, error.1), ("payload_too_large", 413));
+        assert_eq!(error.2, "12345678-1234-1234-1234-123456789abc");
+    }
+    #[test]
     fn pdf_buffer_never_grows_past_limit() {
-        let mut b = PdfBuffer(Vec::new());
+        let mut b = PdfBuffer::new(MAX_PDF_BYTES);
         assert!(b.write_all(&vec![0; 12 * 1024 * 1024]).is_err());
-        assert!(b.0.is_empty());
+        assert!(b.bytes.is_empty());
     }
 }

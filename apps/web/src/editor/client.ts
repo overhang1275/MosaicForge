@@ -3,7 +3,16 @@ import type {
   InspectResponse,
 } from '../../../../contracts/generated/typescript/preview';
 import type { EditorPorts } from './controller';
-function failure(value: unknown): string {
+function failure(value: unknown, operation?: string): string {
+  if (
+    operation === 'export-pdf' &&
+    value &&
+    typeof value === 'object' &&
+    'code' in value &&
+    value.code === 'payload_too_large'
+  ) {
+    return 'El PDF supera el límite de exportación de esta vista. Reduce la cantidad de variantes o la complejidad del SVG.';
+  }
   return value &&
     typeof value === 'object' &&
     'message' in value &&
@@ -25,7 +34,7 @@ async function post(
   });
   if (!response.ok) {
     const error: unknown = await response.json().catch(() => null);
-    throw new Error(failure(error));
+    throw new Error(failure(error, operation));
   }
   return response;
 }
