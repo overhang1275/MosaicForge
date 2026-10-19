@@ -1,0 +1,153 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "additionalProperties": false,
+  "properties": {
+    "artifact": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/Artifact"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "requestId": {
+      "$ref": "#/definitions/RequestId"
+    },
+    "variant": {
+      "$ref": "#/definitions/VariantResult"
+    }
+  },
+  "required": [
+    "requestId",
+    "variant"
+  ],
+  "title": "GenerationResponse",
+  "type": "object",
+  "definitions": {
+    "Artifact": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "additionalProperties": false,
+      "properties": {
+        "base64": {
+          "maxLength": 16777216,
+          "minLength": 1,
+          "type": "string"
+        },
+        "mimeType": {
+          "enum": [
+            "image/png",
+            "image/svg+xml"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "mimeType",
+        "base64"
+      ],
+      "title": "Artifact",
+      "type": "object"
+    },
+    "RequestId": {
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+      "title": "RequestId",
+      "type": "string"
+    },
+    "Ref3": {
+      "pattern": "^[a-f0-9]{64}$",
+      "type": "string"
+    },
+    "Ref4": {
+      "pattern": "^(0|[1-9][0-9]{0,19})$",
+      "type": "string"
+    },
+    "VariantResult": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "additionalProperties": false,
+      "properties": {
+        "artifactHash": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Ref3"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "backend": {
+          "enum": [
+            "cpu"
+          ],
+          "type": "string"
+        },
+        "configurationHash": {
+          "$ref": "#/definitions/Ref3"
+        },
+        "device": {
+          "maxLength": 256,
+          "minLength": 1,
+          "type": "string"
+        },
+        "engineVersion": {
+          "enum": [
+            "0.1.0"
+          ],
+          "type": "string"
+        },
+        "index": {
+          "$ref": "#/definitions/Ref4"
+        },
+        "reason": {
+          "maxLength": 256,
+          "minLength": 1,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "rulesVersion": {
+          "enum": [
+            "1"
+          ],
+          "type": "string"
+        },
+        "schemaVersion": {
+          "enum": [
+            "1"
+          ],
+          "type": "string"
+        },
+        "seed": {
+          "$ref": "#/definitions/Ref4"
+        },
+        "status": {
+          "enum": [
+            "accepted",
+            "rejected"
+          ],
+          "type": "string"
+        },
+        "templateHash": {
+          "$ref": "#/definitions/Ref3"
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "index",
+        "seed",
+        "templateHash",
+        "configurationHash",
+        "engineVersion",
+        "rulesVersion",
+        "backend",
+        "device",
+        "status"
+      ],
+      "title": "VariantResult",
+      "type": "object"
+    }
+  }
+}

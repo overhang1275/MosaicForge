@@ -1,0 +1,261 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "MosaicForge local control API",
+    "version": "1.0.0",
+    "description": "Implemented synchronous API; artifact JSON remains private to the BFF. User accounts and jobs are later phases."
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:4772"
+    }
+  ],
+  "paths": {
+    "/v1/inspect": {
+      "post": {
+        "operationId": "inspect",
+        "security": [
+          {
+            "serviceToken": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "../preview/v1/inspect-request.schema.json"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Engine-authoritative JSON envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../preview/v1/inspect-response.schema.json"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Validated and sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../preview/v1/error.schema.json"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/preview": {
+      "post": {
+        "operationId": "preview",
+        "security": [
+          {
+            "serviceToken": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "../preview/v1/generation-request.schema.json"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Engine-authoritative JSON envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../preview/v1/generation-response.schema.json"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Validated and sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../preview/v1/error.schema.json"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/export": {
+      "post": {
+        "operationId": "export",
+        "security": [
+          {
+            "serviceToken": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "../preview/v1/generation-request.schema.json"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Engine-authoritative JSON envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../preview/v1/generation-response.schema.json"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Validated and sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../preview/v1/error.schema.json"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/export-pdf": {
+      "post": {
+        "operationId": "export_pdf",
+        "security": [
+          {
+            "serviceToken": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "../preview/v1/pdf-export-request.schema.json"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Engine-authoritative JSON envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../preview/v1/pdf-export-response.schema.json"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Validated and sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../preview/v1/error.schema.json"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/export-pdf-selection": {
+      "post": {
+        "operationId": "export_pdf_selection",
+        "security": [
+          {
+            "serviceToken": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "../preview/v2/selected-pdf-export-request.schema.json"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Engine-authoritative JSON envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../preview/v2/selected-pdf-export-response.schema.json"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Validated and sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../preview/v1/error.schema.json"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "operationId": "health",
+        "description": "Loopback-only liveness; full container health also checks Rust.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "API is up",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "status"
+                  ],
+                  "properties": {
+                    "status": {
+                      "const": "up"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "serviceToken": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  }
+}

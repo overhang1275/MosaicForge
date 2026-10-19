@@ -11,13 +11,13 @@ const utf8 = (text) =>
   text.length > 0 &&
   Buffer.byteLength(text, 'utf8') <= 5 * 1024 * 1024;
 
-function validSpec(spec, operation) {
+export function validSpec(spec, operation, maxDimension = 512) {
   if (
     !u64(spec.seed) ||
     !u64(spec.startIndex) ||
     spec.count !== 1 ||
-    spec.output.width > 512 ||
-    spec.output.height > 512
+    spec.output.width > maxDimension ||
+    spec.output.height > maxDimension
   )
     return false;
   if (operation === 'preview' && spec.output.format !== 'png') return false;

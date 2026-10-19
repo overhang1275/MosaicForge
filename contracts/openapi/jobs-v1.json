@@ -1,0 +1,122 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "MosaicForge jobs — planned contract",
+    "version": "1.0.0",
+    "description": "DESIGN ONLY: not registered by phase3.2. Requires durable projects/workers in3.3/3.4."
+  },
+  "x-implemented": false,
+  "paths": {
+    "/v1/jobs": {
+      "post": {
+        "operationId": "submitJob",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 128,
+              "pattern": "^[!-~]+$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "../jobs/v1/request.schema.json"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Durably accepted job",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../jobs/v1/status.schema.json"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Idempotency key reused with different immutable request"
+          }
+        }
+      }
+    },
+    "/v1/jobs/{jobId}": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "jobId",
+          "required": true,
+          "schema": {
+            "$ref": "../jobs/v1/common.schema.json#/definitions/Id"
+          }
+        }
+      ],
+      "get": {
+        "operationId": "getJob",
+        "responses": {
+          "200": {
+            "description": "Confirmed status snapshot",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../jobs/v1/status.schema.json"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/jobs/{jobId}/cancel": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "jobId",
+          "required": true,
+          "schema": {
+            "$ref": "../jobs/v1/common.schema.json#/definitions/Id"
+          }
+        }
+      ],
+      "post": {
+        "operationId": "cancelJob",
+        "responses": {
+          "202": {
+            "description": "Idempotent cancellation request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../jobs/v1/status.schema.json"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "userSession": []
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "userSession": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Authentication/authorization implementation deferred to3.3"
+      }
+    }
+  }
+}

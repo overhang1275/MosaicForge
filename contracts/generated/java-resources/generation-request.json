@@ -1,0 +1,241 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "additionalProperties": false,
+  "properties": {
+    "generation": {
+      "$ref": "#/definitions/GenerationSpec"
+    },
+    "requestId": {
+      "$ref": "#/definitions/RequestId"
+    },
+    "templateSvg": {
+      "maxLength": 5242880,
+      "minLength": 1,
+      "type": "string"
+    }
+  },
+  "required": [
+    "requestId",
+    "templateSvg",
+    "generation"
+  ],
+  "title": "GenerationRequest",
+  "type": "object",
+  "definitions": {
+    "Ref1": {
+      "additionalProperties": false,
+      "properties": {
+        "background": {
+          "pattern": "^(transparent|#[0-9a-fA-F]{6})$",
+          "type": "string"
+        },
+        "format": {
+          "enum": [
+            "svg",
+            "png"
+          ],
+          "type": "string"
+        },
+        "height": {
+          "maximum": 4096,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "width": {
+          "maximum": 4096,
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "format",
+        "width",
+        "height",
+        "background"
+      ],
+      "type": "object"
+    },
+    "Ref3": {
+      "additionalProperties": false,
+      "properties": {
+        "height": {
+          "exclusiveMinimum": 0,
+          "type": "number"
+        },
+        "width": {
+          "exclusiveMinimum": 0,
+          "type": "number"
+        },
+        "x": {
+          "minimum": 0,
+          "type": "number"
+        },
+        "y": {
+          "minimum": 0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "x",
+        "y",
+        "width",
+        "height"
+      ],
+      "type": "object"
+    },
+    "Ref4": {
+      "additionalProperties": false,
+      "properties": {
+        "max": {
+          "type": "number"
+        },
+        "min": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "min",
+        "max"
+      ],
+      "type": "object"
+    },
+    "Ref2": {
+      "additionalProperties": false,
+      "properties": {
+        "crop": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Ref3"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "distortion": {
+          "minimum": 0,
+          "type": "number"
+        },
+        "mirrorX": {
+          "type": "boolean"
+        },
+        "mirrorY": {
+          "type": "boolean"
+        },
+        "opacity": {
+          "$ref": "#/definitions/Ref4"
+        },
+        "palette": {
+          "items": {
+            "pattern": "^#[0-9a-fA-F]{6}$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 0,
+          "type": "array"
+        },
+        "rotationDegrees": {
+          "$ref": "#/definitions/Ref4"
+        },
+        "scaleX": {
+          "$ref": "#/definitions/Ref4"
+        },
+        "scaleY": {
+          "$ref": "#/definitions/Ref4"
+        },
+        "shuffleLayers": {
+          "type": "boolean"
+        },
+        "translateX": {
+          "$ref": "#/definitions/Ref4"
+        },
+        "translateY": {
+          "$ref": "#/definitions/Ref4"
+        }
+      },
+      "required": [
+        "translateX",
+        "translateY",
+        "rotationDegrees",
+        "scaleX",
+        "scaleY",
+        "mirrorX",
+        "mirrorY",
+        "opacity",
+        "shuffleLayers",
+        "distortion"
+      ],
+      "type": "object"
+    },
+    "Ref5": {
+      "pattern": "^(0|[1-9][0-9]{0,19})$",
+      "type": "string"
+    },
+    "Ref6": {
+      "pattern": "^[a-f0-9]{64}$",
+      "type": "string"
+    },
+    "GenerationSpec": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "additionalProperties": false,
+      "properties": {
+        "count": {
+          "maximum": 10000,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "engineVersion": {
+          "enum": [
+            "0.1.0"
+          ],
+          "type": "string"
+        },
+        "output": {
+          "$ref": "#/definitions/Ref1"
+        },
+        "rules": {
+          "$ref": "#/definitions/Ref2"
+        },
+        "rulesVersion": {
+          "enum": [
+            "1"
+          ],
+          "type": "string"
+        },
+        "schemaVersion": {
+          "enum": [
+            "1"
+          ],
+          "type": "string"
+        },
+        "seed": {
+          "$ref": "#/definitions/Ref5"
+        },
+        "startIndex": {
+          "$ref": "#/definitions/Ref5"
+        },
+        "templateHash": {
+          "$ref": "#/definitions/Ref6"
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "templateHash",
+        "seed",
+        "startIndex",
+        "count",
+        "engineVersion",
+        "rulesVersion",
+        "rules",
+        "output"
+      ],
+      "title": "GenerationSpec",
+      "type": "object"
+    },
+    "RequestId": {
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+      "title": "RequestId",
+      "type": "string"
+    }
+  }
+}

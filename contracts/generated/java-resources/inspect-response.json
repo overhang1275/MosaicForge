@@ -1,0 +1,77 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "additionalProperties": false,
+  "properties": {
+    "engineVersion": {
+      "enum": [
+        "0.1.0"
+      ],
+      "type": "string"
+    },
+    "height": {
+      "exclusiveMinimum": 0,
+      "type": "number"
+    },
+    "layerIds": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 20000,
+      "type": "array"
+    },
+    "requestId": {
+      "$ref": "#/definitions/RequestId"
+    },
+    "rulesVersion": {
+      "enum": [
+        "1"
+      ],
+      "type": "string"
+    },
+    "segmentCount": {
+      "maximum": 100000,
+      "minimum": 0,
+      "type": "integer"
+    },
+    "templateHash": {
+      "$ref": "#/definitions/Ref1"
+    },
+    "viewBox": {
+      "items": {
+        "type": "number"
+      },
+      "maxItems": 4,
+      "minItems": 4,
+      "type": "array"
+    },
+    "width": {
+      "exclusiveMinimum": 0,
+      "type": "number"
+    }
+  },
+  "required": [
+    "requestId",
+    "templateHash",
+    "width",
+    "height",
+    "viewBox",
+    "layerIds",
+    "segmentCount",
+    "engineVersion",
+    "rulesVersion"
+  ],
+  "title": "InspectResponse",
+  "type": "object",
+  "definitions": {
+    "RequestId": {
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+      "title": "RequestId",
+      "type": "string"
+    },
+    "Ref1": {
+      "pattern": "^[a-f0-9]{64}$",
+      "type": "string"
+    }
+  }
+}

@@ -1,0 +1,146 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "additionalProperties": false,
+  "properties": {
+    "artifact": {
+      "additionalProperties": false,
+      "properties": {
+        "base64": {
+          "maxLength": 16777216,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9+/]+={0,2}$",
+          "type": "string"
+        },
+        "mimeType": {
+          "enum": [
+            "application/pdf"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "mimeType",
+        "base64"
+      ],
+      "type": "object"
+    },
+    "document": {
+      "$ref": "#/definitions/PdfDocumentResult"
+    },
+    "requestId": {
+      "$ref": "#/definitions/RequestId"
+    }
+  },
+  "required": [
+    "requestId",
+    "document",
+    "artifact"
+  ],
+  "title": "PdfExportResponse",
+  "type": "object",
+  "definitions": {
+    "PdfDocumentResult": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "additionalProperties": false,
+      "properties": {
+        "acceptedCount": {
+          "maximum": 10000,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "count": {
+          "maximum": 10000,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "documentConfigurationHash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "documentHash": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "exporterVersion": {
+          "enum": [
+            "1"
+          ],
+          "type": "string"
+        },
+        "generationConfigurationHash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "pageCount": {
+          "maximum": 10000,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "rejectedCount": {
+          "maximum": 10000,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "requestedCount": {
+          "maximum": 10000,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "schemaVersion": {
+          "enum": [
+            "1"
+          ],
+          "type": "string"
+        },
+        "seed": {
+          "pattern": "^(0|[1-9][0-9]{0,19})$",
+          "type": "string"
+        },
+        "startIndex": {
+          "pattern": "^(0|[1-9][0-9]{0,19})$",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "completed",
+            "no_pages"
+          ],
+          "type": "string"
+        },
+        "templateHash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "exporterVersion",
+        "templateHash",
+        "seed",
+        "startIndex",
+        "count",
+        "generationConfigurationHash",
+        "documentConfigurationHash",
+        "status",
+        "requestedCount",
+        "acceptedCount",
+        "rejectedCount",
+        "pageCount"
+      ],
+      "title": "PdfDocumentResult",
+      "type": "object"
+    },
+    "RequestId": {
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+      "title": "RequestId",
+      "type": "string"
+    }
+  }
+}
