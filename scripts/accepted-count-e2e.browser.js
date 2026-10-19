@@ -13,6 +13,8 @@ async function acceptedCountE2e(page) {
       pending.push(
         response.json().then((body) => ({
           status: response.status(),
+          requestId: body.requestId,
+          traceparent: response.headers()["traceparent"],
           variant: body.variant,
         })),
       );
@@ -51,6 +53,12 @@ async function acceptedCountE2e(page) {
   ensure(
     responses.every((response) => response.status === 200),
     "all candidate requests must complete normally",
+  );
+  ensure(
+    responses.every((response) =>
+      /^00-[0-9a-f]{32}-[0-9a-f]{16}-[0-9a-f]{2}$/.test(response.traceparent),
+    ),
+    "each candidate must retain server trace context",
   );
   const accepted = responses
     .filter((response) => response.variant.status === "accepted")
@@ -191,5 +199,9 @@ async function acceptedCountE2e(page) {
     attempts: responses.length,
     selection,
     errors,
+    traces: responses.map(({ requestId, traceparent }) => ({
+      requestId,
+      traceparent,
+    })),
   };
 }

@@ -6,6 +6,11 @@ try {
   });
   if (!response.ok) throw new Error("Web unavailable");
   await response.body?.cancel();
+  const api = await fetch("http://127.0.0.1:4772/health", {
+    signal: AbortSignal.timeout(3000),
+  });
+  if (!api.ok || (await api.json()).status !== "up")
+    throw new Error("API unavailable");
   await new Promise((resolve, reject) => {
     const socket = connect(4771, "127.0.0.1");
     socket.setTimeout(3000);

@@ -1,4 +1,8 @@
 import { randomUUID } from 'node:crypto';
+import {
+  controlOperations,
+  type ControlOperation,
+} from '../../../../contracts/generated/typescript/control-api.ts';
 import type {
   GenerationRequest,
   GenerationResponse,
@@ -11,12 +15,7 @@ import type {
 } from '../../../../contracts/generated/typescript/preview.ts';
 import { validateFixture } from '../../../../scripts/contracts/validate.mjs';
 
-export type Operation =
-  | 'inspect'
-  | 'preview'
-  | 'export'
-  | 'export-pdf'
-  | 'export-pdf-selection';
+export type Operation = ControlOperation;
 export interface ProxyConfig {
   engineUrl: string;
   token: string;
@@ -126,7 +125,20 @@ const errorStatus: Partial<Record<PreviewError['code'], number>> = {
   unsupported_media_type: 415,
   busy: 429,
   internal_error: 500,
+  engine_unavailable: 502,
+  timeout: 504,
 };
+
+function traceContext(value: string | null): string {
+  if (
+    value &&
+    /^00-[0-9a-f]{32}-[0-9a-f]{16}-[0-9a-f]{2}$/.test(value) &&
+    value.slice(3, 35) !== '0'.repeat(32) &&
+    value.slice(36, 52) !== '0'.repeat(16)
+  )
+    return value;
+  return `00-${randomUUID().replaceAll('-', '')}-${randomUUID().replaceAll('-', '').slice(0, 16)}-01`;
+}
 
 export function createProxy(config: ProxyConfig) {
   const upstream = localAddress(config.engineUrl);
@@ -149,7 +161,11 @@ export function createProxy(config: ProxyConfig) {
     throw new Error('Invalid PDF timeout');
   if (!Number.isInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 30_000)
     throw new Error('Invalid timeout');
-  return async (request: Request, operation: Operation): Promise<Response> => {
+  const execute = async (
+    request: Request,
+    operation: Operation,
+    trace: string,
+  ): Promise<Response> => {
     const id = randomUUID();
     if (request.method !== 'POST')
       return new Response(null, { status: 405, headers: { allow: 'POST' } });
@@ -215,15 +231,13 @@ export function createProxy(config: ProxyConfig) {
     }
     try {
       const response = await fetch(
-        new URL(
-          `/${operation === 'export-pdf-selection' ? 'v2' : 'v1'}/${operation}`,
-          upstream,
-        ),
+        new URL(controlOperations[operation].path, upstream),
         {
           method: 'POST',
           headers: {
             'content-type': 'application/json',
             authorization: `Bearer ${config.token}`,
+            traceparent: trace,
           },
           body: JSON.stringify(input),
           signal,
@@ -348,5 +362,11 @@ export function createProxy(config: ProxyConfig) {
             : 'engine_unavailable',
       );
     }
+  };
+  return async (request: Request, operation: Operation): Promise<Response> => {
+    const trace = traceContext(request.headers.get('traceparent'));
+    const response = await execute(request, operation, trace);
+    response.headers.set('traceparent', trace);
+    return response;
   };
 }

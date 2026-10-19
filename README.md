@@ -3,7 +3,7 @@
 Deterministic SVG variants with a Rust engine and a local web editor.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-![Stack](https://img.shields.io/badge/stack-Rust%20%2B%20Next.js-orange)
+![Stack](https://img.shields.io/badge/stack-Rust%20%2B%20Java%20%2B%20Next.js-orange)
 ![Platforms](https://img.shields.io/badge/platforms-Windows%20x64%20%7C%20Linux%20Docker-lightgrey)
 ![Releases](https://img.shields.io/badge/releases-source%20only-lightgrey)
 
@@ -11,7 +11,7 @@ Deterministic SVG variants with a Rust engine and a local web editor.
 
 ## About
 
-MosaicForge generates reproducible visual variants from an SVG template. Rust handles transformations, validation, rasterization, and export. A Next.js/TypeScript editor provides previews and controls through a local HTTP interface.
+MosaicForge generates reproducible visual variants from an SVG template. Rust handles transformations, validation, rasterization, and export. A Next.js/TypeScript editor provides previews and controls through a private Java control API in the CPU Docker deployment.
 
 The primary web export is **one vector PDF containing the complete generated series**. Individual SVG and PNG downloads are also available. This is a development preview; no published binary releases or package-manager distribution are configured.
 
@@ -23,6 +23,7 @@ The primary web export is **one vector PDF containing the complete generated ser
 - Vector multipage PDFs with configurable physical dimensions and bleed; the web defaults to 100 × 100 mm without bleed.
 - CLI batch processing, incremental JSONL manifests, artifact hashes, and cooperative cancellation.
 - Local web previews and CPU-only Docker deployment with production builds.
+- A private Java control API with validated contracts, bounded transport and request tracing.
 
 Reproduction requires the same normalized template, configuration, seed, engine version, and backend. Seeds and indices are decimal `u64` strings in JSON to preserve precision.
 
@@ -54,6 +55,11 @@ docker compose -f deploy/compose/local.yml up -d --build --wait
 
 Open **http://127.0.0.1:3000**. Use this exact host because the proxy validates `Host` and `Origin`. The first build downloads dependencies; later builds reuse Docker caches.
 
+The image runs web → Java → Rust with distinct server-only service credentials.
+Only the web port is published; Java 4772 and Rust 4771 stay on container loopback.
+See [the Java service](services/api/README.md) and [future job contracts](docs/job-contract-v1.md).
+Asynchronous jobs, accounts and persistence remain later phases.
+
 If port 3000 is occupied, choose another port without stopping unrelated services:
 
 ```sh
@@ -71,7 +77,7 @@ pnpm --dir apps/web build
 node scripts/start-preview.mjs
 ```
 
-The launcher requires these debug Rust binaries and the standalone web build. It generates a temporary private token in memory and starts both processes on loopback. Press Ctrl+C to stop them. Stop a native standalone server before rebuilding its output on Windows to avoid file-lock errors.
+This compatibility development launcher talks directly to Rust. The integrated Java path is exercised by Docker. The launcher requires these debug Rust binaries and the standalone web build. It generates a temporary private token in memory and starts both processes on loopback. Press Ctrl+C to stop them. Stop a native standalone server before rebuilding its output on Windows to avoid file-lock errors.
 
 ## Usage
 
@@ -198,7 +204,7 @@ Keep changes focused, test changed behavior, and document compatibility changes.
 
 - Extend accepted-target generation and explicit PDF selections to asynchronous large jobs.
 - Add asynchronous jobs and bounded processing for larger workloads.
-- Introduce the Java control plane when job orchestration requires it.
+- Add durable projects, user permissions and job recovery to the Java control plane.
 - Consider CUDA only where end-to-end measurements demonstrate a benefit.
 - Consider optional Python/ML analysis only if rule-based validation is insufficient.
 
@@ -212,7 +218,7 @@ Keep changes focused, test changed behavior, and document compatibility changes.
 
 ## License and maintainers
 
-Distributed under the [MIT License](LICENSE). Dependency license inventories are recorded for the [engine](docs/dependencias-motor.md) and [web](docs/dependencias-http-web.json).
+Distributed under the [MIT License](LICENSE). Dependency license inventories are recorded for the [engine](docs/dependencias-motor.md) and [web](docs/dependencias-http-web.json); selected Java dependency families are listed in the [API documentation](services/api/README.md#open-source-dependency-choices).
 
 Maintained by the MosaicForge contributors. A project website and GitHub release URL are not configured yet.
 

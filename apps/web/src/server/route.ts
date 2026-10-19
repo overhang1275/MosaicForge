@@ -7,16 +7,22 @@ export async function route(
 ): Promise<Response> {
   try {
     return await createProxy({
-      engineUrl: process.env.MOSAICFORGE_ENGINE_URL ?? 'http://127.0.0.1:4771',
+      engineUrl:
+        process.env.MOSAICFORGE_API_URL ??
+        process.env.MOSAICFORGE_ENGINE_URL ??
+        'http://127.0.0.1:4772',
       origin: process.env.MOSAICFORGE_WEB_ORIGIN ?? 'http://127.0.0.1:3000',
-      token: process.env.MOSAICFORGE_ENGINE_TOKEN ?? '',
+      token:
+        process.env.MOSAICFORGE_API_TOKEN ??
+        process.env.MOSAICFORGE_ENGINE_TOKEN ??
+        '',
     })(request, operation);
   } catch {
     return Response.json(
       {
         requestId: crypto.randomUUID(),
         code: 'engine_unavailable',
-        message: 'Revisa la configuración local del motor',
+        message: 'Revisa la configuración local de la API',
       },
       { status: 502, headers: { 'cache-control': 'no-store' } },
     );

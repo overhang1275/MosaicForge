@@ -71,6 +71,29 @@ where
     .await
 }
 async fn handle(State(state): State<ServerState>, request: Request) -> Response {
+    let trace = request
+        .headers()
+        .get("traceparent")
+        .filter(|value| {
+            let bytes = value.as_bytes();
+            bytes.len() == 55
+                && bytes.starts_with(b"00-")
+                && bytes[35] == b'-'
+                && bytes[52] == b'-'
+                && bytes.iter().enumerate().all(|(i, b)| {
+                    [2, 35, 52].contains(&i) || b.is_ascii_digit() || (b'a'..=b'f').contains(b)
+                })
+                && bytes[3..35].iter().any(|b| *b != b'0')
+                && bytes[36..52].iter().any(|b| *b != b'0')
+        })
+        .cloned();
+    let mut response = handle_inner(state, request).await;
+    if let Some(trace) = trace {
+        response.headers_mut().insert("traceparent", trace);
+    }
+    response
+}
+async fn handle_inner(state: ServerState, request: Request) -> Response {
     let headers = request.headers();
     if headers.get(header::HOST).and_then(|h| h.to_str().ok()) != Some(state.host.as_str())
         || headers.contains_key(header::ORIGIN)
@@ -163,6 +186,22 @@ async fn handle(State(state): State<ServerState>, request: Request) -> Response 
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[tokio::test]
+    async fn successful_request_preserves_valid_trace_context() {
+        use tower::ServiceExt;
+        let trace = "00-1234567890abcdef1234567890abcdef-1234567890abcdef-01";
+        let app = router("test-token".into(), "127.0.0.1:4771".into());
+        let request = axum::http::Request::post("/v1/inspect")
+            .header("host", "127.0.0.1:4771")
+            .header("authorization", "Bearer test-token")
+            .header("content-type", "application/json")
+            .header("traceparent", trace)
+            .body(axum::body::Body::from(r#"{"requestId":"12345678-1234-1234-1234-123456789abc","templateSvg":"<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100\" height=\"100\"><rect width=\"100\" height=\"100\"/></svg>"}"#))
+            .unwrap();
+        let response = app.oneshot(request).await.unwrap();
+        assert_eq!(response.status(), StatusCode::OK);
+        assert_eq!(response.headers().get("traceparent").unwrap(), trace);
+    }
     #[tokio::test]
     async fn occupied_gate_returns_busy_without_reading_body() {
         use tower::ServiceExt;

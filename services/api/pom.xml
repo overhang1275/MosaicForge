@@ -1,0 +1,29 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-parent</artifactId><version>4.1.1</version><relativePath/></parent>
+  <groupId>dev.mosaicforge</groupId><artifactId>control-api</artifactId><version>0.1.0</version>
+  <properties><java.version>21</java.version><project.build.sourceEncoding>UTF-8</project.build.sourceEncoding></properties>
+  <dependencies>
+    <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-webmvc</artifactId></dependency>
+    <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-security</artifactId></dependency>
+    <dependency><groupId>com.networknt</groupId><artifactId>json-schema-validator</artifactId><version>3.0.8</version></dependency>
+    <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-test</artifactId><scope>test</scope></dependency>
+  </dependencies>
+  <build>
+    <finalName>mosaicforge-api</finalName>
+    <resources>
+      <resource><directory>src/main/resources</directory></resource>
+      <resource><directory>../../contracts/generated/java-resources</directory><targetPath>contracts</targetPath></resource>
+    </resources>
+    <testResources>
+      <testResource><directory>../../contracts/preview/v1/fixtures</directory><targetPath>fixtures/preview</targetPath></testResource>
+      <testResource><directory>../../contracts/preview/v2</directory><targetPath>fixtures/v2</targetPath></testResource>
+    </testResources>
+    <plugins>
+      <plugin><groupId>org.springframework.boot</groupId><artifactId>spring-boot-maven-plugin</artifactId></plugin>
+      <plugin><groupId>org.codehaus.mojo</groupId><artifactId>build-helper-maven-plugin</artifactId><version>3.6.1</version><executions><execution><id>generated-contracts</id><phase>generate-sources</phase><goals><goal>add-source</goal></goals><configuration><sources><source>../../contracts/generated/java</source></sources></configuration></execution></executions></plugin>
+      <plugin><groupId>com.diffplug.spotless</groupId><artifactId>spotless-maven-plugin</artifactId><version>3.0.0</version><configuration><java><googleJavaFormat><version>1.28.0</version></googleJavaFormat></java></configuration><executions><execution><phase>verify</phase><goals><goal>check</goal></goals></execution></executions></plugin>
+      <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-compiler-plugin</artifactId><configuration><compilerArgs><arg>-Xlint:all,-processing</arg><arg>-Werror</arg></compilerArgs></configuration></plugin>
+    </plugins>
+  </build>
+</project>

@@ -60,6 +60,32 @@ test('valid busy error is sanitized and returned with new correlation', async ()
 const origin = 'http://127.0.0.1:3000';
 const token = 'test-only-token-012345678901234567890123';
 
+test('forwards trace context across the Java boundary and preserves timeout errors', async () => {
+  const trace = '00-1234567890abcdef1234567890abcdef-1234567890abcdef-01';
+  const srv = await upstream((req, res) => {
+    assert.equal(req.headers.traceparent, trace);
+    res.writeHead(504, { 'content-type': 'application/json' });
+    res.end(
+      JSON.stringify({
+        requestId: '00000000-0000-0000-0000-000000000000',
+        code: 'timeout',
+        message: 'private internal detail',
+      }),
+    );
+  });
+  try {
+    const response = await createProxy({ engineUrl: srv.url, token, origin })(
+      request(await fixture('inspect'), { traceparent: trace }),
+      'inspect',
+    );
+    assert.equal(response.status, 504);
+    assert.equal(response.headers.get('traceparent'), trace);
+    assert.equal((await response.json()).code, 'timeout');
+  } finally {
+    await srv.close();
+  }
+});
+
 test('selected PDF forwards exact ordered indices to v2 and rejects a different echoed selection', async () => {
   const input = {
     ...(await fixture('export-pdf')),

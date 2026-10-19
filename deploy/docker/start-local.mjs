@@ -1,21 +1,50 @@
 import { spawn } from "node:child_process";
 import { randomBytes } from "node:crypto";
 
-// Both processes share loopback; the private engine has no published port.
-const env = {
+// All three processes share loopback; only the web port is published.
+const common = {
   ...process.env,
-  MOSAICFORGE_ENGINE_TOKEN: randomBytes(32).toString("hex"),
-  MOSAICFORGE_ENGINE_PORT: "4771",
-  MOSAICFORGE_ENGINE_URL: "http://127.0.0.1:4771",
   MOSAICFORGE_WEB_ORIGIN:
     process.env.MOSAICFORGE_WEB_ORIGIN ?? "http://127.0.0.1:3000",
   PORT: "3000",
   HOSTNAME: "0.0.0.0",
 };
+// Keep each credential out of processes which do not need it.
+delete common.MOSAICFORGE_API_TOKEN;
+delete common.MOSAICFORGE_ENGINE_TOKEN;
+delete common.MOSAICFORGE_API_URL;
+delete common.MOSAICFORGE_ENGINE_URL;
+const engineToken = randomBytes(32).toString("hex");
+const apiToken = randomBytes(32).toString("hex");
 const children = [
-  spawn("/app/mosaicforge-preview", [], { env, stdio: "inherit" }),
+  spawn("/app/mosaicforge-preview", [], {
+    env: {
+      ...common,
+      MOSAICFORGE_ENGINE_TOKEN: engineToken,
+      MOSAICFORGE_ENGINE_PORT: "4771",
+    },
+    stdio: "inherit",
+  }),
+  spawn(
+    "/opt/java/openjdk/bin/java",
+    ["-Xms32m", "-Xmx384m", "-jar", "/app/mosaicforge-api.jar"],
+    {
+      env: {
+        ...common,
+        MOSAICFORGE_API_PORT: "4772",
+        MOSAICFORGE_API_TOKEN: apiToken,
+        MOSAICFORGE_ENGINE_TOKEN: engineToken,
+        MOSAICFORGE_ENGINE_URL: "http://127.0.0.1:4771",
+      },
+      stdio: "inherit",
+    },
+  ),
   spawn(process.execPath, ["/app/apps/web/server.js"], {
-    env,
+    env: {
+      ...common,
+      MOSAICFORGE_API_URL: "http://127.0.0.1:4772",
+      MOSAICFORGE_API_TOKEN: apiToken,
+    },
     stdio: "inherit",
   }),
 ];
