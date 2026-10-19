@@ -44,7 +44,8 @@
     "rulesVersion": {
       "type": "string",
       "enum": [
-        "1"
+        "1",
+        "2"
       ]
     },
     "rules": {
@@ -171,6 +172,10 @@
         "scaleY": {
           "$ref": "#/definitions/Range"
         },
+        "preserveAspectRatio": {
+          "type": "boolean",
+          "description": "Rules v2 requires an explicit flag. When true, scaleX and scaleY ranges must match and share one sampled factor. Forbidden in rules v1."
+        },
         "mirrorX": {
           "type": "boolean"
         },
@@ -197,7 +202,14 @@
           "minimum": 0
         },
         "crop": {
-          "anyOf": [{ "$ref": "#/definitions/Crop" }, { "type": "null" }]
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Crop"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       }
     }

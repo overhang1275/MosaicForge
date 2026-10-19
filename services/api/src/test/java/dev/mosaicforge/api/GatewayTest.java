@@ -24,7 +24,7 @@ class GatewayTest {
   private static final String TRACE = "00-1234567890abcdef1234567890abcdef-1234567890abcdef-01";
   private final HttpClient client = HttpClient.newHttpClient();
 
-  private static byte[] fixture(String name) throws Exception {
+  private static byte[] fixture(String name) throws java.io.IOException {
     try (var input = GatewayTest.class.getResourceAsStream("/fixtures/preview/" + name)) {
       return input.readAllBytes();
     }
@@ -75,6 +75,20 @@ class GatewayTest {
           } finally {
             exchange.close();
           }
+        });
+    server.createContext(
+        "/v1/preview",
+        exchange -> {
+          var received = Contracts.JSON.readTree(exchange.getRequestBody().readAllBytes());
+          var output =
+              (tools.jackson.databind.node.ObjectNode)
+                  Contracts.JSON.readTree(fixture("accepted-png.json"));
+          output.set("requestId", received.path("requestId"));
+          byte[] body = Contracts.JSON.writeValueAsBytes(output);
+          exchange.getResponseHeaders().set("Content-Type", "application/json");
+          exchange.sendResponseHeaders(200, body.length);
+          exchange.getResponseBody().write(body);
+          exchange.close();
         });
     server.start();
     var app = new SpringApplication(Application.class);
@@ -140,6 +154,21 @@ class GatewayTest {
       assertEquals(TRACE, observed.get());
       assertEquals(TRACE, good.headers().firstValue("traceparent").orElseThrow());
       assertEquals(ID, Contracts.text(Contracts.JSON.readTree(good.body()), "requestId"));
+      var versioned =
+          (tools.jackson.databind.node.ObjectNode)
+              Contracts.JSON.readTree(fixture("request-max-u64.json"));
+      var generation = (tools.jackson.databind.node.ObjectNode) versioned.path("generation");
+      generation.put("rulesVersion", "2");
+      ((tools.jackson.databind.node.ObjectNode) generation.path("rules"))
+          .put("preserveAspectRatio", true);
+      assertEquals(
+          502,
+          client
+              .send(
+                  request(port, TOKEN, Contracts.JSON.writeValueAsString(versioned), "/v1/preview"),
+                  HttpResponse.BodyHandlers.ofString())
+              .statusCode(),
+          "cannot silently substitute rules1 for rules2");
       for (int bad : new int[] {1, 2, 3}) {
         mode.set(bad);
         assertEquals(

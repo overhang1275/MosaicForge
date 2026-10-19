@@ -76,7 +76,7 @@ export interface GenerationSpec {
   engineVersion: '0.1.0';
   output: Ref6;
   rules: Ref7;
-  rulesVersion: '1';
+  rulesVersion: '1' | '2';
   schemaVersion: '1';
   seed: Ref10;
   startIndex: Ref10;
@@ -99,6 +99,10 @@ export interface Ref7 {
    * @maxItems 256
    */
   palette?: string[];
+  /**
+   * Rules v2 requires an explicit flag. When true, scaleX and scaleY ranges must match and share one sampled factor. Forbidden in rules v1.
+   */
+  preserveAspectRatio?: boolean;
   rotationDegrees: Ref9;
   scaleX: Ref9;
   scaleY: Ref9;
@@ -133,7 +137,7 @@ export interface VariantResult {
   engineVersion: '0.1.0';
   index: Ref15;
   reason?: string | null;
-  rulesVersion: '1';
+  rulesVersion: '1' | '2';
   schemaVersion: '1';
   seed: Ref15;
   status: 'accepted' | 'rejected';

@@ -134,6 +134,10 @@
           "minItems": 0,
           "type": "array"
         },
+        "preserveAspectRatio": {
+          "description": "Rules v2 requires an explicit flag. When true, scaleX and scaleY ranges must match and share one sampled factor. Forbidden in rules v1.",
+          "type": "boolean"
+        },
         "rotationDegrees": {
           "$ref": "#/definitions/Ref5"
         },
@@ -198,7 +202,8 @@
         },
         "rulesVersion": {
           "enum": [
-            "1"
+            "1",
+            "2"
           ],
           "type": "string"
         },

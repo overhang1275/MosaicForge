@@ -24,6 +24,13 @@ export function validSpec(spec, operation, maxDimension = 512) {
   if (Buffer.byteLength(JSON.stringify(spec), 'utf8') > 1024 * 1024)
     return false;
   const r = spec.rules;
+  if (
+    (spec.rulesVersion === '1' && Object.hasOwn(r, 'preserveAspectRatio')) ||
+    (spec.rulesVersion === '2' && typeof r.preserveAspectRatio !== 'boolean') ||
+    (r.preserveAspectRatio &&
+      (r.scaleX.min !== r.scaleY.min || r.scaleX.max !== r.scaleY.max))
+  )
+    return false;
   for (const key of [
     'translateX',
     'translateY',

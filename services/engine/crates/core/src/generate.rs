@@ -51,7 +51,11 @@ pub fn generate_variant(
     let result = VariantResult {
         schema_version: VariantResultSchemaVersion::X1,
         engine_version: VariantResultEngineVersion::X010,
-        rules_version: VariantResultRulesVersion::X1,
+        rules_version: if spec.rules_version.to_string() == "2" {
+            VariantResultRulesVersion::X2
+        } else {
+            VariantResultRulesVersion::X1
+        },
         backend: VariantResultBackend::Cpu,
         device: "cpu".parse().map_err(encode_error)?,
         seed: spec.seed.as_str().parse().map_err(encode_error)?,

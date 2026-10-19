@@ -60,6 +60,35 @@ test('valid busy error is sanitized and returned with new correlation', async ()
 const origin = 'http://127.0.0.1:3000';
 const token = 'test-only-token-012345678901234567890123';
 
+test('generation replies must retain the requested rules version', async () => {
+  const input = await fixture('request-max-u64');
+  input.generation.rulesVersion = '2';
+  input.generation.rules.preserveAspectRatio = true;
+  input.generation.rules.scaleY = { ...input.generation.rules.scaleX };
+  const output = await fixture('accepted-png');
+  const srv = await upstream((req, res) => {
+    let bytes = '';
+    req.on('data', (chunk) => {
+      bytes += chunk;
+    });
+    req.on('end', () => {
+      res.setHeader('content-type', 'application/json');
+      res.end(
+        JSON.stringify({ ...output, requestId: JSON.parse(bytes).requestId }),
+      );
+    });
+  });
+  try {
+    const response = await createProxy({ engineUrl: srv.url, token, origin })(
+      request(input),
+      'preview',
+    );
+    assert.equal(response.status, 502);
+  } finally {
+    await srv.close();
+  }
+});
+
 test('forwards trace context across the Java boundary and preserves timeout errors', async () => {
   const trace = '00-1234567890abcdef1234567890abcdef-1234567890abcdef-01';
   const srv = await upstream((req, res) => {

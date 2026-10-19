@@ -327,6 +327,7 @@ export function createProxy(config: ProxyConfig) {
       if (
         output.variant.index !== spec.startIndex ||
         output.variant.seed !== spec.seed ||
+        output.variant.rulesVersion !== spec.rulesVersion ||
         output.variant.templateHash !== spec.templateHash ||
         (output.artifact &&
           output.artifact.mimeType !==

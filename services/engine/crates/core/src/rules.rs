@@ -39,12 +39,18 @@ pub fn sample_transform(
             range.max,
         )
     };
+    let scale_x = sample(SCALE_X_RULE, &spec.rules.scale_x)?;
+    let scale_y = if spec.rules.preserve_aspect_ratio == Some(true) {
+        scale_x
+    } else {
+        sample(SCALE_Y_RULE, &spec.rules.scale_y)?
+    };
     Ok(TransformParameters {
         translate_x: sample(TRANSLATE_X_RULE, &spec.rules.translate_x)?,
         translate_y: sample(TRANSLATE_Y_RULE, &spec.rules.translate_y)?,
         rotation_degrees: sample(ROTATION_RULE, &spec.rules.rotation_degrees)?,
-        scale_x: sample(SCALE_X_RULE, &spec.rules.scale_x)?,
-        scale_y: sample(SCALE_Y_RULE, &spec.rules.scale_y)?,
+        scale_x,
+        scale_y,
         mirror_x: spec.rules.mirror_x,
         mirror_y: spec.rules.mirror_y,
     })

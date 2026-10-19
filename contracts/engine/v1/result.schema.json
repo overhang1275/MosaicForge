@@ -35,7 +35,14 @@
       "$ref": "#/definitions/Hash"
     },
     "artifactHash": {
-      "anyOf": [{ "$ref": "#/definitions/Hash" }, { "type": "null" }]
+      "anyOf": [
+        {
+          "$ref": "#/definitions/Hash"
+        },
+        {
+          "type": "null"
+        }
+      ]
     },
     "engineVersion": {
       "type": "string",
@@ -46,7 +53,8 @@
     "rulesVersion": {
       "type": "string",
       "enum": [
-        "1"
+        "1",
+        "2"
       ]
     },
     "backend": {
@@ -68,7 +76,10 @@
       ]
     },
     "reason": {
-      "type": ["string", "null"],
+      "type": [
+        "string",
+        "null"
+      ],
       "minLength": 1,
       "maxLength": 256
     }

@@ -8,6 +8,42 @@ use serde_json::{Value, json};
 fn input() -> Value {
     serde_json::from_str(include_str!("../../../tests/fixtures/identity.json")).unwrap()
 }
+
+#[test]
+fn aspect_lock_uses_one_deterministic_sample_and_keeps_legacy_bytes() {
+    let legacy: GenerationSpec = serde_json::from_value(input()).unwrap();
+    assert!(
+        !serde_json::to_value(&legacy).unwrap()["rules"]
+            .as_object()
+            .unwrap()
+            .contains_key("preserveAspectRatio")
+    );
+    let mut value = varied();
+    value["rulesVersion"] = json!("2");
+    value["rules"]["preserveAspectRatio"] = json!(true);
+    value["rules"]["scaleY"] = value["rules"]["scaleX"].clone();
+    let spec: GenerationSpec = serde_json::from_value(value.clone()).unwrap();
+    for index in [0, 1, 2, 42, u64::MAX] {
+        for attempt in 0..8 {
+            let parameters = sample_transform(&spec, index, attempt).unwrap();
+            assert_eq!(parameters.scale_x.to_bits(), parameters.scale_y.to_bits());
+            assert_eq!(parameters, sample_transform(&spec, index, attempt).unwrap());
+        }
+    }
+    assert_ne!(
+        sample_transform(&spec, 0, 0).unwrap().scale_x,
+        sample_transform(&spec, 1, 0).unwrap().scale_x
+    );
+    value["rules"]["preserveAspectRatio"] = json!(false);
+    let unlocked: GenerationSpec = serde_json::from_value(value.clone()).unwrap();
+    assert_ne!(
+        sample_transform(&unlocked, 42, 0).unwrap().scale_x,
+        sample_transform(&unlocked, 42, 0).unwrap().scale_y
+    );
+    value["rules"]["preserveAspectRatio"] = json!(true);
+    value["rules"]["scaleY"]["max"] = json!(3.0);
+    assert!(sample_transform(&serde_json::from_value(value).unwrap(), 0, 0).is_err());
+}
 fn varied() -> Value {
     let mut value = input();
     for (field, min, max) in [

@@ -63,4 +63,24 @@ class ContractsTest {
         () -> Contracts.JSON.readTree("{\"requestId\":\"a\",\"requestId\":\"b\"}"));
     assertThrows(RuntimeException.class, () -> Contracts.JSON.readTree("{} {}"));
   }
+
+  @Test
+  void rules2LocksScalesAndRules1KeepsItsOriginalContract() throws IOException {
+    var contracts = new Contracts();
+    var request = (tools.jackson.databind.node.ObjectNode) fixture("export-svg.json");
+    var generation = (tools.jackson.databind.node.ObjectNode) request.path("generation");
+    var rules = (tools.jackson.databind.node.ObjectNode) generation.path("rules");
+    assertTrue(contracts.valid(request, "generation-request", "export"));
+    generation.put("rulesVersion", "2");
+    assertFalse(contracts.valid(request, "generation-request", "export"));
+    rules.put("preserveAspectRatio", true);
+    rules.set("scaleY", rules.path("scaleX").deepCopy());
+    assertTrue(contracts.valid(request, "generation-request", "export"));
+    ((tools.jackson.databind.node.ObjectNode) rules.path("scaleY")).put("max", 3);
+    assertFalse(contracts.valid(request, "generation-request", "export"));
+    rules.put("preserveAspectRatio", false);
+    assertTrue(contracts.valid(request, "generation-request", "export"));
+    generation.put("rulesVersion", "1");
+    assertFalse(contracts.valid(request, "generation-request", "export"));
+  }
 }

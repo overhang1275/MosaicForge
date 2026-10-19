@@ -168,6 +168,15 @@ final class Contracts {
         || (operation.equals("preview") && !text(spec.path("output"), "format").equals("png")))
       return false;
     var rules = spec.path("rules");
+    var lock = rules.path("preserveAspectRatio");
+    if ((text(spec, "rulesVersion").equals("1") && !lock.isMissingNode())
+        || (text(spec, "rulesVersion").equals("2") && !lock.isBoolean())
+        || (lock.isBoolean()
+            && lock.asBoolean()
+            && (rules.path("scaleX").path("min").asDouble()
+                    != rules.path("scaleY").path("min").asDouble()
+                || rules.path("scaleX").path("max").asDouble()
+                    != rules.path("scaleY").path("max").asDouble()))) return false;
     for (var name :
         new String[] {
           "translateX", "translateY", "rotationDegrees", "scaleX", "scaleY", "opacity"

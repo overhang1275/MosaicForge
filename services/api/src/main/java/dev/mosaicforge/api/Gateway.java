@@ -240,6 +240,7 @@ class Gateway {
       return spec.path("count").equals(result.path("count"))
           && (operation != PreviewOperation.EXPORT_PDF_SELECTION
               || input.path("variantIndices").equals(output.path("variantIndices")));
+    if (!spec.path("rulesVersion").equals(result.path("rulesVersion"))) return false;
     return output.path("artifact").isMissingNode()
         || output.path("artifact").isNull()
         || Contracts.text(output.path("artifact"), "mimeType")
