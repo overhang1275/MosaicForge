@@ -11,6 +11,80 @@ fn setup(count: u64) -> (mosaicforge_core::template::Template, PdfJobSpec) {
     (t,serde_json::from_value(json!({"schemaVersion":"1","generation":g,"pdf":{"exporterVersion":"1","trimWidthMm":100,"trimHeightMm":100,"bleedMm":0}})).unwrap())
 }
 #[test]
+fn selected_indices_have_dense_pages_and_selection_hash_without_changing_v1() {
+    let (template, job) = setup(3);
+    let indices = [0, 2, u64::MAX];
+    let mut first = None;
+    for _ in 0..2 {
+        let mut bytes = Vec::new();
+        let mut records = Vec::new();
+        let result = mosaicforge_cpu::pdf::generate_selected_pdf(
+            &template,
+            &job,
+            &indices,
+            &mut bytes,
+            |record| {
+                records.push(record);
+                Ok(())
+            },
+        )
+        .unwrap();
+        assert_eq!(
+            records
+                .iter()
+                .map(|r| r.variant.index.to_string())
+                .collect::<Vec<_>>(),
+            vec!["0", "2", "18446744073709551615"]
+        );
+        assert_eq!(
+            records
+                .iter()
+                .map(|r| r.page_number.unwrap().get())
+                .collect::<Vec<_>>(),
+            vec![1, 2, 3]
+        );
+        assert_eq!(result.page_count, 3);
+        assert_ne!(
+            result.document_configuration_hash.to_string(),
+            mosaicforge_core::pdf::pdf_configuration_hash(&job).unwrap()
+        );
+        if let Some(ref expected) = first {
+            assert_eq!(&bytes, expected);
+        } else {
+            first = Some(bytes);
+        }
+    }
+    for invalid in [&[0, 0, 2][..], &[0, 3, 2][..], &[0, 2][..], &[1, 2, 3][..]] {
+        let mut bytes = Vec::new();
+        assert!(
+            mosaicforge_cpu::pdf::generate_selected_pdf(
+                &template,
+                &job,
+                invalid,
+                &mut bytes,
+                |_| Ok(())
+            )
+            .is_err()
+        );
+        assert!(bytes.is_empty());
+    }
+    assert_ne!(
+        mosaicforge_core::pdf::pdf_selection_configuration_hash(&job, &[0, 2, u64::MAX]).unwrap(),
+        mosaicforge_core::pdf::pdf_selection_configuration_hash(&job, &[0, 3, u64::MAX]).unwrap()
+    );
+    let mut original = Vec::new();
+    generate_pdf(&template, &job, 1, &mut original, |_| Ok(())).unwrap();
+    let mut selected = Vec::new();
+    mosaicforge_cpu::pdf::generate_selected_pdf(&template, &job, &[0, 1, 2], &mut selected, |_| {
+        Ok(())
+    })
+    .unwrap();
+    assert_eq!(
+        selected, original,
+        "same selected geometry must preserve v1 PDF bytes"
+    );
+}
+#[test]
 fn groups_share_one_pdf_hash_and_order_with_partial_final_group() {
     let (t, j) = setup(201);
     let mut expected = None;

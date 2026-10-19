@@ -100,7 +100,7 @@ async function editorE2e(page) {
   checks.push("real import, three previews, seed change, regenerate");
   await page.getByLabel("Semilla", { exact: true }).fill("2028");
   const pdfRequest = page.waitForRequest(
-    (r) => new URL(r.url()).pathname === "/api/export-pdf",
+    (r) => new URL(r.url()).pathname === "/api/export-pdf-selection",
   );
   const downloadPromise = page.waitForEvent("download");
   await pdfButton.click();
@@ -139,7 +139,9 @@ async function editorE2e(page) {
     (response) => new URL(response.url()).pathname === "/api/preview",
   );
   await generate();
-  await finished();
+  await page
+    .getByText("Serie incompleta: 0 de 1 variantes aceptadas.", { exact: true })
+    .waitFor({ timeout: 60000 });
   const rejectedResponse = await rejection;
   ensure(
     rejectedResponse.status() === 200 &&

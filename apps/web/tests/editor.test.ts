@@ -5,7 +5,7 @@ import type { Snapshot } from '../src/editor/model.ts';
 import type {
   GenerationResponse,
   InspectResponse,
-  PdfExportRequest,
+  SelectedPdfExportRequest,
 } from '../../../contracts/generated/typescript/preview.ts';
 
 const meta: InspectResponse = {
@@ -43,7 +43,7 @@ function setup(overrides: Partial<EditorPorts> = {}) {
     revoked: string[] = [],
     saved: string[] = [],
     exports: Snapshot[] = [],
-    pdfExports: Omit<PdfExportRequest, 'requestId'>[] = [];
+    pdfExports: Omit<SelectedPdfExportRequest, 'requestId'>[] = [];
   let inspections = 0,
     urls = 0;
   const ports: EditorPorts = {
@@ -82,6 +82,129 @@ function setup(overrides: Partial<EditorPorts> = {}) {
   };
 }
 const svg = () => new File(['<svg/>'], 'art.svg', { type: 'image/svg+xml' });
+
+test('requested twelve means twelve accepted outputs with real deterministic replacement indices', async () => {
+  const attempted: string[] = [];
+  const ctx = await imported({
+    preview: async (snapshot) => {
+      const index = snapshot.generation.startIndex;
+      attempted.push(index);
+      const response = accepted(snapshot);
+      if (['2', '7'].includes(index)) {
+        response.variant.status = 'rejected';
+        response.variant.reason = 'empty_corners';
+        delete response.variant.artifactHash;
+        delete response.artifact;
+      }
+      return response;
+    },
+  });
+  ctx.editor.updateSettings({ count: '12' });
+  await ctx.editor.generate();
+  assert.equal(
+    ctx.editor.getSnapshot().cards.filter((card) => card.status === 'accepted')
+      .length,
+    12,
+  );
+  assert.deepEqual(
+    attempted,
+    Array.from({ length: 14 }, (_, index) => String(index)),
+  );
+  assert.deepEqual(
+    ctx.editor.getSnapshot().cards.map((card) => card.index),
+    ['0', '1', '3', '4', '5', '6', '8', '9', '10', '11', '12', '13'],
+  );
+  ctx.editor.updateSettings({ count: '1', seed: '99', startIndex: '5' });
+  await ctx.editor.exportPdf();
+  assert.equal(ctx.pdfExports[0].job.generation.count, 12);
+  assert.equal(ctx.pdfExports[0].job.generation.seed, '2026');
+  assert.deepEqual(
+    (ctx.pdfExports[0] as unknown as { variantIndices: string[] })
+      .variantIndices,
+    ['0', '1', '3', '4', '5', '6', '8', '9', '10', '11', '12', '13'],
+  );
+});
+
+test('impossible rules stop at bounded attempts and never declare success or export a partial PDF', async () => {
+  let attempts = 0;
+  const ctx = await imported({
+    preview: async (snapshot) => {
+      attempts++;
+      const response = accepted(snapshot);
+      response.variant.status = 'rejected';
+      response.variant.reason = 'empty_corners';
+      delete response.variant.artifactHash;
+      delete response.artifact;
+      return response;
+    },
+  });
+  ctx.editor.updateSettings({ count: '1' });
+  await ctx.editor.generate();
+  assert.equal(attempts, 10);
+  assert.match(ctx.editor.getSnapshot().error ?? '', /intentos|aceptadas/i);
+  assert.doesNotMatch(ctx.editor.getSnapshot().message, /Serie terminada/);
+  await ctx.editor.exportPdf();
+  assert.equal(ctx.saved.length, 0);
+});
+
+test('retry at u64 maximum fails explicitly without wrapping or exporting a short series', async () => {
+  const indices: string[] = [];
+  const ctx = await imported({
+    preview: async (snapshot) => {
+      indices.push(snapshot.generation.startIndex);
+      const response = accepted(snapshot);
+      response.variant.status = 'rejected';
+      delete response.artifact;
+      return response;
+    },
+  });
+  ctx.editor.updateSettings({ count: '1', startIndex: '18446744073709551615' });
+  await ctx.editor.generate();
+  assert.deepEqual(indices, ['18446744073709551615']);
+  assert.match(ctx.editor.getSnapshot().error ?? '', /u64/);
+  assert.doesNotMatch(ctx.editor.getSnapshot().message, /Serie terminada/);
+  await ctx.editor.exportPdf();
+  assert.equal(ctx.saved.length, 0);
+});
+
+test('replacement of the first candidate sets the PDF start to the first accepted real index', async () => {
+  const ctx = await imported({
+    preview: async (snapshot) => {
+      const response = accepted(snapshot);
+      if (snapshot.generation.startIndex === '0') {
+        response.variant.status = 'rejected';
+        delete response.artifact;
+      }
+      return response;
+    },
+  });
+  ctx.editor.updateSettings({ count: '2' });
+  await ctx.editor.generate();
+  await ctx.editor.exportPdf();
+  assert.deepEqual(ctx.pdfExports[0].variantIndices, ['1', '2']);
+  assert.equal(ctx.pdfExports[0].job.generation.startIndex, '1');
+});
+
+test('exhausting retries with some accepted outputs still blocks a short PDF', async () => {
+  const ctx = await imported({
+    preview: async (snapshot) => {
+      const response = accepted(snapshot);
+      if (snapshot.generation.startIndex !== '0') {
+        response.variant.status = 'rejected';
+        delete response.artifact;
+      }
+      return response;
+    },
+  });
+  ctx.editor.updateSettings({ count: '2' });
+  await ctx.editor.generate();
+  assert.equal(ctx.editor.getSnapshot().cards.length, 1);
+  assert.equal(ctx.editor.getSnapshot().cards[0].status, 'accepted');
+  assert.equal(ctx.editor.getSnapshot().generationStats?.attempted, 20);
+  assert.match(ctx.editor.getSnapshot().message, /incompleta/);
+  await ctx.editor.exportPdf();
+  assert.equal(ctx.pdfExports.length, 0);
+});
 test('engine failure stops queued requests and leaves errors without invented previews', async () => {
   let calls = 0;
   const ctx = await imported({
@@ -95,7 +218,7 @@ test('engine failure stops queued requests and leaves errors without invented pr
   assert.equal(calls, 1);
   assert.deepEqual(
     ctx.editor.getSnapshot().cards.map((c) => c.status),
-    ['error', 'error', 'error'],
+    ['error'],
   );
   assert.ok(ctx.editor.getSnapshot().cards.every((c) => !c.url));
   assert.equal(ctx.editor.getSnapshot().isGenerating, false);
@@ -137,7 +260,7 @@ test('PDF refuses a series with rejected or failed variants rather than silently
   for (const failure of ['rejected', 'error'] as const) {
     const ctx = await imported({
       preview: async (snapshot) => {
-        if (snapshot.generation.startIndex === '1') {
+        if (failure === 'rejected' || snapshot.generation.startIndex === '1') {
           if (failure === 'error') throw new Error('Error de motor');
           const response = accepted(snapshot);
           response.variant.status = 'rejected';
@@ -342,9 +465,13 @@ test('generation is sequential and rejected cards contain no invented image', as
   assert.equal(peak, 1);
   assert.deepEqual(
     ctx.editor.getSnapshot().cards.map((c) => c.status),
-    ['accepted', 'rejected', 'accepted'],
+    ['accepted', 'accepted', 'accepted'],
   );
-  assert.equal(ctx.editor.getSnapshot().cards[1].url, undefined);
+  assert.deepEqual(
+    ctx.editor.getSnapshot().cards.map((card) => card.index),
+    ['0', '2', '3'],
+  );
+  assert.ok(ctx.editor.getSnapshot().cards.every((card) => card.url));
 });
 test('configuration edits invalidate stale responses even if transport ignores abort', async () => {
   let release!: (value: GenerationResponse) => void;

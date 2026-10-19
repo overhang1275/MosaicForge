@@ -50,6 +50,31 @@ pub fn pdf_configuration_hash(job: &PdfJobSpec) -> Result<String, EngineError> {
     Ok(format!("{:x}", Sha256::digest(bytes)))
 }
 
+pub fn validate_pdf_selection(job: &PdfJobSpec, indices: &[u64]) -> Result<(), EngineError> {
+    validate_pdf_job(job)?;
+    if indices.len() as u64 != job.generation.count.get()
+        || indices.first().map(u64::to_string).as_deref()
+            != Some(job.generation.start_index.as_str())
+        || indices.windows(2).any(|pair| pair[0] >= pair[1])
+    {
+        return Err(EngineError::InvalidSpec(
+            "PDF selection must be ordered, unique and match count/startIndex",
+        ));
+    }
+    Ok(())
+}
+
+pub fn pdf_selection_configuration_hash(
+    job: &PdfJobSpec,
+    indices: &[u64],
+) -> Result<String, EngineError> {
+    validate_pdf_selection(job, indices)?;
+    let value = serde_json::json!({"schemaVersion":"2", "job":job, "variantIndices":indices.iter().map(u64::to_string).collect::<Vec<_>>()});
+    let bytes = serde_json::to_vec(&value)
+        .map_err(|_| EngineError::InvalidSpec("cannot encode PDF selection"))?;
+    Ok(format!("{:x}", Sha256::digest(bytes)))
+}
+
 pub fn validate_pdf_document_result(
     r: &crate::contract::PdfDocumentResult,
 ) -> Result<(), EngineError> {

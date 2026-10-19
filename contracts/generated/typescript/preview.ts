@@ -7,7 +7,9 @@ export type PreviewMessage =
   | GenerationResponse
   | PdfExportRequest
   | PdfExportResponse
-  | PreviewError;
+  | PreviewError
+  | SelectedPdfExportRequest
+  | SelectedPdfExportResponse;
 export type RequestId = string;
 export type Ref3 = string;
 export type Ref10 = string;
@@ -24,6 +26,23 @@ export type Ref21 =
   | 'internal_error'
   | 'engine_unavailable'
   | 'timeout';
+/**
+ * @minItems 1
+ * @maxItems 12
+ */
+export type Ref25 =
+  | [string]
+  | [string, string]
+  | [string, string, string]
+  | [string, string, string, string]
+  | [string, string, string, string, string]
+  | [string, string, string, string, string, string]
+  | [string, string, string, string, string, string, string]
+  | [string, string, string, string, string, string, string, string]
+  | [string, string, string, string, string, string, string, string, string]
+  | [string, string, string, string, string, string, string, string, string, string]
+  | [string, string, string, string, string, string, string, string, string, string, string]
+  | [string, string, string, string, string, string, string, string, string, string, string, string];
 
 export interface InspectRequest {
   requestId: RequestId;
@@ -164,4 +183,38 @@ export interface PreviewError {
   code: Ref21;
   message: string;
   requestId: RequestId;
+}
+export interface SelectedPdfExportRequest {
+  job: PdfJobSpec;
+  requestId: RequestId;
+  schemaVersion: '2';
+  templateSvg: string;
+  /**
+   * @minItems 1
+   * @maxItems 12
+   */
+  variantIndices:
+    | [string]
+    | [string, string]
+    | [string, string, string]
+    | [string, string, string, string]
+    | [string, string, string, string, string]
+    | [string, string, string, string, string, string]
+    | [string, string, string, string, string, string, string]
+    | [string, string, string, string, string, string, string, string]
+    | [string, string, string, string, string, string, string, string, string]
+    | [string, string, string, string, string, string, string, string, string, string]
+    | [string, string, string, string, string, string, string, string, string, string, string]
+    | [string, string, string, string, string, string, string, string, string, string, string, string];
+}
+export interface SelectedPdfExportResponse {
+  artifact: Ref24;
+  document: PdfDocumentResult;
+  requestId: RequestId;
+  schemaVersion: '2';
+  variantIndices: Ref25;
+}
+export interface Ref24 {
+  base64: string;
+  mimeType: 'application/pdf';
 }

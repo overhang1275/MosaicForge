@@ -10,7 +10,7 @@ import {
 import type {
   GenerationResponse,
   InspectResponse,
-  PdfExportRequest,
+  SelectedPdfExportRequest,
 } from '../../../../contracts/generated/typescript/preview.ts';
 export interface EditorPorts {
   inspect(svg: string, signal: AbortSignal): Promise<InspectResponse>;
@@ -21,7 +21,7 @@ export interface EditorPorts {
     signal: AbortSignal,
   ): Promise<Blob>;
   exportPdf(
-    request: Omit<PdfExportRequest, 'requestId'>,
+    request: Omit<SelectedPdfExportRequest, 'requestId'>,
     signal: AbortSignal,
   ): Promise<Blob>;
   createUrl(blob: Blob): string;
@@ -109,6 +109,7 @@ export function createEditor(ports: EditorPorts) {
     pdfSettings: { trimWidthMm: '100', trimHeightMm: '100', bleedMm: '0' },
     settings: initialSettings(),
     cards: [],
+    generationStats: null,
     selectedIndex: null,
     error: null,
     message: 'Importa un SVG para comenzar.',
@@ -174,6 +175,7 @@ export function createEditor(ports: EditorPorts) {
         candidateName: file?.name ?? null,
         template: null,
         cards: [],
+        generationStats: null,
         selectedIndex: null,
         error: null,
         downloading: null,
@@ -218,6 +220,7 @@ export function createEditor(ports: EditorPorts) {
         update({
           template: { name: file.name, svg, metadata },
           cards: [],
+          generationStats: null,
           selectedIndex: null,
           error: null,
           message: 'Plantilla importada. Ajusta las reglas y genera variantes.',
@@ -281,34 +284,59 @@ export function createEditor(ports: EditorPorts) {
         abort = new AbortController();
       active = abort;
       clearCards();
+      const requested = requests.length;
       seriesSnapshot = structuredClone(requests[0]);
-      seriesSnapshot.generation.count = requests.length;
+      seriesSnapshot.generation.count = requested;
       seriesSnapshot.generation.output.format = 'svg';
-      requests.forEach((s) =>
-        snapshots.set(s.generation.startIndex, structuredClone(s)),
-      );
+      let nextIndex = BigInt(requests[0].generation.startIndex);
+      let attempted = 0,
+        rejected = 0,
+        accepted = 0;
       update({
-        cards: requests.map((s) => ({
-          index: s.generation.startIndex,
-          status: 'pending',
-        })),
-        selectedIndex: requests[0].generation.startIndex,
+        cards: [],
+        selectedIndex: null,
         isGenerating: true,
         error: null,
-        message: 'Generando variantes…',
+        generationStats: { requested, attempted, rejected },
+        message: 'Generando variantes aceptadas…',
       });
-      for (const request of requests) {
-        if (ticket !== revision) break;
-        const index = request.generation.startIndex;
-        card(index, { status: 'generating' });
+      while (accepted < requested && attempted < requested * 10) {
+        if (ticket !== revision) return;
+        if (nextIndex > MAX_U64) {
+          update({
+            error:
+              'Se agotaron los índices u64 antes de completar las variantes aceptadas.',
+          });
+          break;
+        }
+        const request = structuredClone(requests[0]);
+        const index = nextIndex.toString();
+        request.generation.startIndex = index;
+        nextIndex++;
+        attempted++;
+        update({
+          cards: [...state.cards, { index, status: 'generating' }],
+          generationStats: { requested, attempted, rejected },
+          selectedIndex: state.selectedIndex ?? index,
+          message: `Generando: ${accepted} de ${requested} aceptadas · ${attempted} intentos.`,
+        });
         try {
           const response = await ports.preview(
             structuredClone(request),
             abort.signal,
           );
-          if (ticket !== revision) break;
+          if (ticket !== revision) return;
           if (response.variant.status === 'rejected') {
-            card(index, { status: 'rejected', result: response.variant });
+            rejected++;
+            update({
+              cards: state.cards.filter((item) => item.index !== index),
+              selectedIndex:
+                state.selectedIndex === index
+                  ? (state.cards.find((item) => item.status === 'accepted')
+                      ?.index ?? null)
+                  : state.selectedIndex,
+              generationStats: { requested, attempted, rejected },
+            });
             continue;
           }
           if (!response.artifact || response.artifact.mimeType !== 'image/png')
@@ -319,30 +347,28 @@ export function createEditor(ports: EditorPorts) {
             c.charCodeAt(0),
           );
           const url = ports.createUrl(new Blob([bytes], { type: 'image/png' }));
+          snapshots.set(index, structuredClone(request));
+          accepted++;
           card(index, { status: 'accepted', result: response.variant, url });
         } catch (error) {
-          if (ticket !== revision) break;
+          if (ticket !== revision) return;
           card(index, { status: 'error', error: message(error) });
-          update({
-            error: message(error),
-            cards: state.cards.map((c) =>
-              c.status === 'pending'
-                ? {
-                    ...c,
-                    status: 'error',
-                    error: 'Serie detenida. Vuelve a generar.',
-                  }
-                : c,
-            ),
-          });
+          update({ error: message(error) });
           break;
         }
       }
       if (ticket === revision) {
         active = null;
+        const complete = accepted === requested;
         update({
           isGenerating: false,
-          message: 'Serie terminada. Selecciona una variante para revisarla.',
+          error: complete
+            ? null
+            : (state.error ??
+              `No se completó la serie: ${accepted} de ${requested} aceptadas tras ${attempted} intentos. Ajusta las reglas o usa otra plantilla.`),
+          message: complete
+            ? 'Serie terminada. Selecciona una variante para revisarla.'
+            : `Serie incompleta: ${accepted} de ${requested} variantes aceptadas.`,
         });
       }
     },
@@ -393,7 +419,7 @@ export function createEditor(ports: EditorPorts) {
         });
         return;
       }
-      let request: Omit<PdfExportRequest, 'requestId'>;
+      let request: Omit<SelectedPdfExportRequest, 'requestId'>;
       try {
         const trimWidthMm = number(state.pdfSettings.trimWidthMm);
         const trimHeightMm = number(state.pdfSettings.trimHeightMm);
@@ -410,7 +436,12 @@ export function createEditor(ports: EditorPorts) {
             'El ancho y alto del PDF deben estar entre 1 y 2000 mm; el sangrado, entre 0 y 50 mm.',
           );
         const saved = structuredClone(seriesSnapshot);
+        const variantIndices = state.cards.map((item) => item.index);
+        saved.generation.startIndex = variantIndices[0];
         request = {
+          schemaVersion: '2',
+          variantIndices:
+            variantIndices as SelectedPdfExportRequest['variantIndices'],
           templateSvg: saved.templateSvg,
           job: {
             schemaVersion: '1',

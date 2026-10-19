@@ -37,8 +37,41 @@ pub fn generate_pdf_cancellable<W: Write, F: FnMut(PdfPageRecord) -> Result<(), 
     job: &PdfJobSpec,
     batch_size: u64,
     output: &mut W,
+    records: F,
+    token: &AtomicBool,
+) -> Result<Option<PdfDocumentResult>, EngineError> {
+    generate_pdf_indices(template, job, batch_size, output, records, token, None)
+}
+
+/// V2 selection: every explicit index must produce a valid page, or discard the destination.
+pub fn generate_selected_pdf<W: Write, F: FnMut(PdfPageRecord) -> Result<(), EngineError>>(
+    template: &Template,
+    job: &PdfJobSpec,
+    indices: &[u64],
+    output: &mut W,
+    records: F,
+) -> Result<PdfDocumentResult, EngineError> {
+    mosaicforge_core::pdf::validate_pdf_selection(job, indices)?;
+    generate_pdf_indices(
+        template,
+        job,
+        1,
+        output,
+        records,
+        &AtomicBool::new(false),
+        Some(indices),
+    )?
+    .ok_or(EngineError::RenderFailed("unexpected PDF cancellation"))
+}
+
+fn generate_pdf_indices<W: Write, F: FnMut(PdfPageRecord) -> Result<(), EngineError>>(
+    template: &Template,
+    job: &PdfJobSpec,
+    batch_size: u64,
+    output: &mut W,
     mut records: F,
     token: &AtomicBool,
+    indices: Option<&[u64]>,
 ) -> Result<Option<PdfDocumentResult>, EngineError> {
     use mosaicforge_core::{
         configuration_hash,
@@ -64,8 +97,22 @@ pub fn generate_pdf_cancellable<W: Write, F: FnMut(PdfPageRecord) -> Result<(), 
             if token.load(Ordering::Relaxed) {
                 return Ok(None);
             }
-            let index = start + processed + local;
-            let exported = crate::export::generate_and_export(template, spec, index, 0)?;
+            let index = indices.map_or(start + processed + local, |selection| {
+                selection[(processed + local) as usize]
+            });
+            let mut selected_spec;
+            let variant_spec = if indices.is_some() {
+                selected_spec = spec.clone();
+                selected_spec.start_index = index
+                    .to_string()
+                    .parse()
+                    .map_err(|_| EngineError::InvalidSpec("invalid selected index"))?;
+                selected_spec.count = std::num::NonZeroU64::new(1).unwrap();
+                &selected_spec
+            } else {
+                spec
+            };
+            let exported = crate::export::generate_and_export(template, variant_spec, index, 0)?;
             if token.load(Ordering::Relaxed) {
                 return Ok(None);
             }
@@ -94,6 +141,11 @@ pub fn generate_pdf_cancellable<W: Write, F: FnMut(PdfPageRecord) -> Result<(), 
                 accepted += 1;
                 std::num::NonZeroU64::new(accepted)
             } else {
+                if indices.is_some() {
+                    return Err(EngineError::InvalidSpec(
+                        "selected PDF contains rejected variants",
+                    ));
+                }
                 None
             };
             let record = PdfPageRecord {
@@ -122,7 +174,14 @@ pub fn generate_pdf_cancellable<W: Write, F: FnMut(PdfPageRecord) -> Result<(), 
         rejected_count: (count - accepted) as i64,
         page_count: accepted as i64,
         generation_configuration_hash: configuration_hash(spec)?.parse().map_err(encode)?,
-        document_configuration_hash: pdf_configuration_hash(job)?.parse().map_err(encode)?,
+        document_configuration_hash: match indices {
+            Some(selection) => {
+                mosaicforge_core::pdf::pdf_selection_configuration_hash(job, selection)?
+            }
+            None => pdf_configuration_hash(job)?,
+        }
+        .parse()
+        .map_err(encode)?,
         document_hash: digest.map(|h| h.parse()).transpose().map_err(encode)?,
         status: if accepted == 0 {
             PdfDocumentResultStatus::NoPages

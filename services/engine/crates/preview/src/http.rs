@@ -30,6 +30,7 @@ pub fn router(token: String, host: String) -> Router {
         .route("/v1/preview", any(handle))
         .route("/v1/export", any(handle))
         .route("/v1/export-pdf", any(handle))
+        .route("/v2/export-pdf-selection", any(handle))
         .with_state(ServerState {
             token,
             host,

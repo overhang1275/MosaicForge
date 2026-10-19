@@ -8,6 +8,46 @@ use serde_json::{Value, json};
 use tower::ServiceExt;
 
 const TOKEN: &str = "test-only-token-012345678901234567890123";
+
+#[tokio::test]
+async fn selected_pdf_exports_gaps_and_rejects_unsafe_or_invalid_pages_without_artifact() {
+    let mut request = fixture("export-pdf");
+    request["schemaVersion"] = json!("2");
+    request["variantIndices"] = json!(["0", "2", "18446744073709551615"]);
+    let (status, response) = call("/v2/export-pdf-selection", request.clone()).await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(response["variantIndices"], request["variantIndices"]);
+    assert_eq!(response["document"]["pageCount"], 3);
+    let cases: Vec<Value> = serde_json::from_str(include_str!(
+        "../../../../../contracts/preview/v2/selection-cases.json"
+    ))
+    .unwrap();
+    for case in cases {
+        let mut selected = request.clone();
+        selected["variantIndices"] = case["indices"].clone();
+        let (status, response) = call("/v2/export-pdf-selection", selected).await;
+        assert_eq!(
+            status,
+            if case["valid"] == true {
+                StatusCode::OK
+            } else {
+                StatusCode::BAD_REQUEST
+            },
+            "{case}"
+        );
+        if case["valid"] == false {
+            assert!(response.get("artifact").is_none());
+        }
+    }
+    let rejected = fixture("export-svg");
+    request["templateSvg"] = rejected["templateSvg"].clone();
+    request["job"]["generation"] = rejected["generation"].clone();
+    request["job"]["generation"]["startIndex"] = json!("0");
+    request["job"]["generation"]["count"] = json!(3);
+    let (status, response) = call("/v2/export-pdf-selection", request).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+    assert!(response.get("artifact").is_none());
+}
 fn fixture(name: &str) -> Value {
     serde_json::from_str(
         &std::fs::read_to_string(format!(

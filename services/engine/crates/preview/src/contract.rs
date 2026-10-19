@@ -27,3 +27,11 @@ pub mod pdf_export_response {
 }
 pub use pdf_export_request::PdfExportRequest;
 pub use pdf_export_response::PdfExportResponse;
+pub mod selected_pdf_export_request {
+    include!(concat!(env!("OUT_DIR"), "/selected_pdf_export_request.rs"));
+}
+pub mod selected_pdf_export_response {
+    include!(concat!(env!("OUT_DIR"), "/selected_pdf_export_response.rs"));
+}
+pub use selected_pdf_export_request::SelectedPdfExportRequest;
+pub use selected_pdf_export_response::SelectedPdfExportResponse;

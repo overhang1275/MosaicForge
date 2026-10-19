@@ -16,10 +16,15 @@ fn main() {
         "pdf-export-request",
         "pdf-export-response",
         "error",
+        "selected-pdf-export-request",
+        "selected-pdf-export-response",
     ] {
         let schema = schema_bundle::bundle_schema(
             &root,
-            &root.join(format!("preview/v1/{name}.schema.json")),
+            &root.join(format!(
+                "preview/v{}/{name}.schema.json",
+                if name.starts_with("selected-") { 2 } else { 1 }
+            )),
         )
         .expect("local preview schema");
         let mut settings = typify::TypeSpaceSettings::default();

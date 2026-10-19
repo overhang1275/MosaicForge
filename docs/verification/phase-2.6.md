@@ -90,6 +90,8 @@ The profiler reads `/proc` RSS and cgroup `memory.current` through Docker exec, 
 
 ## Functional follow-up explicitly deferred
 
+Historical status at the phase 2.6 checkpoint. The subsequent [accepted-count change](accepted-count.md) implements replacement and a versioned PDF selection for the local web editor; the measurements above remain specific to the earlier image.
+
 **Requested count currently means candidate count, not guaranteed accepted count.** A twelve-candidate series can still contain ten accepted and two rejected variants. The PDF remains blocked for that incomplete series. The UI's existing final status can still say the attempt series ended; that does not establish twelve valid outputs.
 
 The user requires N valid outputs and explicitly chose to finish this verification phase before implementing replacement. The next functional change must search candidates deterministically, preserve the accepted candidates' real indices in a versioned PDF selection contract, bound attempts and report an explicit failure when N cannot be completed. It must never claim success with fewer than N accepted pages. This requirement is not implemented by phase 2.6.

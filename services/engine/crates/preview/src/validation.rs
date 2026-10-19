@@ -118,6 +118,47 @@ pub fn validate_pdf_export_request(request: &PdfExportRequest) -> Result<(), Eng
             <= MAX_SPEC_BYTES,
     )
 }
+pub fn validate_selected_pdf_export_request(
+    request: &SelectedPdfExportRequest,
+) -> Result<Vec<u64>, EngineError> {
+    let legacy: PdfExportRequest = serde_json::from_value(serde_json::json!({"requestId":request.request_id,"templateSvg":request.template_svg,"job":request.job}))
+        .map_err(|_| EngineError::InvalidSpec("invalid PDF selection"))?;
+    validate_pdf_export_request(&legacy)?;
+    let indices = request
+        .variant_indices
+        .iter()
+        .map(|index| {
+            index
+                .parse::<u64>()
+                .map_err(|_| EngineError::InvalidSpec("invalid PDF index"))
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+    mosaicforge_core::pdf::validate_pdf_selection(&request.job, &indices)?;
+    Ok(indices)
+}
+
+pub fn validate_selected_pdf_export_response(
+    response: &SelectedPdfExportResponse,
+) -> Result<(), EngineError> {
+    let legacy: PdfExportResponse = serde_json::from_value(serde_json::json!({"requestId":response.request_id,"document":response.document,"artifact":response.artifact}))
+        .map_err(|_| EngineError::InvalidSpec("invalid selected PDF result"))?;
+    validate_pdf_export_response(&legacy)?;
+    let indices = response
+        .variant_indices
+        .iter()
+        .map(|index| {
+            index
+                .parse::<u64>()
+                .map_err(|_| EngineError::InvalidSpec("invalid PDF index"))
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+    require(
+        indices.len() as i64 == response.document.count
+            && indices.first().map(u64::to_string).as_deref()
+                == Some(response.document.start_index.as_str())
+            && indices.windows(2).all(|pair| pair[0] < pair[1]),
+    )
+}
 pub fn validate_pdf_export_response(response: &PdfExportResponse) -> Result<(), EngineError> {
     mosaicforge_core::pdf::validate_pdf_document_result(&response.document)?;
     let r = &response.document;

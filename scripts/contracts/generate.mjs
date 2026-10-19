@@ -1,7 +1,7 @@
 import { compile } from 'json-schema-to-typescript';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
-import { bundleSchema, schemaNames } from './schema.mjs';
+import { bundleSchema, schemaNames, schemaReference } from './schema.mjs';
 import { writeValidators } from './validators.mjs';
 
 const output = new URL(
@@ -12,7 +12,7 @@ const output = new URL(
 export async function generatePreviewTypes(override) {
   const root = override ?? {
     title: 'PreviewMessage',
-    oneOf: schemaNames.map((name) => ({ $ref: `${name}.schema.json` })),
+    oneOf: schemaNames.map((name) => ({ $ref: schemaReference(name) })),
   };
   return (
     await compile(bundleSchema('common', root), 'PreviewMessage', {

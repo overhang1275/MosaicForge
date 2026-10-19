@@ -13,7 +13,13 @@ export const schemaNames = [
   'pdf-export-request',
   'pdf-export-response',
   'error',
+  'selected-pdf-export-request',
+  'selected-pdf-export-response',
 ];
+export const schemaReference = (name) =>
+  name.startsWith('selected-')
+    ? `../v2/${name}.schema.json`
+    : `${name}.schema.json`;
 
 function localReference(source, ref) {
   const [file, fragment = ''] = ref.split('#');
@@ -35,7 +41,7 @@ function localReference(source, ref) {
 export function bundleSchema(name, override) {
   if (![...schemaNames, 'common'].includes(name))
     throw new Error('Unknown schema');
-  const source = resolve(contractRoot, 'preview/v1', `${name}.schema.json`);
+  const source = resolve(contractRoot, 'preview/v1', schemaReference(name));
   const definitions = {};
   const ids = new Map();
   function visit(value, from) {

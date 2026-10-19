@@ -4,6 +4,7 @@ import { Field } from './Fields';
 export function PdfExport({ state, editor }: ReturnType<typeof useEditor>) {
   const ready =
     state.cards.length > 0 &&
+    state.cards.length === state.generationStats?.requested &&
     state.cards.every((card) => card.status === 'accepted');
   return (
     <section
@@ -30,7 +31,7 @@ export function PdfExport({ state, editor }: ReturnType<typeof useEditor>) {
           {state.cards.length > 0
             ? ready
               ? `Un PDF vectorial · ${state.cards.length} ${state.cards.length === 1 ? 'página' : 'páginas'} · serie completa guardada.`
-              : `Serie de ${state.cards.length} ${state.cards.length === 1 ? 'variante' : 'variantes'} · PDF disponible cuando todas estén aceptadas.`
+              : `Serie de ${state.generationStats?.requested ?? state.cards.length} variantes solicitadas · PDF disponible al completar todas las aceptadas.`
             : 'Un solo PDF vectorial con la serie completa de hasta 12 variantes.'}
         </p>
       </div>

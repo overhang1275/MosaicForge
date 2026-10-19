@@ -59,6 +59,68 @@ test('valid busy error is sanitized and returned with new correlation', async ()
 
 const origin = 'http://127.0.0.1:3000';
 const token = 'test-only-token-012345678901234567890123';
+
+test('selected PDF forwards exact ordered indices to v2 and rejects a different echoed selection', async () => {
+  const input = {
+    ...(await fixture('export-pdf')),
+    schemaVersion: '2',
+    variantIndices: ['0', '2', '18446744073709551615'],
+  };
+  const bytes = Buffer.from('%PDF-1.7\nselected transport fixture');
+  const g = input.job.generation;
+  for (const mismatch of [false, true]) {
+    const srv = await upstream((req, res) => {
+      let body = '';
+      req.on('data', (chunk) => (body += chunk));
+      req.on('end', () => {
+        const received = JSON.parse(body);
+        assert.equal(req.url, '/v2/export-pdf-selection');
+        assert.deepEqual(received.variantIndices, input.variantIndices);
+        res.setHeader('content-type', 'application/json');
+        res.end(
+          JSON.stringify({
+            schemaVersion: '2',
+            requestId: received.requestId,
+            variantIndices: mismatch
+              ? ['0', '3', '18446744073709551615']
+              : input.variantIndices,
+            document: {
+              schemaVersion: '1',
+              exporterVersion: '1',
+              templateHash: g.templateHash,
+              seed: g.seed,
+              startIndex: g.startIndex,
+              count: 3,
+              requestedCount: 3,
+              acceptedCount: 3,
+              rejectedCount: 0,
+              pageCount: 3,
+              status: 'completed',
+              generationConfigurationHash: '0'.repeat(64),
+              documentConfigurationHash: '0'.repeat(64),
+              documentHash: createHash('sha256').update(bytes).digest('hex'),
+            },
+            artifact: {
+              mimeType: 'application/pdf',
+              base64: bytes.toString('base64'),
+            },
+          }),
+        );
+      });
+    });
+    try {
+      const response = await createProxy({ engineUrl: srv.url, token, origin })(
+        request(input),
+        'export-pdf-selection',
+      );
+      assert.equal(response.status, mismatch ? 502 : 200);
+      if (!mismatch)
+        assert.deepEqual(Buffer.from(await response.arrayBuffer()), bytes);
+    } finally {
+      await srv.close();
+    }
+  }
+});
 const fixture = async (name: string) =>
   JSON.parse(
     await readFile(

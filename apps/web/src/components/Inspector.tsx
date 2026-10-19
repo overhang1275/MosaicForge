@@ -92,7 +92,8 @@ export function Inspector({ state, editor }: EditorContext) {
             Semilla e índice: enteros decimales de 64 bits.
           </p>
           <p className="field-note">
-            Muestra de hasta 12 variantes. La generación masiva aún no está
+            Hasta 12 variantes aceptadas. Las rechazadas se reemplazan, con un
+            límite de 10 intentos por variante. La generación masiva aún no está
             disponible en esta vista.
           </p>
         </Section>

@@ -155,14 +155,25 @@ export function Preview({ state, editor }: EditorContext) {
 }
 
 export function Gallery({ state, editor }: EditorContext) {
+  const accepted = state.cards.filter(
+    (card) => card.status === 'accepted',
+  ).length;
   return (
     <section className="gallery" aria-labelledby="gallery-title">
       <div className="panel-heading">
         <h2 id="gallery-title">Variantes</h2>
-        <span className="count" aria-label={`${state.cards.length} variantes`}>
-          {state.cards.length}
+        <span className="count" aria-label={`${accepted} variantes aceptadas`}>
+          {accepted}
+          {state.generationStats ? ` / ${state.generationStats.requested}` : ''}
         </span>
       </div>
+      {state.generationStats && (
+        <p className="field-note" aria-live="polite">
+          {state.generationStats.attempted} intentos ·{' '}
+          {state.generationStats.rejected} descartadas. Solo las aceptadas
+          cuentan para la serie.
+        </p>
+      )}
       {state.cards.length === 0 ? (
         <div className="empty-state gallery-empty">
           <ImageIcon />
@@ -188,7 +199,6 @@ export function Gallery({ state, editor }: EditorContext) {
                       src={card.url}
                       width={512}
                       height={512}
-                      loading="lazy"
                       decoding="async"
                       alt=""
                     />

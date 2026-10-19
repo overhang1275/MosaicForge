@@ -1,0 +1,9 @@
+[
+  { "indices": ["0", "2", "18446744073709551615"], "valid": true },
+  { "indices": ["0", "0", "2"], "valid": false },
+  { "indices": ["0", "3", "2"], "valid": false },
+  { "indices": ["0", "2"], "valid": false },
+  { "indices": ["1", "2", "3"], "valid": false },
+  { "indices": ["0", "2", "18446744073709551616"], "valid": false },
+  { "indices": ["0", "02", "3"], "valid": false }
+]

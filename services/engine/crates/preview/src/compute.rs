@@ -51,6 +51,30 @@ fn compute(
         validate_inspect_response(&response).map_err(|_| ("internal_error", 500, id))?;
         return Ok(value);
     }
+    if path == "/v2/export-pdf-selection" {
+        let request: SelectedPdfExportRequest =
+            serde_json::from_value(input).map_err(|_| invalid())?;
+        let indices = validate_selected_pdf_export_request(&request).map_err(|_| invalid())?;
+        let template = import_svg(request.template_svg.as_bytes()).map_err(engine_error)?;
+        let mut output = PdfBuffer::new(pdf_limit);
+        let document = mosaicforge_cpu::pdf::generate_selected_pdf(
+            &template,
+            &request.job,
+            &indices,
+            &mut output,
+            |_| Ok(()),
+        );
+        if output.exceeded {
+            return Err(("payload_too_large", 413, id));
+        }
+        let document = document.map_err(engine_error)?;
+        let value = json!({"schemaVersion":"2","requestId":id,"document":document,"variantIndices":request.variant_indices,"artifact":{"mimeType":"application/pdf","base64":STANDARD.encode(output.bytes)}});
+        let response: SelectedPdfExportResponse = serde_json::from_value(value.clone())
+            .map_err(|_| ("internal_error", 500, id.clone()))?;
+        validate_selected_pdf_export_response(&response)
+            .map_err(|_| ("internal_error", 500, id))?;
+        return Ok(value);
+    }
     if path == "/v1/export-pdf" {
         let request: PdfExportRequest = serde_json::from_value(input).map_err(|_| invalid())?;
         validate_pdf_export_request(&request).map_err(|_| invalid())?;
@@ -161,6 +185,16 @@ mod tests {
         let error = compute("/v1/export-pdf", input, 16).unwrap_err();
         assert_eq!((error.0, error.1), ("payload_too_large", 413));
         assert_eq!(error.2, "12345678-1234-1234-1234-123456789abc");
+        let mut selected: Value = serde_json::from_slice(input).unwrap();
+        selected["schemaVersion"] = json!("2");
+        selected["variantIndices"] = json!(["0", "2", "18446744073709551615"]);
+        let error = compute(
+            "/v2/export-pdf-selection",
+            &serde_json::to_vec(&selected).unwrap(),
+            16,
+        )
+        .unwrap_err();
+        assert_eq!((error.0, error.1), ("payload_too_large", 413));
     }
     #[test]
     fn pdf_buffer_never_grows_past_limit() {

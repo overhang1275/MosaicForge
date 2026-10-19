@@ -6,10 +6,17 @@ import type {
   PreviewError,
   PdfExportRequest,
   PdfExportResponse,
+  SelectedPdfExportRequest,
+  SelectedPdfExportResponse,
 } from '../../../../contracts/generated/typescript/preview.ts';
 import { validateFixture } from '../../../../scripts/contracts/validate.mjs';
 
-export type Operation = 'inspect' | 'preview' | 'export' | 'export-pdf';
+export type Operation =
+  | 'inspect'
+  | 'preview'
+  | 'export'
+  | 'export-pdf'
+  | 'export-pdf-selection';
 export interface ProxyConfig {
   engineUrl: string;
   token: string;
@@ -155,10 +162,14 @@ export function createProxy(config: ProxyConfig) {
     if (!isJson(request.headers))
       return error(415, id, 'unsupported_media_type');
     const deadline = AbortSignal.timeout(
-        operation === 'export-pdf' ? pdfTimeoutMs : timeoutMs,
+        operation.startsWith('export-pdf') ? pdfTimeoutMs : timeoutMs,
       ),
       signal = AbortSignal.any([deadline, request.signal]);
-    let input: InspectRequest | GenerationRequest | PdfExportRequest;
+    let input:
+      | InspectRequest
+      | GenerationRequest
+      | PdfExportRequest
+      | SelectedPdfExportRequest;
     try {
       const bytes = await bounded(
         request.body,
@@ -177,14 +188,20 @@ export function createProxy(config: ProxyConfig) {
           envelope,
           operation === 'inspect'
             ? 'inspect-request'
-            : operation === 'export-pdf'
-              ? 'pdf-export-request'
-              : 'generation-request',
+            : operation === 'export-pdf-selection'
+              ? 'selected-pdf-export-request'
+              : operation === 'export-pdf'
+                ? 'pdf-export-request'
+                : 'generation-request',
           operation,
         )
       )
         return error(400, id, 'invalid_request');
-      input = envelope as InspectRequest | GenerationRequest | PdfExportRequest;
+      input = envelope as
+        | InspectRequest
+        | GenerationRequest
+        | PdfExportRequest
+        | SelectedPdfExportRequest;
     } catch (cause) {
       return error(
         cause instanceof BodyLimit ? 413 : deadline.aborted ? 504 : 400,
@@ -197,17 +214,23 @@ export function createProxy(config: ProxyConfig) {
       );
     }
     try {
-      const response = await fetch(new URL(`/v1/${operation}`, upstream), {
-        method: 'POST',
-        headers: {
-          'content-type': 'application/json',
-          authorization: `Bearer ${config.token}`,
+      const response = await fetch(
+        new URL(
+          `/${operation === 'export-pdf-selection' ? 'v2' : 'v1'}/${operation}`,
+          upstream,
+        ),
+        {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+            authorization: `Bearer ${config.token}`,
+          },
+          body: JSON.stringify(input),
+          signal,
+          redirect: 'error',
+          cache: 'no-store',
         },
-        body: JSON.stringify(input),
-        signal,
-        redirect: 'error',
-        cache: 'no-store',
-      });
+      );
       if (!isJson(response.headers)) {
         await response.body?.cancel();
         return error(502, id, 'engine_unavailable');
@@ -237,9 +260,11 @@ export function createProxy(config: ProxyConfig) {
           value,
           operation === 'inspect'
             ? 'inspect-response'
-            : operation === 'export-pdf'
-              ? 'pdf-export-response'
-              : 'generation-response',
+            : operation === 'export-pdf-selection'
+              ? 'selected-pdf-export-response'
+              : operation === 'export-pdf'
+                ? 'pdf-export-response'
+                : 'generation-response',
           operation,
         )
       )
@@ -253,10 +278,18 @@ export function createProxy(config: ProxyConfig) {
             'x-content-type-options': 'nosniff',
           },
         });
-      if (operation === 'export-pdf') {
+      if (operation === 'export-pdf' || operation === 'export-pdf-selection') {
         const output = value as PdfExportResponse,
           spec = (input as PdfExportRequest).job.generation;
         const d = output.document;
+        if (
+          operation === 'export-pdf-selection' &&
+          JSON.stringify(
+            (value as SelectedPdfExportResponse).variantIndices,
+          ) !==
+            JSON.stringify((input as SelectedPdfExportRequest).variantIndices)
+        )
+          return error(502, id, 'engine_unavailable');
         if (
           d.seed !== spec.seed ||
           d.startIndex !== spec.startIndex ||

@@ -42,6 +42,11 @@ export interface EditorState {
   pdfSettings: PdfSettings;
   settings: EditorSettings;
   cards: PreviewCard[];
+  generationStats: {
+    requested: number;
+    attempted: number;
+    rejected: number;
+  } | null;
   selectedIndex: string | null;
   error: string | null;
   message: string;

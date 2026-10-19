@@ -5,7 +5,7 @@ import type {
 import type { EditorPorts } from './controller';
 function failure(value: unknown, operation?: string): string {
   if (
-    operation === 'export-pdf' &&
+    operation?.startsWith('export-pdf') &&
     value &&
     typeof value === 'object' &&
     'code' in value &&
@@ -45,7 +45,27 @@ export const browserPorts: EditorPorts = {
   },
   preview: async (snapshot, signal) => {
     const response = await post('preview', snapshot, signal);
-    return (await response.json()) as GenerationResponse;
+    const result = (await response.json()) as GenerationResponse;
+    if (result.variant.status === 'accepted') {
+      try {
+        if (!result.artifact || result.artifact.mimeType !== 'image/png')
+          throw new Error('Missing PNG');
+        const bytes = Uint8Array.from(
+          atob(result.artifact.base64),
+          (character) => character.charCodeAt(0),
+        );
+        const image = await createImageBitmap(
+          new Blob([bytes], { type: 'image/png' }),
+        );
+        image.close();
+      } catch {
+        throw new Error(
+          'No se pudo cargar la previsualización PNG. Vuelve a generar la serie.',
+        );
+      }
+      signal.throwIfAborted();
+    }
+    return result;
   },
   export: async (snapshot, format, signal) => {
     const response = await post('export', snapshot, signal);
@@ -63,7 +83,7 @@ export const browserPorts: EditorPorts = {
     return await response.blob();
   },
   exportPdf: async (request, signal) => {
-    const response = await post('export-pdf', request, signal);
+    const response = await post('export-pdf-selection', request, signal);
     if (
       response.headers.get('content-type')?.split(';')[0] !== 'application/pdf'
     ) {

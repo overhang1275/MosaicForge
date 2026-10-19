@@ -86,7 +86,7 @@ The interface currently uses Spanish labels. PDF export requires every sample in
 
 The editor supports **1–12 samples per series** and previews up to **512 × 512 px**. The CLI supports **1–10,000 variants per job**. One million variants is a roadmap objective, not a verified current capability.
 
-The current sample count counts candidates, including rejected variants. Automatic replacement until the requested number is accepted is pending; an incomplete series cannot be exported as a complete PDF.
+The web sample count targets accepted variants. Rejected candidates are replaced in deterministic index order, with up to ten attempts per requested variant. If the target cannot be completed, the series fails explicitly and cannot be exported as a complete PDF. The CLI v1 continues to count candidates.
 
 ### CLI
 
@@ -122,7 +122,7 @@ The CLI writes `manifest.jsonl` and structured stdout records. Its PDF includes 
 
 The launchers configure internal addresses and the token automatically. Never expose the token through `NEXT_PUBLIC_*` variables or commit it.
 
-The web proxy exposes `POST /api/inspect`, `/api/preview`, `/api/export`, and `/api/export-pdf`. Rust exposes matching `/v1/` routes to the authenticated proxy. Shared schemas are the source of truth; generated types and validators are intentionally versioned.
+The web proxy exposes `POST /api/inspect`, `/api/preview`, `/api/export`, and the legacy `/api/export-pdf`. Accepted-series export uses `/api/export-pdf-selection` and the private Rust `/v2/export-pdf-selection` route with explicit accepted indices. Shared schemas are the source of truth; generated types and validators are intentionally versioned.
 
 - [Preview/export contracts](contracts/preview/v1/README.md)
 - [Generation schema](contracts/engine/v1/generation.schema.json)
@@ -184,6 +184,8 @@ For manual browser checks on Windows, put Playwright CLI on `PATH` and run `./sc
 
 The [phase 2.6 verification report](docs/verification/phase-2.6.md) includes repeatable browser/CLI parity checks, Docker verification commands, bounded CPU measurements and their limitations.
 
+The [accepted-count verification](docs/verification/accepted-count.md) covers deterministic replacement, selected PDF export, bounded failure and browser decoding.
+
 Run checks sequentially. The smoke test needs debug Rust binaries and the web build. Ignored tests require optional local artwork or baselines and are excluded from the default suite.
 
 For contract changes, run the [contract tools](scripts/contracts/README.md), regenerate outputs, and verify shared Rust/Node fixtures. Keep `contracts/generated/` and lockfiles: the build and proxy depend on them.
@@ -194,7 +196,7 @@ Keep changes focused, test changed behavior, and document compatibility changes.
 
 ## Roadmap
 
-- Replace rejected candidates deterministically until the requested number is accepted, with a versioned PDF selection contract and bounded failure behavior.
+- Extend accepted-target generation and explicit PDF selections to asynchronous large jobs.
 - Add asynchronous jobs and bounded processing for larger workloads.
 - Introduce the Java control plane when job orchestration requires it.
 - Consider CUDA only where end-to-end measurements demonstrate a benefit.

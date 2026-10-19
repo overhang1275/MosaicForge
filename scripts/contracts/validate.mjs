@@ -77,9 +77,38 @@ function validResponse(value, operation) {
 }
 
 export function validateFixture(value, schemaName, operation) {
-  if (!['inspect', 'preview', 'export', 'export-pdf'].includes(operation))
+  if (
+    ![
+      'inspect',
+      'preview',
+      'export',
+      'export-pdf',
+      'export-pdf-selection',
+    ].includes(operation)
+  )
     return false;
   if (!validators[schemaName]?.(value)) return false;
+  if (schemaName.startsWith('selected-pdf-export-')) {
+    const request = schemaName.endsWith('request');
+    const indices = value.variantIndices;
+    const spec = request ? value.job.generation : value.document;
+    if (
+      indices.length !== spec.count ||
+      indices[0] !== spec.startIndex ||
+      !indices.every(
+        (index, position) =>
+          u64(index) &&
+          (position === 0 || BigInt(index) > BigInt(indices[position - 1])),
+      )
+    )
+      return false;
+    const { schemaVersion, variantIndices, ...legacy } = value;
+    return validateFixture(
+      legacy,
+      request ? 'pdf-export-request' : 'pdf-export-response',
+      'export-pdf',
+    );
+  }
   if (schemaName === 'pdf-export-request') {
     const g = value.job.generation;
     return (
