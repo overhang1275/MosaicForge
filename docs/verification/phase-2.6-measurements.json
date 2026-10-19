@@ -1,0 +1,333 @@
+{
+  "backend": "cpu",
+  "image": "sha256:cd7a503dbb5d481ef265ec5e34aa97844b25df92665a27ae6128b9b6837ed34e",
+  "sourceBytes": 1060,
+  "warmup": "one inspect + one preview",
+  "method": "Sequential BFF HTTP operations, full response bytes; 3 repetitions per count; Docker exec memory sampling target 250ms plus probe latency. RSS samples are not a proven peak. cgroup includes cache and other container processes. No renderer/encoder substage instrumentation.",
+  "runs": [
+    {
+      "count": 1,
+      "repetition": 0,
+      "inspectMs": 10.681100000000015,
+      "previewMs": [23.35609999999997],
+      "pdfMs": 42.77909999999997,
+      "totalMs": 76.89639999999997,
+      "pdfBytes": 31062,
+      "pdfSha256": "eaa53557fffc1b0bddaefa137f044db4ea0b1aa8d893bb7a978f72651ec158c3",
+      "memorySamples": [
+        {
+          "elapsedMs": 856.5352,
+          "cgroupBytes": 95223808,
+          "rssBytes": {
+            "engine": 7114752,
+            "web": 107737088
+          }
+        },
+        {
+          "elapsedMs": 1353.6773,
+          "cgroupBytes": 107204608,
+          "rssBytes": {
+            "engine": 7385088,
+            "web": 120496128
+          }
+        }
+      ]
+    },
+    {
+      "count": 1,
+      "repetition": 1,
+      "inspectMs": 16.715200000000095,
+      "previewMs": [20.708700000000135],
+      "pdfMs": 34.25759999999991,
+      "totalMs": 71.75209999999993,
+      "pdfBytes": 31062,
+      "pdfSha256": "eaa53557fffc1b0bddaefa137f044db4ea0b1aa8d893bb7a978f72651ec158c3",
+      "memorySamples": [
+        {
+          "elapsedMs": 1596.1093,
+          "cgroupBytes": 107462656,
+          "rssBytes": {
+            "engine": 7385088,
+            "web": 120496128
+          }
+        },
+        {
+          "elapsedMs": 2103.1625,
+          "cgroupBytes": 105046016,
+          "rssBytes": {
+            "engine": 7413760,
+            "web": 121978880
+          }
+        }
+      ]
+    },
+    {
+      "count": 1,
+      "repetition": 2,
+      "inspectMs": 20.945500000000266,
+      "previewMs": [24.478599999999915],
+      "pdfMs": 29.549399999999878,
+      "totalMs": 75.03870000000006,
+      "pdfBytes": 31062,
+      "pdfSha256": "eaa53557fffc1b0bddaefa137f044db4ea0b1aa8d893bb7a978f72651ec158c3",
+      "memorySamples": [
+        {
+          "elapsedMs": 2352.6831,
+          "cgroupBytes": 109248512,
+          "rssBytes": {
+            "engine": 7413760,
+            "web": 121982976
+          }
+        },
+        {
+          "elapsedMs": 2853.8933,
+          "cgroupBytes": 111542272,
+          "rssBytes": {
+            "engine": 7446528,
+            "web": 124092416
+          }
+        }
+      ]
+    },
+    {
+      "count": 6,
+      "repetition": 0,
+      "inspectMs": 22.40079999999989,
+      "previewMs": [
+        24.477300000000014, 33.13119999999981, 27.77009999999973,
+        15.943899999999758, 16.491399999999885, 32.63689999999997
+      ],
+      "pdfMs": 94.02709999999979,
+      "totalMs": 267.3277000000003,
+      "pdfBytes": 192406,
+      "pdfSha256": "772dc6f73d1e1317c62a776ca953d1e99f25ad17f65f3f24868d81c75d8417b9",
+      "memorySamples": [
+        {
+          "elapsedMs": 3123.3154,
+          "cgroupBytes": 107388928,
+          "rssBytes": {
+            "engine": 7446528,
+            "web": 124092416
+          }
+        },
+        {
+          "elapsedMs": 3644.566,
+          "cgroupBytes": 124157952,
+          "rssBytes": {
+            "engine": 8278016,
+            "web": 136343552
+          }
+        },
+        {
+          "elapsedMs": 3886.535,
+          "cgroupBytes": 124256256,
+          "rssBytes": {
+            "engine": 8278016,
+            "web": 136343552
+          }
+        }
+      ]
+    },
+    {
+      "count": 6,
+      "repetition": 1,
+      "inspectMs": 11.641499999999724,
+      "previewMs": [
+        31.97739999999976, 31.474599999999555, 17.432700000000295,
+        26.07970000000023, 33.36660000000029, 29.989799999999377
+      ],
+      "pdfMs": 91.97990000000027,
+      "totalMs": 274.39660000000003,
+      "pdfBytes": 192406,
+      "pdfSha256": "772dc6f73d1e1317c62a776ca953d1e99f25ad17f65f3f24868d81c75d8417b9",
+      "memorySamples": [
+        {
+          "elapsedMs": 4201.1396,
+          "cgroupBytes": 124108800,
+          "rssBytes": {
+            "engine": 8278016,
+            "web": 136343552
+          }
+        },
+        {
+          "elapsedMs": 4721.8563,
+          "cgroupBytes": 121290752,
+          "rssBytes": {
+            "engine": 8286208,
+            "web": 133894144
+          }
+        },
+        {
+          "elapsedMs": 4967.0943,
+          "cgroupBytes": 121618432,
+          "rssBytes": {
+            "engine": 8286208,
+            "web": 133894144
+          }
+        }
+      ]
+    },
+    {
+      "count": 6,
+      "repetition": 2,
+      "inspectMs": 21.10660000000007,
+      "previewMs": [
+        22.226700000000164, 30.80699999999979, 32.242599999999584,
+        30.710299999999734, 30.67370000000028, 30.448199999999815
+      ],
+      "pdfMs": 83.17879999999968,
+      "totalMs": 281.9912999999997,
+      "pdfBytes": 192406,
+      "pdfSha256": "772dc6f73d1e1317c62a776ca953d1e99f25ad17f65f3f24868d81c75d8417b9",
+      "memorySamples": [
+        {
+          "elapsedMs": 5225.3739,
+          "cgroupBytes": 121098240,
+          "rssBytes": {
+            "engine": 8286208,
+            "web": 133894144
+          }
+        },
+        {
+          "elapsedMs": 5780.6553,
+          "cgroupBytes": 123387904,
+          "rssBytes": {
+            "engine": 8310784,
+            "web": 135421952
+          }
+        },
+        {
+          "elapsedMs": 6040.3701,
+          "cgroupBytes": 119451648,
+          "rssBytes": {
+            "engine": 8310784,
+            "web": 135421952
+          }
+        }
+      ]
+    },
+    {
+      "count": 12,
+      "repetition": 0,
+      "inspectMs": 9.239599999999882,
+      "previewMs": [
+        22.900300000000243, 14.0625, 29.70389999999952, 13.852000000000771,
+        15.314300000000003, 16.11239999999998, 15.165500000000065,
+        14.713999999999942, 15.712500000000546, 15.285299999999552,
+        14.688199999999597, 15.772799999999734
+      ],
+      "pdfMs": 122.1860999999999,
+      "totalMs": 335.5709999999999,
+      "pdfBytes": 388413,
+      "pdfSha256": "c973c80f9da29cd215c3c17e69b8887868219c9b97eb68eb70103336481887ee",
+      "memorySamples": [
+        {
+          "elapsedMs": 6267.0992,
+          "cgroupBytes": 122609664,
+          "rssBytes": {
+            "engine": 8310784,
+            "web": 135421952
+          }
+        },
+        {
+          "elapsedMs": 6782.3503,
+          "cgroupBytes": 133955584,
+          "rssBytes": {
+            "engine": 7344128,
+            "web": 150392832
+          }
+        },
+        {
+          "elapsedMs": 7015.4593,
+          "cgroupBytes": 137441280,
+          "rssBytes": {
+            "engine": 7344128,
+            "web": 150392832
+          }
+        }
+      ]
+    },
+    {
+      "count": 12,
+      "repetition": 1,
+      "inspectMs": 24.577800000000025,
+      "previewMs": [
+        20.01639999999952, 14.518199999999524, 16.759500000000116,
+        30.80499999999938, 31.16780000000017, 32.60429999999997,
+        27.932999999999993, 15.391499999999724, 15.70259999999962,
+        14.081100000000333, 15.77179999999953, 22.657799999999952
+      ],
+      "pdfMs": 146.8112999999994,
+      "totalMs": 429.52420000000075,
+      "pdfBytes": 388413,
+      "pdfSha256": "c973c80f9da29cd215c3c17e69b8887868219c9b97eb68eb70103336481887ee",
+      "memorySamples": [
+        {
+          "elapsedMs": 7260.3428,
+          "cgroupBytes": 137396224,
+          "rssBytes": {
+            "engine": 7344128,
+            "web": 150392832
+          }
+        },
+        {
+          "elapsedMs": 7803.7245,
+          "cgroupBytes": 131870720,
+          "rssBytes": {
+            "engine": 7589888,
+            "web": 148418560
+          }
+        },
+        {
+          "elapsedMs": 8044.9113,
+          "cgroupBytes": 136589312,
+          "rssBytes": {
+            "engine": 7589888,
+            "web": 148938752
+          }
+        }
+      ]
+    },
+    {
+      "count": 12,
+      "repetition": 2,
+      "inspectMs": 20.868800000000192,
+      "previewMs": [
+        21.852100000000064, 15.98949999999968, 29.7533999999996,
+        18.432199999999284, 28.730100000000675, 29.90819999999985,
+        31.354600000000573, 30.34900000000016, 15.560300000001007,
+        15.752300000000105, 23.944400000000314, 23.280699999999342
+      ],
+      "pdfMs": 134.63659999999982,
+      "totalMs": 441.2458999999999,
+      "pdfBytes": 388413,
+      "pdfSha256": "c973c80f9da29cd215c3c17e69b8887868219c9b97eb68eb70103336481887ee",
+      "memorySamples": [
+        {
+          "elapsedMs": 8287.3511,
+          "cgroupBytes": 136359936,
+          "rssBytes": {
+            "engine": 7589888,
+            "web": 148938752
+          }
+        },
+        {
+          "elapsedMs": 8795.2518,
+          "cgroupBytes": 129490944,
+          "rssBytes": {
+            "engine": 8196096,
+            "web": 142200832
+          }
+        },
+        {
+          "elapsedMs": 9031.4542,
+          "cgroupBytes": 139091968,
+          "rssBytes": {
+            "engine": 7589888,
+            "web": 152084480
+          }
+        }
+      ]
+    }
+  ]
+}

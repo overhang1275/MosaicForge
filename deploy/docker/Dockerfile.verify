@@ -1,0 +1,25 @@
+# Build the local runtime image first; this image runs checks, not a new service.
+FROM rust:1.99-bookworm AS rust-check
+RUN rustup component add rustfmt clippy
+WORKDIR /build/services/engine
+COPY services/engine/ ./
+COPY contracts/ /build/contracts/
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/build/services/engine/target \
+    cargo fmt --all --check && \
+    cargo clippy --all-targets --locked -- -D warnings && \
+    cargo test --locked
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/build/services/engine/target \
+    cargo build --locked -p mosaicforge-cli -p mosaicforge-preview && \
+    cp target/debug/mosaicforge target/debug/mosaicforge-preview /build/
+
+FROM mosaicforge-local:cpu AS transport-check
+USER root
+WORKDIR /verify
+COPY --from=rust-check /build/mosaicforge /build/mosaicforge-preview ./services/engine/target/debug/
+COPY --from=mosaicforge-local:cpu /app/ ./apps/web/.next/standalone/
+COPY apps/web/scripts/ ./apps/web/scripts/
+COPY scripts/preview-smoke.mjs scripts/start-preview.mjs ./scripts/
+COPY contracts/ ./contracts/
+RUN node scripts/preview-smoke.mjs

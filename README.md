@@ -86,6 +86,8 @@ The interface currently uses Spanish labels. PDF export requires every sample in
 
 The editor supports **1–12 samples per series** and previews up to **512 × 512 px**. The CLI supports **1–10,000 variants per job**. One million variants is a roadmap objective, not a verified current capability.
 
+The current sample count counts candidates, including rejected variants. Automatic replacement until the requested number is accepted is pending; an incomplete series cannot be exported as a complete PDF.
+
 ### CLI
 
 Build an optimized CLI:
@@ -180,6 +182,8 @@ node scripts/preview-smoke.mjs
 
 For manual browser checks on Windows, put Playwright CLI on `PATH` and run `./scripts/playwright.ps1 --help`. The [design audit](docs/design-audit/latest.md) records visual and keyboard checks.
 
+The [phase 2.6 verification report](docs/verification/phase-2.6.md) includes repeatable browser/CLI parity checks, Docker verification commands, bounded CPU measurements and their limitations.
+
 Run checks sequentially. The smoke test needs debug Rust binaries and the web build. Ignored tests require optional local artwork or baselines and are excluded from the default suite.
 
 For contract changes, run the [contract tools](scripts/contracts/README.md), regenerate outputs, and verify shared Rust/Node fixtures. Keep `contracts/generated/` and lockfiles: the build and proxy depend on them.
@@ -190,7 +194,7 @@ Keep changes focused, test changed behavior, and document compatibility changes.
 
 ## Roadmap
 
-- Complete editor validation and end-to-end export checks.
+- Replace rejected candidates deterministically until the requested number is accepted, with a versioned PDF selection contract and bounded failure behavior.
 - Add asynchronous jobs and bounded processing for larger workloads.
 - Introduce the Java control plane when job orchestration requires it.
 - Consider CUDA only where end-to-end measurements demonstrate a benefit.
