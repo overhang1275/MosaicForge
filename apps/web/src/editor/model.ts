@@ -18,6 +18,7 @@ export interface EditorSettings {
   height: string;
   background: string;
   ranges: Record<RangeName, { min: string; max: string }>;
+  preserveAspectRatio: boolean;
   mirrorX: boolean;
   mirrorY: boolean;
   shuffleLayers: boolean;
@@ -68,6 +69,7 @@ export const initialSettings = (): EditorSettings => ({
   width: '512',
   height: '512',
   background: 'transparent',
+  preserveAspectRatio: true,
   ranges: {
     translateX: { min: '-12', max: '12' },
     translateY: { min: '-12', max: '12' },

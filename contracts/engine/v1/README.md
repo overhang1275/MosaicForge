@@ -8,7 +8,7 @@ Deserializar no basta: un generador de tipos no ejecuta todas las restricciones 
 
 Seed/índice son cadenas decimales canónicas para preservar precisión en JavaScript. El patrón del schema limita forma y longitud; el validador semántico exige rango u64 (0–18446744073709551615) y comprueba desbordamiento del intervalo. No convertir estos campos a Number en TypeScript.
 
-Objetos cerrados: campos desconocidos se rechazan. Versiones admitidas: schema 1, reglas 1, motor 0.1.0. Solo backend CPU por ahora; publicar otra versión de contrato antes de consumidores incompatibles.
+Objetos cerrados: campos desconocidos se rechazan. Versiones admitidas: schema 1, reglas 1 y [reglas 2](../rules-v2.md), motor 0.1.0. La versión de reglas 2 añade el bloqueo explícito de proporciones; reglas 1 conserva su reproducción y prohíbe ese campo. Solo backend CPU por ahora.
 
 Crop, artifactHash y reason pueden omitirse o ser null; se normalizan a ausencia al serializar. Una palette omitida o vacía significa no sustituir colores; límite 256. Rangos y rectángulos deben ser finitos; crop se comprueba contra el viewBox durante generación.
 

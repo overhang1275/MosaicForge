@@ -133,6 +133,22 @@ export function Inspector({ state, editor }: EditorContext) {
           </label>
         </Section>
         <Section title="Transformaciones">
+          <label className="check-field">
+            <input
+              type="checkbox"
+              name="preserveAspectRatio"
+              checked={state.settings.preserveAspectRatio}
+              onChange={(event) =>
+                set({ preserveAspectRatio: event.target.checked })
+              }
+            />
+            Mantener proporciones (X = Y)
+          </label>
+          <p className="field-note">
+            {state.settings.preserveAspectRatio
+              ? 'Escalas vinculadas: cambia el tamaño sin estirar el diseño.'
+              : 'Escalas independientes: X e Y pueden estirar el diseño.'}
+          </p>
           {ranges.map(({ name, label }) => (
             <fieldset className="range-fields" key={name}>
               <legend>{label}</legend>

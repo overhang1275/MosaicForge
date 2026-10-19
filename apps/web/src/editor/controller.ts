@@ -64,9 +64,10 @@ function snapshotFor(
       startIndex: index,
       count: 1,
       engineVersion: meta.engineVersion,
-      rulesVersion: meta.rulesVersion,
+      rulesVersion: '2',
       rules: {
         ...ranges,
+        preserveAspectRatio: settings.preserveAspectRatio,
         mirrorX: settings.mirrorX,
         mirrorY: settings.mirrorY,
         shuffleLayers: settings.shuffleLayers,
@@ -240,8 +241,27 @@ export function createEditor(ports: EditorPorts) {
     },
     updateSettings: (patch: Partial<EditorSettings>) => {
       invalidate();
+      const settings = { ...state.settings, ...structuredClone(patch) };
+      if (settings.preserveAspectRatio) {
+        const previous = state.settings.ranges;
+        const changedX =
+          settings.ranges.scaleX.min !== previous.scaleX.min ||
+          settings.ranges.scaleX.max !== previous.scaleX.max;
+        const changedY =
+          settings.ranges.scaleY.min !== previous.scaleY.min ||
+          settings.ranges.scaleY.max !== previous.scaleY.max;
+        const scale =
+          !changedX && changedY
+            ? settings.ranges.scaleY
+            : settings.ranges.scaleX;
+        settings.ranges = {
+          ...settings.ranges,
+          scaleX: { ...scale },
+          scaleY: { ...scale },
+        };
+      }
       update({
-        settings: { ...state.settings, ...structuredClone(patch) },
+        settings,
         error: null,
         message: 'Ajustes modificados. Genera una nueva serie para aplicarlos.',
       });

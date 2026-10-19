@@ -19,6 +19,7 @@ The primary web export is **one vector PDF containing the complete generated ser
 
 - Deterministic variants derived from a seed and global variant index.
 - Translation, rotation, scaling, mirroring, palette changes, opacity, cropping, layer shuffling, and bounded distortion.
+- Proportional scaling by default, with an option to unlink X/Y scales under **Transformaciones**.
 - SVG resource limits, coverage validation, and explicit variant rejection.
 - Vector multipage PDFs with configurable physical dimensions and bleed; the web defaults to 100 × 100 mm without bleed.
 - CLI batch processing, incremental JSONL manifests, artifact hashes, and cooperative cancellation.

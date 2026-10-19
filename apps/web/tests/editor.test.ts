@@ -29,7 +29,7 @@ function accepted(snapshot: Snapshot): GenerationResponse {
       templateHash: meta.templateHash,
       configurationHash: 'b'.repeat(64),
       engineVersion: '0.1.0',
-      rulesVersion: '1',
+      rulesVersion: snapshot.generation.rulesVersion,
       backend: 'cpu',
       device: 'cpu',
       status: 'accepted',
@@ -82,6 +82,49 @@ function setup(overrides: Partial<EditorPorts> = {}) {
   };
 }
 const svg = () => new File(['<svg/>'], 'art.svg', { type: 'image/svg+xml' });
+
+test('aspect lock links either axis, supports unlocking and freezes the rule in exports', async () => {
+  const ctx = await imported();
+  assert.equal(ctx.editor.getSnapshot().settings.preserveAspectRatio, true);
+  let settings = ctx.editor.getSnapshot().settings;
+  ctx.editor.updateSettings({
+    ranges: { ...settings.ranges, scaleX: { min: '1.2', max: '2' } },
+  });
+  settings = ctx.editor.getSnapshot().settings;
+  assert.deepEqual(settings.ranges.scaleX, settings.ranges.scaleY);
+  ctx.editor.updateSettings({
+    ranges: { ...settings.ranges, scaleY: { min: '1.4', max: '2.2' } },
+  });
+  settings = ctx.editor.getSnapshot().settings;
+  assert.deepEqual(settings.ranges.scaleX, { min: '1.4', max: '2.2' });
+  ctx.editor.updateSettings({ count: '1' });
+  await ctx.editor.generate();
+  assert.equal(ctx.sent[0].generation.rulesVersion, '2');
+  assert.equal(ctx.sent[0].generation.rules.preserveAspectRatio, true);
+  ctx.editor.updateSettings({ preserveAspectRatio: false });
+  settings = ctx.editor.getSnapshot().settings;
+  ctx.editor.updateSettings({
+    ranges: { ...settings.ranges, scaleY: { min: '1', max: '3' } },
+  });
+  assert.notDeepEqual(
+    ctx.editor.getSnapshot().settings.ranges.scaleX,
+    ctx.editor.getSnapshot().settings.ranges.scaleY,
+  );
+  await ctx.editor.download('0', 'svg');
+  assert.equal(ctx.exports[0].generation.rules.preserveAspectRatio, true);
+  await ctx.editor.download('0', 'png');
+  assert.equal(ctx.exports[1].generation.rules.preserveAspectRatio, true);
+  await ctx.editor.exportPdf();
+  assert.equal(
+    ctx.pdfExports[0].job.generation.rules.preserveAspectRatio,
+    true,
+  );
+  await ctx.editor.generate();
+  assert.equal(ctx.sent.at(-1)?.generation.rules.preserveAspectRatio, false);
+  ctx.editor.updateSettings({ preserveAspectRatio: true });
+  settings = ctx.editor.getSnapshot().settings;
+  assert.deepEqual(settings.ranges.scaleY, settings.ranges.scaleX);
+});
 
 test('requested twelve means twelve accepted outputs with real deterministic replacement indices', async () => {
   const attempted: string[] = [];
