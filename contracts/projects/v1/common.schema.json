@@ -1,0 +1,73 @@
+{
+  "definitions": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ProjectUser",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+        }
+      }
+    },
+    "Project": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Project",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "currentRevision", "createdAt", "updatedAt"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "currentRevision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2147483647
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "Revision": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ProjectRevision",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["projectId", "number", "createdAt", "snapshot"],
+      "properties": {
+        "projectId": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+        },
+        "number": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "snapshot": {
+          "$ref": "../../preview/v2/selected-pdf-export-request.schema.json"
+        }
+      }
+    }
+  }
+}

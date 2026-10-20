@@ -25,6 +25,7 @@ The primary web export is **one vector PDF containing the complete generated ser
 - CLI batch processing, incremental JSONL manifests, artifact hashes, and cooperative cancellation.
 - Local web previews and CPU-only Docker deployment with production builds.
 - A private Java control API with validated contracts, bounded transport and request tracing.
+- PostgreSQL persistence for local projects and immutable SVG/configuration revisions through the private API.
 
 Reproduction requires the same normalized template, configuration, seed, engine version, and backend. Seeds and indices are decimal `u64` strings in JSON to preserve precision.
 
@@ -38,7 +39,7 @@ An example input template. Generated variants depend on the configured rules, se
 
 | Workflow          | Requirements                                                       |
 | ----------------- | ------------------------------------------------------------------ |
-| Docker            | Docker Engine with Linux containers and Docker Compose v2          |
+| Docker            | Docker Engine with Linux containers, Docker Compose v2, Node.js 24 |
 | Rust CLI          | Rust/Cargo 1.99 and a platform linker; MSVC build tools on Windows |
 | Native web editor | Rust requirements above, Node.js 24.19–24.x, and pnpm 11.25.0      |
 
@@ -51,7 +52,7 @@ Native execution has been tested on Windows x64. The Docker build and local HTTP
 From the repository root:
 
 ```sh
-docker compose -f deploy/compose/local.yml up -d --build --wait
+node scripts/local-compose.mjs up -d --build --wait
 ```
 
 Open **http://127.0.0.1:3000**. Use this exact host because the proxy validates `Host` and `Origin`. The first build downloads dependencies; later builds reuse Docker caches.
@@ -59,12 +60,17 @@ Open **http://127.0.0.1:3000**. Use this exact host because the proxy validates 
 The image runs web → Java → Rust with distinct server-only service credentials.
 Only the web port is published; Java 4772 and Rust 4771 stay on container loopback.
 See [the Java service](services/api/README.md) and [future job contracts](docs/job-contract-v1.md).
-Asynchronous jobs, accounts and persistence remain later phases.
+The local launcher creates `state/local-db.env` once with a random database
+password and stable local owner ID; it never prints or overwrites existing
+credentials. Keep this ignored file and the PostgreSQL volume when updating.
+PostgreSQL has no host port. Node24 is required for the helper; its equivalent
+Compose command is `docker compose --env-file state/local-db.env -f deploy/compose/local.yml`.
+Asynchronous workers and individual user login remain later phases.
 
 If port 3000 is occupied, choose another port without stopping unrelated services:
 
 ```sh
-MOSAICFORGE_HTTP_PORT=3001 docker compose -f deploy/compose/local.yml up -d --build --wait
+MOSAICFORGE_HTTP_PORT=3001 node scripts/local-compose.mjs up -d --build --wait
 ```
 
 In PowerShell, set `$env:MOSAICFORGE_HTTP_PORT = '3001'` before running Compose. Keep the same value for subsequent commands. The fixed Compose project name means changing the port replaces the existing instance.

@@ -10,5 +10,29 @@ services:
       - "127.0.0.1:${MOSAICFORGE_HTTP_PORT:-3000}:3000"
     environment:
       MOSAICFORGE_WEB_ORIGIN: "http://127.0.0.1:${MOSAICFORGE_HTTP_PORT:-3000}"
+      MOSAICFORGE_PERSISTENCE_ENABLED: "true"
+      MOSAICFORGE_DB_URL: "jdbc:postgresql://postgres:5432/mosaicforge"
+      MOSAICFORGE_DB_USER: "mosaicforge"
+      MOSAICFORGE_DB_PASSWORD: "${MOSAICFORGE_DB_PASSWORD:?Run node scripts/local-compose.mjs first}"
+      MOSAICFORGE_LOCAL_USER_ID: "${MOSAICFORGE_LOCAL_USER_ID:?Run node scripts/local-compose.mjs first}"
+    depends_on:
+      postgres:
+        condition: service_healthy
     restart: unless-stopped
     stop_grace_period: 10s
+  postgres:
+    image: postgres:18-bookworm@sha256:afc7e2d441324c0388fa80c3d24f733b4194a4eb7f47dd8ee2b08eb1a24a647c
+    environment:
+      POSTGRES_DB: "mosaicforge"
+      POSTGRES_USER: "mosaicforge"
+      POSTGRES_PASSWORD: "${MOSAICFORGE_DB_PASSWORD:?Run node scripts/local-compose.mjs first}"
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mosaicforge -d mosaicforge"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    restart: unless-stopped
+volumes:
+  postgres-data:

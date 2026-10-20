@@ -43,6 +43,16 @@ final class Contracts {
       load(registry, operation.responseSchema);
     }
     load(registry, "error");
+    for (var name :
+        new String[] {
+          "create-request",
+          "revision-request",
+          "me-response",
+          "project-response",
+          "list-response",
+          "revision-response",
+          "error"
+        }) load(registry, "projects-" + name);
   }
 
   private void load(SchemaRegistry registry, String name) {

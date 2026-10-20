@@ -1,0 +1,380 @@
+{
+  "$ref": "#/definitions/ProjectRevisionResponse",
+  "definitions": {
+    "Ref5": {
+      "additionalProperties": false,
+      "properties": {
+        "background": {
+          "pattern": "^(transparent|#[0-9a-fA-F]{6})$",
+          "type": "string"
+        },
+        "format": {
+          "enum": [
+            "svg",
+            "png"
+          ],
+          "type": "string"
+        },
+        "height": {
+          "maximum": 4096,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "width": {
+          "maximum": 4096,
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "format",
+        "width",
+        "height",
+        "background"
+      ],
+      "type": "object"
+    },
+    "Ref7": {
+      "additionalProperties": false,
+      "properties": {
+        "height": {
+          "exclusiveMinimum": 0,
+          "type": "number"
+        },
+        "width": {
+          "exclusiveMinimum": 0,
+          "type": "number"
+        },
+        "x": {
+          "minimum": 0,
+          "type": "number"
+        },
+        "y": {
+          "minimum": 0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "x",
+        "y",
+        "width",
+        "height"
+      ],
+      "type": "object"
+    },
+    "Ref8": {
+      "additionalProperties": false,
+      "properties": {
+        "max": {
+          "type": "number"
+        },
+        "min": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "min",
+        "max"
+      ],
+      "type": "object"
+    },
+    "Ref6": {
+      "additionalProperties": false,
+      "properties": {
+        "crop": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Ref7"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "distortion": {
+          "minimum": 0,
+          "type": "number"
+        },
+        "mirrorX": {
+          "type": "boolean"
+        },
+        "mirrorY": {
+          "type": "boolean"
+        },
+        "opacity": {
+          "$ref": "#/definitions/Ref8"
+        },
+        "palette": {
+          "items": {
+            "pattern": "^#[0-9a-fA-F]{6}$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 0,
+          "type": "array"
+        },
+        "preserveAspectRatio": {
+          "description": "Rules v2 requires an explicit flag. When true, scaleX and scaleY ranges must match and share one sampled factor. Forbidden in rules v1.",
+          "type": "boolean"
+        },
+        "rotationDegrees": {
+          "$ref": "#/definitions/Ref8"
+        },
+        "scaleX": {
+          "$ref": "#/definitions/Ref8"
+        },
+        "scaleY": {
+          "$ref": "#/definitions/Ref8"
+        },
+        "shuffleLayers": {
+          "type": "boolean"
+        },
+        "translateX": {
+          "$ref": "#/definitions/Ref8"
+        },
+        "translateY": {
+          "$ref": "#/definitions/Ref8"
+        }
+      },
+      "required": [
+        "translateX",
+        "translateY",
+        "rotationDegrees",
+        "scaleX",
+        "scaleY",
+        "mirrorX",
+        "mirrorY",
+        "opacity",
+        "shuffleLayers",
+        "distortion"
+      ],
+      "type": "object"
+    },
+    "Ref9": {
+      "pattern": "^(0|[1-9][0-9]{0,19})$",
+      "type": "string"
+    },
+    "Ref10": {
+      "pattern": "^[a-f0-9]{64}$",
+      "type": "string"
+    },
+    "GenerationSpec": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "additionalProperties": false,
+      "properties": {
+        "count": {
+          "maximum": 10000,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "engineVersion": {
+          "enum": [
+            "0.1.0"
+          ],
+          "type": "string"
+        },
+        "output": {
+          "$ref": "#/definitions/Ref5"
+        },
+        "rules": {
+          "$ref": "#/definitions/Ref6"
+        },
+        "rulesVersion": {
+          "enum": [
+            "1",
+            "2"
+          ],
+          "type": "string"
+        },
+        "schemaVersion": {
+          "enum": [
+            "1"
+          ],
+          "type": "string"
+        },
+        "seed": {
+          "$ref": "#/definitions/Ref9"
+        },
+        "startIndex": {
+          "$ref": "#/definitions/Ref9"
+        },
+        "templateHash": {
+          "$ref": "#/definitions/Ref10"
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "templateHash",
+        "seed",
+        "startIndex",
+        "count",
+        "engineVersion",
+        "rulesVersion",
+        "rules",
+        "output"
+      ],
+      "title": "GenerationSpec",
+      "type": "object"
+    },
+    "PdfJobSpec": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "additionalProperties": false,
+      "properties": {
+        "generation": {
+          "$ref": "#/definitions/GenerationSpec"
+        },
+        "pdf": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "additionalProperties": false,
+          "properties": {
+            "bleedMm": {
+              "maximum": 50,
+              "minimum": 0,
+              "type": "number"
+            },
+            "exporterVersion": {
+              "enum": [
+                "1"
+              ],
+              "type": "string"
+            },
+            "trimHeightMm": {
+              "maximum": 2000,
+              "minimum": 1,
+              "type": "number"
+            },
+            "trimWidthMm": {
+              "maximum": 2000,
+              "minimum": 1,
+              "type": "number"
+            }
+          },
+          "required": [
+            "exporterVersion",
+            "trimWidthMm",
+            "trimHeightMm",
+            "bleedMm"
+          ],
+          "title": "PdfLayout",
+          "type": "object"
+        },
+        "schemaVersion": {
+          "enum": [
+            "1"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "generation",
+        "pdf"
+      ],
+      "title": "PdfJobSpec",
+      "type": "object"
+    },
+    "RequestId": {
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+      "title": "RequestId",
+      "type": "string"
+    },
+    "SelectedPdfExportRequest": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "additionalProperties": false,
+      "properties": {
+        "job": {
+          "$ref": "#/definitions/PdfJobSpec"
+        },
+        "requestId": {
+          "$ref": "#/definitions/RequestId"
+        },
+        "schemaVersion": {
+          "enum": [
+            "2"
+          ],
+          "type": "string"
+        },
+        "templateSvg": {
+          "maxLength": 5242880,
+          "minLength": 1,
+          "type": "string"
+        },
+        "variantIndices": {
+          "items": {
+            "pattern": "^(0|[1-9][0-9]{0,19})$",
+            "type": "string"
+          },
+          "maxItems": 12,
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "requestId",
+        "templateSvg",
+        "job",
+        "variantIndices"
+      ],
+      "title": "SelectedPdfExportRequest",
+      "type": "object"
+    },
+    "ProjectRevision": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "additionalProperties": false,
+      "properties": {
+        "createdAt": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "number": {
+          "maximum": 2147483647,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "projectId": {
+          "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+          "type": "string"
+        },
+        "snapshot": {
+          "$ref": "#/definitions/SelectedPdfExportRequest"
+        }
+      },
+      "required": [
+        "projectId",
+        "number",
+        "createdAt",
+        "snapshot"
+      ],
+      "title": "ProjectRevision",
+      "type": "object"
+    },
+    "ProjectRevisionResponse": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "additionalProperties": false,
+      "properties": {
+        "requestId": {
+          "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+          "type": "string"
+        },
+        "revision": {
+          "$ref": "#/definitions/ProjectRevision"
+        },
+        "schemaVersion": {
+          "enum": [
+            "1"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "requestId",
+        "revision"
+      ],
+      "title": "ProjectRevisionResponse",
+      "type": "object"
+    }
+  }
+}

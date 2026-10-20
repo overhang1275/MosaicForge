@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ProjectListResponse",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "requestId", "projects", "nextCursor"],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "enum": ["1"]
+    },
+    "requestId": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+    },
+    "projects": {
+      "type": "array",
+      "maxItems": 100,
+      "items": {
+        "$ref": "common.schema.json#/definitions/Project"
+      }
+    },
+    "nextCursor": {
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  }
+}

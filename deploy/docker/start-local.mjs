@@ -14,6 +14,17 @@ delete common.MOSAICFORGE_API_TOKEN;
 delete common.MOSAICFORGE_ENGINE_TOKEN;
 delete common.MOSAICFORGE_API_URL;
 delete common.MOSAICFORGE_ENGINE_URL;
+const database = {};
+for (const key of Object.keys(common)) {
+  if (
+    key.startsWith("MOSAICFORGE_DB_") ||
+    key === "MOSAICFORGE_LOCAL_USER_ID" ||
+    key === "MOSAICFORGE_PERSISTENCE_ENABLED"
+  ) {
+    database[key] = common[key];
+    delete common[key];
+  }
+}
 const engineToken = randomBytes(32).toString("hex");
 const apiToken = randomBytes(32).toString("hex");
 const children = [
@@ -35,6 +46,7 @@ const children = [
         MOSAICFORGE_API_TOKEN: apiToken,
         MOSAICFORGE_ENGINE_TOKEN: engineToken,
         MOSAICFORGE_ENGINE_URL: "http://127.0.0.1:4771",
+        ...database,
       },
       stdio: "inherit",
     },

@@ -18,12 +18,12 @@ Añadir `/v3/export-pdf-selection` con la solicitud v2 existente. La respuesta n
 
 Crear dominio Java pequeño de usuarios/proyectos, puerto de repositorio y adaptador JDBC PostgreSQL con migración inicial versionada. API privada/local autenticada por el mecanismo actual; no publicar registro ni simular autenticación multiusuario. Contratos versionados para crear/listar/consultar proyectos y guardar configuraciones de plantilla como revisiones inmutables. PostgreSQL en Compose sin puerto host y con volumen duradero. Credenciales por entorno y separadas de procesos web/motor.
 
-- [ ] Leer alcance vigente y registrar ADR de persistencia y modelo de pertenencia local.
-- [ ] Contratos antes de Java; validación de propietario, UUID, longitudes y configuración.
-- [ ] Implementar repositorio transaccional y endpoints; sin dependencia JDBC en dominio.
-- [ ] Probar creación/lectura, aislamiento de propietario, revisiones, conflictos y persistencia tras reinicio real de API/BD.
-- [ ] Verificar formato, compilación, tests, migración repetible y ausencia de puertos extra publicados.
-- [ ] Documentar límites y comandos, checkpoint Git final.
+- [x] ~~Leer alcance vigente y registrar ADR de persistencia y modelo de pertenencia local.~~
+- [x] ~~Contratos antes de Java; validación de propietario, UUID, longitudes y configuración.~~
+- [x] ~~Implementar repositorio transaccional y endpoints; sin dependencia JDBC en dominio.~~
+- [x] ~~Probar creación/lectura, aislamiento de propietario, revisiones, conflictos y persistencia tras reinicio real de API/BD.~~
+- [x] ~~Verificar formato, compilación, tests, migración repetible y ausencia de puertos extra publicados.~~
+- [x] ~~Documentar límites y comandos, checkpoint Git final.~~
 
 ## Riesgos a verificar
 

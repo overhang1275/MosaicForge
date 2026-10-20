@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ProjectError",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["requestId", "code", "message"],
+  "properties": {
+    "requestId": {
+      "$ref": "../../preview/v1/common.schema.json#/definitions/RequestId"
+    },
+    "code": {
+      "type": "string",
+      "enum": [
+        "invalid_request",
+        "invalid_template",
+        "unauthorized",
+        "forbidden",
+        "payload_too_large",
+        "unsupported_media_type",
+        "busy",
+        "internal_error",
+        "engine_unavailable",
+        "timeout",
+        "not_found",
+        "conflict",
+        "unavailable"
+      ]
+    },
+    "message": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    }
+  }
+}
