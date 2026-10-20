@@ -1,6 +1,73 @@
 pub mod geometry;
 mod writer;
 
+/// Streams a fallible selection without retaining all indices or page records.
+/// The caller discards the destination on any error, including cancellation.
+pub fn write_selected_pdf_stream<W, I, C, F>(
+    template: &mosaicforge_core::template::Template,
+    job: &mosaicforge_core::contract::PdfJobSpec,
+    count: u64,
+    indices: I,
+    output: &mut W,
+    mut cancelled: C,
+    mut record: F,
+) -> Result<String, mosaicforge_core::EngineError>
+where
+    W: std::io::Write,
+    I: IntoIterator<Item = Result<u64, mosaicforge_core::EngineError>>,
+    C: FnMut() -> bool,
+    F: FnMut(u64, u64) -> Result<(), mosaicforge_core::EngineError>,
+{
+    use mosaicforge_core::EngineError;
+    mosaicforge_core::pdf::validate_pdf_job(job)?;
+    if !(1..=1_000_000).contains(&count) || job.generation.count.get() != 1 {
+        return Err(EngineError::InvalidSpec("invalid streaming PDF count"));
+    }
+    let mut writer = writer::PdfWriter::new(output);
+    let mut indices = indices.into_iter();
+    let mut previous = None;
+    for page in 1..=count {
+        if cancelled() {
+            return Err(EngineError::RenderFailed("cancelled"));
+        }
+        let index = indices
+            .next()
+            .ok_or(EngineError::InvalidSpec("short selection"))??;
+        if previous.is_some_and(|p| p >= index) {
+            return Err(EngineError::InvalidSpec("unordered selection"));
+        }
+        previous = Some(index);
+        let mut spec = job.generation.clone();
+        spec.start_index = index
+            .to_string()
+            .parse()
+            .map_err(|_| EngineError::InvalidSpec("invalid index"))?;
+        let exported = crate::export::generate_and_export(template, &spec, index, 0)?;
+        let svg = exported
+            .artifact
+            .as_ref()
+            .ok_or(EngineError::InvalidSpec("rejected selection"))?;
+        if physical_candidate_rejection(template, job, &exported.variant)?.is_some() {
+            return Err(EngineError::InvalidSpec("physical rejection"));
+        }
+        let geometry = geometry::optimize_page(svg, job)?;
+        if cancelled() {
+            return Err(EngineError::RenderFailed("cancelled"));
+        }
+        writer.page(&geometry)?;
+        record(index, page)?;
+    }
+    if indices.next().is_some() {
+        return Err(EngineError::InvalidSpec("excess selection"));
+    }
+    if cancelled() {
+        return Err(EngineError::RenderFailed("cancelled"));
+    }
+    writer
+        .finish()?
+        .ok_or(EngineError::RenderFailed("empty PDF"))
+}
+
 use mosaicforge_core::{
     EngineError,
     contract::{PdfDocumentResult, PdfJobSpec, PdfPageRecord},

@@ -19,6 +19,8 @@ struct ServerState {
     token: String,
     host: String,
     gate: Arc<Semaphore>,
+    cancel_gate: Arc<Semaphore>,
+    download_gate: Arc<Semaphore>,
     journal: Option<Arc<crate::durable::Journal>>,
 }
 
@@ -41,12 +43,18 @@ fn configured_router(
         .route("/v2/export-pdf-selection", any(handle))
         .route("/v3/export-pdf-selection", any(handle));
     if journal.is_some() {
-        routes = routes.route("/internal/v1/blocks", any(handle));
+        routes = routes
+            .route("/internal/v1/blocks", any(handle))
+            .route("/internal/v1/finalize", any(handle))
+            .route("/internal/v1/cancel", any(handle))
+            .route("/internal/v1/artifacts/{artifactId}/{kind}", any(handle));
     }
     routes.with_state(ServerState {
         token,
         host,
         gate: Arc::new(Semaphore::new(1)),
+        cancel_gate: Arc::new(Semaphore::new(4)),
+        download_gate: Arc::new(Semaphore::new(4)),
         journal,
     })
 }
@@ -120,6 +128,18 @@ async fn handle_inner(state: ServerState, request: Request) -> Response {
     {
         return error(StatusCode::UNAUTHORIZED, UNKNOWN_REQUEST, "unauthorized");
     }
+    if request.uri().path().starts_with("/internal/v1/artifacts/") {
+        let permit = match state.download_gate.try_acquire_owned() {
+            Ok(p) => p,
+            Err(_) => return error(StatusCode::TOO_MANY_REQUESTS, UNKNOWN_REQUEST, "busy"),
+        };
+        return crate::artifact_http::respond(
+            state.journal.expect("configured journal"),
+            request,
+            permit,
+        )
+        .await;
+    }
     if request.method() != axum::http::Method::POST {
         return StatusCode::METHOD_NOT_ALLOWED.into_response();
     }
@@ -150,11 +170,17 @@ async fn handle_inner(state: ServerState, request: Request) -> Response {
             "payload_too_large",
         );
     }
-    let permit = match state.gate.try_acquire_owned() {
+    let path = request.uri().path().to_owned();
+    let cancellation = path == "/internal/v1/cancel";
+    let gate = if cancellation {
+        state.cancel_gate.clone()
+    } else {
+        state.gate.clone()
+    };
+    let permit = match gate.try_acquire_owned() {
         Ok(p) => p,
         Err(_) => return error(StatusCode::TOO_MANY_REQUESTS, UNKNOWN_REQUEST, "busy"),
     };
-    let path = request.uri().path().to_owned();
     let bytes = match tokio::time::timeout(
         Duration::from_secs(30),
         to_bytes(request.into_body(), MAX_BODY_BYTES),
@@ -188,8 +214,10 @@ async fn handle_inner(state: ServerState, request: Request) -> Response {
         return crate::binary_pdf::respond(bytes, permit).await;
     }
     match blocking(permit, move || {
-        if path == "/internal/v1/blocks" {
-            return match state.journal.expect("configured journal route").execute(&bytes){
+        if path.starts_with("/internal/v1/") {
+            let journal=state.journal.expect("configured journal route");
+            let result=match path.as_str(){"/internal/v1/blocks"=>journal.execute(&bytes),"/internal/v1/finalize"=>journal.finalize(&bytes),"/internal/v1/cancel"=>journal.cancel(&bytes),_=>unreachable!()};
+            return match result{
                 Ok(bytes)=>(200,bytes),
                 Err(e)=>(e.status,json!({"requestId":UNKNOWN_REQUEST,"code":e.code,"message":"Block operation could not be completed"}).to_string().into_bytes()),
             };
@@ -220,6 +248,38 @@ pub fn router_with_journal(
 mod tests {
     use super::*;
     #[tokio::test]
+    async fn cancellation_bypasses_occupied_compute_gate() {
+        use tower::ServiceExt;
+        let dir =
+            std::env::temp_dir().join(format!("mosaic-cancel-admission-{}", uuid::Uuid::new_v4()));
+        let gate = Arc::new(Semaphore::new(1));
+        let _permit = gate.clone().try_acquire_owned().unwrap();
+        let journal = Arc::new(crate::durable::Journal::open(&dir, Default::default()).unwrap());
+        let state = ServerState {
+            token: "test-token".into(),
+            host: "worker".into(),
+            gate,
+            cancel_gate: Arc::new(Semaphore::new(4)),
+            download_gate: Arc::new(Semaphore::new(4)),
+            journal: Some(journal.clone()),
+        };
+        let app = Router::new()
+            .route("/internal/v1/cancel", any(handle))
+            .with_state(state);
+        let request = axum::http::Request::post("/internal/v1/cancel")
+            .header("host", "worker")
+            .header("authorization", "Bearer test-token")
+            .header("content-type", "application/json")
+            .body(axum::body::Body::from(
+                r#"{"schemaVersion":"1","jobId":"12345678-1234-1234-1234-123456789abc"}"#,
+            ))
+            .unwrap();
+        assert_eq!(app.oneshot(request).await.unwrap().status(), 200);
+        assert!(journal.is_cancelled("12345678-1234-1234-1234-123456789abc"));
+        drop(journal);
+        std::fs::remove_dir_all(dir).unwrap();
+    }
+    #[tokio::test]
     async fn successful_request_preserves_valid_trace_context() {
         use tower::ServiceExt;
         let trace = "00-1234567890abcdef1234567890abcdef-1234567890abcdef-01";
@@ -244,6 +304,8 @@ mod tests {
             token: "test-token".into(),
             host: "127.0.0.1:4771".into(),
             gate,
+            cancel_gate: Arc::new(Semaphore::new(4)),
+            download_gate: Arc::new(Semaphore::new(4)),
             journal: None,
         };
         let app = Router::new()

@@ -47,3 +47,18 @@ pub mod block_response {
 }
 pub use block_request::BlockRequest;
 pub use block_response::BlockResponse;
+pub mod finalize_request {
+    include!(concat!(env!("OUT_DIR"), "/finalize_request.rs"));
+}
+pub mod finalize_response {
+    include!(concat!(env!("OUT_DIR"), "/finalize_response.rs"));
+}
+pub mod cancel_request {
+    include!(concat!(env!("OUT_DIR"), "/cancel_request.rs"));
+}
+pub mod cancel_response {
+    include!(concat!(env!("OUT_DIR"), "/cancel_response.rs"));
+}
+pub mod manifest_record {
+    include!(concat!(env!("OUT_DIR"), "/manifest_record.rs"));
+}

@@ -1,3 +1,4 @@
+mod artifact_http;
 mod binary_pdf;
 mod compute;
 pub mod contract;

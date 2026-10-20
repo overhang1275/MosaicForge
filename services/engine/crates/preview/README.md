@@ -67,3 +67,54 @@ cambiar espacios también es conflicto. `recordsSha256` es SHA-256 del array
 lexicográficamente (`serde_json::to_value` seguido de `to_vec`, sin preserve_order).
 Cada registro siempre incluye `accepted`, `index` decimal string y `reason` string
 o null; no intervienen floats. `recordsId` es un UUID v4 opaco creado por Rust.
+
+## Publicación y descarga duraderas (worker/v1)
+
+Con el mismo `MOSAICFORGE_JOURNAL_DIR`, `POST /internal/v1/finalize` recibe
+referencias explícitas a hasta 4095 bloques confirmados. Verifica identidad,
+checksums, contadores e índices consecutivos de todos los bloques, comenzando
+en el índice inicial original del job; después lee
+la selección de nuevo y renderiza exactamente las primeras N aceptadas, sin
+retener un array global. Revalida aceptación física con el exportador CPU.
+Un fallo nunca hace visible el temporal. Los tipos de finalize/cancel/manifest
+se generan desde `contracts/worker/v1` durante el build de Rust.
+
+Publica una colección `artifacts/{artifactId}` con `document.pdf`,
+`manifest.ndjson` y `metadata.json`, mediante rename del directorio temporal en
+el mismo sistema de archivos, después de sincronizar archivos y directorios.
+Archivos nuevos son 0600 y directorios 0700. Reintentar el cuerpo exacto verifica
+los hashes y devuelve los metadatos persistidos; otros bytes son conflicto 409.
+Una caída antes del sellado permite reconstruir el temporal propio completo;
+una colección sellada se conserva y nunca se trunca. No busca bloques sin
+confirmación del plano de control. No hay borrado automático de colecciones.
+Al iniciar, ya bajo el bloqueo exclusivo del SO y sin cómputo activo, elimina
+solo temporales UUID.tmp propios con archivos conocidos, regulares y privados;
+rechaza enlaces o contenido inesperado. Libera la cuota de una generación
+interrumpida incluso si el job fue cancelado antes de reiniciar. Las colecciones
+selladas y los marcadores duraderos de cancelación se conservan.
+
+La cuota de salida individual y agregada es 1 GiB. Reserva 100 bytes por registro
+de manifiesto y 16 KiB para cabecera/metadatos antes de escribir el PDF. La
+selección retiene como máximo un bloque de 10000 registros y 4095 referencias.
+El escritor PDF mantiene tablas de páginas/offsets proporcionales al documento,
+con el límite existente de 1000000 objetos y 64 MiB por objeto; no se promete
+memoria constante ni capacidad medida de un millón de páginas.
+
+`selectionSha256` es SHA-256 de UTF-8 `mosaicforge-selection-v1\n` seguido de
+cada índice aceptado decimal y `\n`. `documentConfigurationHash` es SHA-256 del
+JSON compacto ordenado `{schemaVersion:"1",job,requestedAcceptedCount,selectionSha256}`.
+El job mantiene count=1. Los hashes PDF, selección y configuración no dependen
+de cómo se particionaron los bloques. El manifiesto contiene cabecera job,
+registros variant ordenados y marcador completed; sus UUID sí identifican la
+colección concreta.
+
+`POST /internal/v1/cancel` persiste un marcador del job y evita el semáforo de
+cómputo. Comprueba cancelación entre páginas/candidatos y bajo el bloqueo de
+publicación. Los jobs cancelados no publican ni descargan colecciones.
+`GET/HEAD /internal/v1/artifacts/{artifactId}/{pdf|manifest}` valida archivos
+sellados y sus hashes antes de servirlos. Usa ETag SHA-256 entre comillas,
+Accept-Ranges bytes, rangos únicos con 206/416 e If-Range. Un 416 tiene el MIME
+del miembro y cuerpo vacío. La transmisión usa lecturas de hasta 64 KiB y canal
+acotado; una truncación o cancelación durante la transmisión falla el cuerpo.
+Todas las rutas comparten token, Host, ausencia de Origin y propagación de trace;
+hay admisión acotada separada para 4 cancelaciones y 4 descargas.

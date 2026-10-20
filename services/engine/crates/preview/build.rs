@@ -21,23 +21,34 @@ fn main() {
         "pdf-download-response",
         "block-request",
         "block-response",
+        "finalize-request",
+        "finalize-response",
+        "cancel-request",
+        "cancel-response",
+        "manifest-record",
     ] {
         let schema = schema_bundle::bundle_schema(
             &root,
-            &root.join(if name.starts_with("block-") {
-                format!("worker/v1/{name}.schema.json")
-            } else {
-                format!(
-                    "preview/v{}/{name}.schema.json",
-                    if name == "pdf-download-response" {
-                        3
-                    } else if name.starts_with("selected-") {
-                        2
-                    } else {
-                        1
-                    }
-                )
-            }),
+            &root.join(
+                if name.starts_with("block-")
+                    || name.starts_with("finalize-")
+                    || name.starts_with("cancel-")
+                    || name == "manifest-record"
+                {
+                    format!("worker/v1/{name}.schema.json")
+                } else {
+                    format!(
+                        "preview/v{}/{name}.schema.json",
+                        if name == "pdf-download-response" {
+                            3
+                        } else if name.starts_with("selected-") {
+                            2
+                        } else {
+                            1
+                        }
+                    )
+                },
+            ),
         )
         .expect("local preview schema");
         let mut settings = typify::TypeSpaceSettings::default();

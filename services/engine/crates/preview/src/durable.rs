@@ -1,5 +1,7 @@
 //! Immutable bounded worker journals. No caller-controlled filesystem names.
+mod artifacts;
 use crate::contract::{BlockRequest, BlockResponse};
+pub use artifacts::ArtifactFile;
 use mosaicforge_core::template::import_svg;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
@@ -32,6 +34,7 @@ pub struct Journal {
     root: PathBuf,
     limits: JournalLimits,
     lock: Mutex<()>,
+    publication: Mutex<()>,
     _owner: File,
 }
 #[derive(Serialize, Deserialize)]
@@ -107,12 +110,17 @@ impl Journal {
         let owner = File::open(&root)?;
         owner.try_lock().map_err(std::io::Error::other)?;
         owner.sync_all()?;
-        Ok(Self {
+        let journal = Self {
             root,
             limits,
             lock: Mutex::new(()),
+            publication: Mutex::new(()),
             _owner: owner,
-        })
+        };
+        journal
+            .recover_artifact_temporaries()
+            .map_err(|_| std::io::Error::other("artifact recovery failed"))?;
+        Ok(journal)
     }
     pub fn execute(&self, bytes: &[u8]) -> Result<Vec<u8>, BlockError> {
         let _guard = self.lock.lock().map_err(disk)?;
@@ -151,6 +159,9 @@ impl Journal {
         mosaicforge_core::pdf::validate_pdf_job(&request.job)
             .map_err(|_| err(400, "invalid_request"))?;
         let request_hash = hash(bytes);
+        if self.is_cancelled(job_id) {
+            return Err(err(409, "job_cancelled"));
+        }
         let path = self.root.join(format!("{block_id}.json"));
         if fs::symlink_metadata(&path).is_ok() {
             return self.replay(&path, job_id, block_id, &request_hash);
@@ -164,6 +175,9 @@ impl Journal {
         let mut records = Vec::with_capacity(count as usize);
         let mut accepted = 0u64;
         for offset in 0..count {
+            if self.is_cancelled(job_id) {
+                return Err(err(409, "job_cancelled"));
+            }
             if started.elapsed() > self.limits.time {
                 return Err(err(503, "block_timeout"));
             }
@@ -234,6 +248,10 @@ impl Journal {
             file.sync_all().map_err(disk)?;
             drop(file);
             // link is atomic and exclusive; unlike rename it cannot replace committed data.
+            let _publication = self.publication.lock().map_err(disk)?;
+            if self.is_cancelled(job_id) {
+                return Err(err(409, "job_cancelled"));
+            }
             match fs::hard_link(&temporary, &path) {
                 Ok(()) => (),
                 Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => {
@@ -252,11 +270,19 @@ impl Journal {
         let mut bytes = additional;
         let mut count = 0;
         for entry in fs::read_dir(&self.root).map_err(disk)? {
+            let entry = entry.map_err(disk)?;
+            if entry.file_name() == "artifacts" {
+                let m = fs::symlink_metadata(entry.path()).map_err(disk)?;
+                if !m.is_dir() || m.file_type().is_symlink() {
+                    return Err(err(500, "journal_error"));
+                }
+                continue;
+            }
             count += 1;
             if count >= self.limits.files {
                 return Err(err(507, "journal_quota"));
             }
-            let metadata = fs::symlink_metadata(entry.map_err(disk)?.path()).map_err(disk)?;
+            let metadata = fs::symlink_metadata(entry.path()).map_err(disk)?;
             if !metadata.is_file() || metadata.file_type().is_symlink() {
                 return Err(err(500, "journal_error"));
             }
