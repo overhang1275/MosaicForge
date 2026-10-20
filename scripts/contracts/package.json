@@ -9,7 +9,9 @@
   "scripts": {
     "generate": "node generate.mjs",
     "check": "node generate.mjs --check",
-    "test": "node --test contract.test.mjs",
+    "test": "node --test *.test.mjs",
+    "generate:durable": "node durable-generate.mjs",
+    "check:durable": "node durable-generate.mjs --check",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --max-warnings 0",
     "format": "prettier --check \"*.mjs\" \"*.json\" \"*.ts\""

@@ -1,0 +1,117 @@
+{
+  "$ref": "#/definitions/BlockResponse",
+  "definitions": {
+    "Ref1": {
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+      "type": "string"
+    },
+    "Ref2": {
+      "pattern": "^(0|[1-9][0-9]{0,19})$",
+      "type": "string"
+    },
+    "BlockResponse": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "additionalProperties": false,
+      "properties": {
+        "acceptedCount": {
+          "maximum": 10000,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "blockId": {
+          "$ref": "#/definitions/Ref1"
+        },
+        "evaluatedCount": {
+          "maximum": 10000,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "jobId": {
+          "$ref": "#/definitions/Ref1"
+        },
+        "nextCandidateIndex": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Ref2"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "records": {
+          "items": {
+            "$schema": "http://json-schema.org/draft-07/schema#",
+            "additionalProperties": false,
+            "properties": {
+              "accepted": {
+                "type": "boolean"
+              },
+              "index": {
+                "$ref": "#/definitions/Ref2"
+              },
+              "reason": {
+                "maxLength": 128,
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "index",
+              "accepted",
+              "reason"
+            ],
+            "title": "BlockRecord",
+            "type": "object"
+          },
+          "maxItems": 10000,
+          "minItems": 1,
+          "type": "array"
+        },
+        "recordsId": {
+          "$ref": "#/definitions/Ref1"
+        },
+        "recordsSha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "rejectedCount": {
+          "maximum": 10000,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "requestHash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "schemaVersion": {
+          "enum": [
+            "1"
+          ],
+          "type": "string"
+        },
+        "startIndex": {
+          "$ref": "#/definitions/Ref2"
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "jobId",
+        "blockId",
+        "requestHash",
+        "startIndex",
+        "evaluatedCount",
+        "acceptedCount",
+        "rejectedCount",
+        "nextCandidateIndex",
+        "recordsId",
+        "recordsSha256",
+        "records"
+      ],
+      "title": "BlockResponse",
+      "type": "object"
+    }
+  }
+}

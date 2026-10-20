@@ -1,0 +1,49 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "MosaicForge durable jobs — staged contract",
+    "version": "2"
+  },
+  "x-implemented": false,
+  "paths": {
+    "/v2/jobs": {
+      "post": {
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 128,
+              "pattern": "^[!-~]+$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "../jobs/v2/request.schema.json"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Durably accepted (route disabled until finalization is complete)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../jobs/v2/status.schema.json"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

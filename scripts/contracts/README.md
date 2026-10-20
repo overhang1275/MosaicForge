@@ -12,6 +12,10 @@ pnpm --dir scripts/contracts run lint
 pnpm --dir scripts/contracts run format
 ```
 
+Durable jobs v2 and private worker v1 have a separate additive generator:
+`node scripts/contracts/durable-generate.mjs` (or `--check` to detect drift).
+The default test command runs all `*.test.mjs`, including compatibility tests.
+
 generate crea contracts/generated/typescript/preview.ts desde los esquemas reales; check solo compara, devuelve exit 1 si falta/difiere y no escribe. schema.mjs resuelve referencias locales dentro de contracts/, incluidas las del motor; no descarga esquemas. Comparación normalizada a LF para checkouts Windows con CRLF.
 
 check.mjs es un verificador de fixtures, no motor generativo: Ajv draft-07 sin coerción/defaults ni eliminación de campos, más semántica de sobres. Rust reutiliza validate_spec/validate_result del core. Los fixtures de contracts/preview/v1/fixtures/index.json tienen el mismo veredicto en ambos entornos. Números u64 son cadenas. artifact:null representa ausencia; accepted exige bytes reales/base64 canónico y hash coincidente.

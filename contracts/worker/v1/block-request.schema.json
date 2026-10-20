@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "BlockRequest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "jobId",
+    "blockId",
+    "templateSvg",
+    "job",
+    "startIndex",
+    "candidateCount",
+    "acceptedLimit"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "enum": ["1"]
+    },
+    "jobId": {
+      "$ref": "../../jobs/v1/common.schema.json#/definitions/Id"
+    },
+    "blockId": {
+      "$ref": "../../jobs/v1/common.schema.json#/definitions/Id"
+    },
+    "templateSvg": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 5242880
+    },
+    "job": {
+      "$ref": "../../engine/pdf/v1/job.schema.json"
+    },
+    "startIndex": {
+      "$ref": "../../jobs/v1/common.schema.json#/definitions/U64"
+    },
+    "candidateCount": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10000
+    },
+    "acceptedLimit": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10000
+    }
+  }
+}

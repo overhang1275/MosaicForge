@@ -1,0 +1,116 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DurableJobStatus",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "jobId",
+    "projectId",
+    "state",
+    "revision",
+    "requestedAcceptedCount",
+    "maxCandidates",
+    "evaluatedCount",
+    "acceptedCount",
+    "rejectedCount",
+    "nextCandidateIndex",
+    "artifact"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "enum": ["2"]
+    },
+    "jobId": {
+      "$ref": "../v1/common.schema.json#/definitions/Id"
+    },
+    "projectId": {
+      "$ref": "../v1/common.schema.json#/definitions/Id"
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "queued",
+        "running",
+        "cancelling",
+        "cancelled",
+        "failed",
+        "succeeded"
+      ]
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "requestedAcceptedCount": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1000000
+    },
+    "maxCandidates": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10000000
+    },
+    "evaluatedCount": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 10000000
+    },
+    "acceptedCount": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 1000000
+    },
+    "rejectedCount": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 10000000
+    },
+    "nextCandidateIndex": {
+      "anyOf": [
+        {
+          "$ref": "../v1/common.schema.json#/definitions/U64"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "artifact": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "title": "JobArtifact",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["pdfId", "manifestId", "pageCount", "sha256", "bytes"],
+          "properties": {
+            "pdfId": {
+              "$ref": "../v1/common.schema.json#/definitions/Id"
+            },
+            "manifestId": {
+              "$ref": "../v1/common.schema.json#/definitions/Id"
+            },
+            "pageCount": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000000
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "bytes": {
+              "$ref": "../v1/common.schema.json#/definitions/U64"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

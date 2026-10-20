@@ -1,0 +1,137 @@
+{
+  "$ref": "#/definitions/DurableJobStatus",
+  "definitions": {
+    "Ref1": {
+      "pattern": "^(0|[1-9][0-9]{0,19})$",
+      "type": "string"
+    },
+    "Ref2": {
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+      "type": "string"
+    },
+    "DurableJobStatus": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "additionalProperties": false,
+      "properties": {
+        "acceptedCount": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "artifact": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "additionalProperties": false,
+              "properties": {
+                "bytes": {
+                  "$ref": "#/definitions/Ref1"
+                },
+                "manifestId": {
+                  "$ref": "#/definitions/Ref2"
+                },
+                "pageCount": {
+                  "maximum": 1000000,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "pdfId": {
+                  "$ref": "#/definitions/Ref2"
+                },
+                "sha256": {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "pdfId",
+                "manifestId",
+                "pageCount",
+                "sha256",
+                "bytes"
+              ],
+              "title": "JobArtifact",
+              "type": "object"
+            }
+          ]
+        },
+        "evaluatedCount": {
+          "maximum": 10000000,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "jobId": {
+          "$ref": "#/definitions/Ref2"
+        },
+        "maxCandidates": {
+          "maximum": 10000000,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "nextCandidateIndex": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Ref1"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "projectId": {
+          "$ref": "#/definitions/Ref2"
+        },
+        "rejectedCount": {
+          "maximum": 10000000,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "requestedAcceptedCount": {
+          "maximum": 1000000,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "revision": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "schemaVersion": {
+          "enum": [
+            "2"
+          ],
+          "type": "string"
+        },
+        "state": {
+          "enum": [
+            "queued",
+            "running",
+            "cancelling",
+            "cancelled",
+            "failed",
+            "succeeded"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "jobId",
+        "projectId",
+        "state",
+        "revision",
+        "requestedAcceptedCount",
+        "maxCandidates",
+        "evaluatedCount",
+        "acceptedCount",
+        "rejectedCount",
+        "nextCandidateIndex",
+        "artifact"
+      ],
+      "title": "DurableJobStatus",
+      "type": "object"
+    }
+  }
+}

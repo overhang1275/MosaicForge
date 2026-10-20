@@ -1,0 +1,95 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "BlockResponse",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "jobId",
+    "blockId",
+    "requestHash",
+    "startIndex",
+    "evaluatedCount",
+    "acceptedCount",
+    "rejectedCount",
+    "nextCandidateIndex",
+    "recordsId",
+    "recordsSha256",
+    "records"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "enum": ["1"]
+    },
+    "jobId": {
+      "$ref": "../../jobs/v1/common.schema.json#/definitions/Id"
+    },
+    "blockId": {
+      "$ref": "../../jobs/v1/common.schema.json#/definitions/Id"
+    },
+    "requestHash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "startIndex": {
+      "$ref": "../../jobs/v1/common.schema.json#/definitions/U64"
+    },
+    "evaluatedCount": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10000
+    },
+    "acceptedCount": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 10000
+    },
+    "rejectedCount": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 10000
+    },
+    "nextCandidateIndex": {
+      "anyOf": [
+        {
+          "$ref": "../../jobs/v1/common.schema.json#/definitions/U64"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "recordsId": {
+      "$ref": "../../jobs/v1/common.schema.json#/definitions/Id"
+    },
+    "recordsSha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "records": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 10000,
+      "items": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "title": "BlockRecord",
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["index", "accepted", "reason"],
+        "properties": {
+          "index": {
+            "$ref": "../../jobs/v1/common.schema.json#/definitions/U64"
+          },
+          "accepted": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": ["string", "null"],
+            "maxLength": 128
+          }
+        }
+      }
+    }
+  }
+}
