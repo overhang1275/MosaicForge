@@ -1,0 +1,136 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ManifestRecord",
+  "oneOf": [
+    {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ManifestHeader",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "kind",
+        "jobId",
+        "artifactId",
+        "documentConfigurationHash",
+        "requestedAcceptedCount",
+        "seed",
+        "engineVersion",
+        "rulesVersion",
+        "backend"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "type": "string",
+          "enum": [
+            "1"
+          ]
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "job"
+          ]
+        },
+        "jobId": {
+          "$ref": "../../jobs/v1/common.schema.json#/definitions/Id"
+        },
+        "artifactId": {
+          "$ref": "../../jobs/v1/common.schema.json#/definitions/Id"
+        },
+        "documentConfigurationHash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "requestedAcceptedCount": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000
+        },
+        "seed": {
+          "$ref": "../../jobs/v1/common.schema.json#/definitions/U64"
+        },
+        "engineVersion": {
+          "type": "string",
+          "enum": [
+            "0.1.0"
+          ]
+        },
+        "rulesVersion": {
+          "type": "string",
+          "enum": [
+            "1",
+            "2",
+            "3"
+          ]
+        },
+        "backend": {
+          "type": "string",
+          "enum": [
+            "cpu"
+          ]
+        }
+      }
+    },
+    {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ManifestVariant",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "index",
+        "pageNumber"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "variant"
+          ]
+        },
+        "index": {
+          "$ref": "../../jobs/v1/common.schema.json#/definitions/U64"
+        },
+        "pageNumber": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000
+        }
+      }
+    },
+    {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ManifestCompleted",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "pageCount",
+        "sha256",
+        "selectionSha256"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "completed"
+          ]
+        },
+        "pageCount": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "selectionSha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    }
+  ]
+}

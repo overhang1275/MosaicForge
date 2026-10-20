@@ -1,0 +1,71 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "FinalizeRequest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "jobId",
+    "artifactId",
+    "templateSvg",
+    "job",
+    "requestedAcceptedCount",
+    "blocks"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "enum": [
+        "1"
+      ]
+    },
+    "jobId": {
+      "$ref": "../../jobs/v1/common.schema.json#/definitions/Id"
+    },
+    "artifactId": {
+      "$ref": "../../jobs/v1/common.schema.json#/definitions/Id"
+    },
+    "templateSvg": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 5242880
+    },
+    "job": {
+      "$ref": "../../engine/pdf/v1/job.schema.json"
+    },
+    "requestedAcceptedCount": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1000000
+    },
+    "blocks": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 4095,
+      "items": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "title": "BlockReference",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "blockId",
+          "requestHash",
+          "recordsSha256"
+        ],
+        "properties": {
+          "blockId": {
+            "$ref": "../../jobs/v1/common.schema.json#/definitions/Id"
+          },
+          "requestHash": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "recordsSha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        }
+      }
+    }
+  }
+}

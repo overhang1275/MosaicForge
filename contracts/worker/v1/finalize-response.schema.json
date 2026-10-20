@@ -1,0 +1,64 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "FinalizeResponse",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "jobId",
+    "artifactId",
+    "requestHash",
+    "documentConfigurationHash",
+    "pageCount",
+    "sha256",
+    "bytes",
+    "manifestSha256",
+    "manifestBytes",
+    "selectionSha256"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "enum": [
+        "1"
+      ]
+    },
+    "jobId": {
+      "$ref": "../../jobs/v1/common.schema.json#/definitions/Id"
+    },
+    "artifactId": {
+      "$ref": "../../jobs/v1/common.schema.json#/definitions/Id"
+    },
+    "requestHash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "documentConfigurationHash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "pageCount": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1000000
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "bytes": {
+      "$ref": "../../jobs/v1/common.schema.json#/definitions/U64"
+    },
+    "manifestSha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "manifestBytes": {
+      "$ref": "../../jobs/v1/common.schema.json#/definitions/U64"
+    },
+    "selectionSha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}

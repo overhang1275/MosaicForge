@@ -1,0 +1,77 @@
+{
+  "$ref": "#/definitions/FinalizeResponse",
+  "definitions": {
+    "Ref1": {
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+      "type": "string"
+    },
+    "Ref2": {
+      "pattern": "^(0|[1-9][0-9]{0,19})$",
+      "type": "string"
+    },
+    "FinalizeResponse": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "additionalProperties": false,
+      "properties": {
+        "artifactId": {
+          "$ref": "#/definitions/Ref1"
+        },
+        "bytes": {
+          "$ref": "#/definitions/Ref2"
+        },
+        "documentConfigurationHash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "jobId": {
+          "$ref": "#/definitions/Ref1"
+        },
+        "manifestBytes": {
+          "$ref": "#/definitions/Ref2"
+        },
+        "manifestSha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "pageCount": {
+          "maximum": 1000000,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "requestHash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "schemaVersion": {
+          "enum": [
+            "1"
+          ],
+          "type": "string"
+        },
+        "selectionSha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "jobId",
+        "artifactId",
+        "requestHash",
+        "documentConfigurationHash",
+        "pageCount",
+        "sha256",
+        "bytes",
+        "manifestSha256",
+        "manifestBytes",
+        "selectionSha256"
+      ],
+      "title": "FinalizeResponse",
+      "type": "object"
+    }
+  }
+}

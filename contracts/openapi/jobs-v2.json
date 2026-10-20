@@ -1,10 +1,23 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "MosaicForge durable jobs — staged contract",
+    "title": "MosaicForge durable jobs",
     "version": "2"
   },
   "x-implemented": false,
+  "security": [
+    {
+      "serviceToken": []
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "serviceToken": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  },
   "paths": {
     "/v2/jobs": {
       "post": {
@@ -33,11 +46,853 @@
         },
         "responses": {
           "202": {
-            "description": "Durably accepted (route disabled until finalization is complete)",
+            "description": "Durable bounded job status",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "../jobs/v2/status.schema.json"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "416": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/jobs/{id}": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Durable bounded job status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../jobs/v2/status.schema.json"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "416": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/jobs/{id}/cancel": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Durable bounded job status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../jobs/v2/status.schema.json"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Durable bounded job status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../jobs/v2/status.schema.json"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "416": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/jobs/{id}/artifacts/{kind}": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "kind",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "pdf",
+                "manifest"
+              ]
+            }
+          },
+          {
+            "in": "header",
+            "name": "Range",
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            }
+          },
+          {
+            "in": "header",
+            "name": "If-Range",
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Complete sealed artifact",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "application/x-ndjson": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "206": {
+            "description": "Single byte range of immutable artifact"
+          },
+          "400": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "416": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          }
+        }
+      },
+      "head": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "kind",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "pdf",
+                "manifest"
+              ]
+            }
+          },
+          {
+            "in": "header",
+            "name": "Range",
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            }
+          },
+          {
+            "in": "header",
+            "name": "If-Range",
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Complete sealed artifact",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "application/x-ndjson": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "206": {
+            "description": "Single byte range of immutable artifact"
+          },
+          "400": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "416": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../projects/v1/error.schema.json"
                 }
               }
             }

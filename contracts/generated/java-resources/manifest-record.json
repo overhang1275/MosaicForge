@@ -1,0 +1,149 @@
+{
+  "$ref": "#/definitions/ManifestRecord",
+  "definitions": {
+    "Ref1": {
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+      "type": "string"
+    },
+    "Ref2": {
+      "pattern": "^(0|[1-9][0-9]{0,19})$",
+      "type": "string"
+    },
+    "ManifestRecord": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "oneOf": [
+        {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "additionalProperties": false,
+          "properties": {
+            "artifactId": {
+              "$ref": "#/definitions/Ref1"
+            },
+            "backend": {
+              "enum": [
+                "cpu"
+              ],
+              "type": "string"
+            },
+            "documentConfigurationHash": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            "engineVersion": {
+              "enum": [
+                "0.1.0"
+              ],
+              "type": "string"
+            },
+            "jobId": {
+              "$ref": "#/definitions/Ref1"
+            },
+            "kind": {
+              "enum": [
+                "job"
+              ],
+              "type": "string"
+            },
+            "requestedAcceptedCount": {
+              "maximum": 1000000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "rulesVersion": {
+              "enum": [
+                "1",
+                "2",
+                "3"
+              ],
+              "type": "string"
+            },
+            "schemaVersion": {
+              "enum": [
+                "1"
+              ],
+              "type": "string"
+            },
+            "seed": {
+              "$ref": "#/definitions/Ref2"
+            }
+          },
+          "required": [
+            "schemaVersion",
+            "kind",
+            "jobId",
+            "artifactId",
+            "documentConfigurationHash",
+            "requestedAcceptedCount",
+            "seed",
+            "engineVersion",
+            "rulesVersion",
+            "backend"
+          ],
+          "title": "ManifestHeader",
+          "type": "object"
+        },
+        {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "additionalProperties": false,
+          "properties": {
+            "index": {
+              "$ref": "#/definitions/Ref2"
+            },
+            "kind": {
+              "enum": [
+                "variant"
+              ],
+              "type": "string"
+            },
+            "pageNumber": {
+              "maximum": 1000000,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          "required": [
+            "kind",
+            "index",
+            "pageNumber"
+          ],
+          "title": "ManifestVariant",
+          "type": "object"
+        },
+        {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "enum": [
+                "completed"
+              ],
+              "type": "string"
+            },
+            "pageCount": {
+              "maximum": 1000000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "selectionSha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            "sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "pageCount",
+            "sha256",
+            "selectionSha256"
+          ],
+          "title": "ManifestCompleted",
+          "type": "object"
+        }
+      ],
+      "title": "ManifestRecord"
+    }
+  }
+}

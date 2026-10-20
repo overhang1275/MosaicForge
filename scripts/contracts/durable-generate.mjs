@@ -1,6 +1,8 @@
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { compile } from 'json-schema-to-typescript';
 import { bundleSchema } from './schema.mjs';
+import Ajv from 'ajv';
+import standaloneCode from 'ajv/dist/standalone/index.js';
 
 const root = new URL('../../', import.meta.url);
 const contracts = {
@@ -8,6 +10,11 @@ const contracts = {
   'durable-job-status': 'jobs/v2/status',
   'block-request': 'worker/v1/block-request',
   'block-response': 'worker/v1/block-response',
+  'finalize-request': 'worker/v1/finalize-request',
+  'finalize-response': 'worker/v1/finalize-response',
+  'cancel-request': 'worker/v1/cancel-request',
+  'cancel-response': 'worker/v1/cancel-response',
+  'manifest-record': 'worker/v1/manifest-record',
 };
 async function output(path, value) {
   const file = new URL(path, root);
@@ -48,16 +55,77 @@ await output(
     })
   ).replaceAll('\r\n', '\n'),
 );
+const json = (name) => ({
+  'application/json': { schema: { $ref: `../jobs/v2/${name}.schema.json` } },
+});
+const status = (code) => ({
+  [code]: {
+    description: 'Durable bounded job status',
+    content: json('status'),
+  },
+});
+const parameter = {
+  in: 'path',
+  name: 'id',
+  required: true,
+  schema: { type: 'string', format: 'uuid' },
+};
+const errors = Object.fromEntries(
+  [400, 401, 403, 404, 409, 413, 415, 416, 429, 500, 502, 503, 504].map(
+    (code) => [
+      code,
+      {
+        description: 'Sanitized error',
+        content: {
+          'application/json': {
+            schema: { $ref: '../projects/v1/error.schema.json' },
+          },
+        },
+      },
+    ],
+  ),
+);
+const download = {
+  parameters: [
+    parameter,
+    {
+      in: 'path',
+      name: 'kind',
+      required: true,
+      schema: { type: 'string', enum: ['pdf', 'manifest'] },
+    },
+    { in: 'header', name: 'Range', schema: { type: 'string', maxLength: 100 } },
+    {
+      in: 'header',
+      name: 'If-Range',
+      schema: { type: 'string', maxLength: 100 },
+    },
+  ],
+  responses: {
+    200: {
+      description: 'Complete sealed artifact',
+      content: {
+        'application/pdf': { schema: { type: 'string', format: 'binary' } },
+        'application/x-ndjson': {
+          schema: { type: 'string', format: 'binary' },
+        },
+      },
+    },
+    206: { description: 'Single byte range of immutable artifact' },
+    ...errors,
+  },
+};
 await output(
   'contracts/openapi/jobs-v2.json',
   JSON.stringify(
     {
       openapi: '3.1.0',
-      info: {
-        title: 'MosaicForge durable jobs — staged contract',
-        version: '2',
-      },
+      info: { title: 'MosaicForge durable jobs', version: '2' },
       'x-implemented': false,
+      security: [{ serviceToken: [] }],
+      components: {
+        securitySchemes: { serviceToken: { type: 'http', scheme: 'bearer' } },
+      },
       paths: {
         '/v2/jobs': {
           post: {
@@ -74,30 +142,63 @@ await output(
                 },
               },
             ],
-            requestBody: {
-              required: true,
-              content: {
-                'application/json': {
-                  schema: { $ref: '../jobs/v2/request.schema.json' },
-                },
-              },
-            },
-            responses: {
-              202: {
-                description:
-                  'Durably accepted (route disabled until finalization is complete)',
-                content: {
-                  'application/json': {
-                    schema: { $ref: '../jobs/v2/status.schema.json' },
-                  },
-                },
-              },
-            },
+            requestBody: { required: true, content: json('request') },
+            responses: { ...status(202), ...errors },
           },
         },
+        '/v2/jobs/{id}': {
+          get: {
+            parameters: [parameter],
+            responses: { ...status(200), ...errors },
+          },
+        },
+        '/v2/jobs/{id}/cancel': {
+          post: {
+            parameters: [parameter],
+            responses: { ...status(200), ...status(202), ...errors },
+          },
+        },
+        '/v2/jobs/{id}/artifacts/{kind}': { get: download, head: download },
       },
     },
     null,
     2,
+  ) + '\n',
+);
+const validators = new Ajv({
+  strict: true,
+  validateFormats: false,
+  code: { source: true },
+});
+const exports = {};
+const runtimeContracts = {
+  ...contracts,
+  ...Object.fromEntries(
+    [
+      'create-request',
+      'revision-request',
+      'me-response',
+      'project-response',
+      'list-response',
+      'revision-response',
+      'error',
+    ].map((name) => ['project-' + name, 'projects/v1/' + name]),
+  ),
+};
+for (const [index, [name, path]] of Object.entries(
+  runtimeContracts,
+).entries()) {
+  const id = 'durable-' + index;
+  validators.addSchema(
+    bundleSchema('common', { $ref: `../../${path}.schema.json` }),
+    id,
+  );
+  exports[name] = id;
+}
+await output(
+  'contracts/generated/durable-validators.cjs',
+  standaloneCode(validators, exports).replaceAll(
+    'require("ajv/dist/runtime/ucs2length").default',
+    '((s) => Array.from(s).length)',
   ) + '\n',
 );

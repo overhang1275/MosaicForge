@@ -28,3 +28,31 @@ requests replay the same result after restart. Committed corrupt journals are
 not silently replaced. Java must validate response identity, digest, prefix,
 counters and next index before applying progress under its current lease token.
 Blocks are not completed job artifacts and cannot be downloaded as finished PDFs.
+
+## Finalization and artifact members
+
+`POST /internal/v1/finalize` takes the immutable count-one job and ordered
+committed block references. It publishes exactly requestedAcceptedCount vector
+pages and a manifest together, or fails without a downloadable partial document.
+Use one stable artifactId and byte-identical request on retry. The response binds
+the request hash, page count, selection, and SHA-256/length of both members.
+
+selectionSha256 hashes UTF-8 `mosaicforge-selection-v1\n` followed by each selected
+decimal index and `\n`, in page order. documentConfigurationHash hashes Rust's
+compact sorted JSON object containing schemaVersion `1`, job,
+requestedAcceptedCount and selectionSha256. This differs from the legacy selected
+PDF hash and is independent of block partitioning. No cross-language float
+reserialization is required to verify requestHash.
+
+`POST /internal/v1/cancel` persists a job cancellation marker and bypasses the
+compute admission gate. It prevents later publication and artifact access.
+`GET/HEAD /internal/v1/artifacts/{artifactId}/{pdf|manifest}` serves only sealed,
+checksummed members. Single ranges and If-Range are supported, with quoted SHA-256
+ETag, exact Content-Length and Accept-Ranges. Private416 has an empty body and
+Content-Range `bytes */total`; the public Java API translates it to its shared
+JSON error. No endpoint accepts caller-controlled file paths.
+
+The current pilot remains12 pages/concurrency1. Finalization references are
+bounded to4095 blocks; output collections share an aggregate1GiB quota. These
+are operational limits, not evidence of million-page capacity. See ADR0013 and
+the executed verification report for recovery and cancellation evidence.
