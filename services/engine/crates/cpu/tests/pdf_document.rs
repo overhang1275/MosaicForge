@@ -10,6 +10,37 @@ fn setup(count: u64) -> (mosaicforge_core::template::Template, PdfJobSpec) {
     g["count"] = json!(count);
     (t,serde_json::from_value(json!({"schemaVersion":"1","generation":g,"pdf":{"exporterVersion":"1","trimWidthMm":100,"trimHeightMm":100,"bleedMm":0}})).unwrap())
 }
+
+#[test]
+fn rules3_pdf_accepts_negative_space_but_requires_the_physical_frame_including_bleed() {
+    let source = import_svg(br##"<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect x="45" width="10" height="100"/><rect y="45" width="100" height="10"/></svg>"##).unwrap();
+    let (_, job) = setup(1);
+    let mut value = serde_json::to_value(job).unwrap();
+    value["generation"]["templateHash"] = json!(source.hash);
+    value["generation"]["rulesVersion"] = json!("3");
+    value["generation"]["rules"]["preserveAspectRatio"] = json!(true);
+    let generate = |value: &Value| {
+        let job: PdfJobSpec = serde_json::from_value(value.clone()).unwrap();
+        let mut bytes = Vec::new();
+        mosaicforge_cpu::pdf::generate_selected_pdf(&source, &job, &[0], &mut bytes, |_| Ok(()))
+    };
+    assert_eq!(generate(&value).unwrap().page_count, 1);
+    value["pdf"]["bleedMm"] = json!(3);
+    assert!(
+        generate(&value).is_err(),
+        "uncovered bleed cannot be treated as original negative space"
+    );
+    value["generation"]["rules"]["scaleX"] = json!({"min":4,"max":4});
+    value["generation"]["rules"]["scaleY"] = json!({"min":4,"max":4});
+    assert_eq!(generate(&value).unwrap().page_count, 1);
+    value["generation"]["output"]["height"] = json!(256);
+    assert_eq!(generate(&value).unwrap().page_count, 1);
+    value["generation"]["rulesVersion"] = json!("2");
+    assert!(
+        generate(&value).is_err(),
+        "legacy ink coverage is unchanged"
+    );
+}
 #[test]
 fn selected_indices_have_dense_pages_and_selection_hash_without_changing_v1() {
     let (template, job) = setup(3);

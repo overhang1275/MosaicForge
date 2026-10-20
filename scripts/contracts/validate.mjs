@@ -26,7 +26,8 @@ export function validSpec(spec, operation, maxDimension = 512) {
   const r = spec.rules;
   if (
     (spec.rulesVersion === '1' && Object.hasOwn(r, 'preserveAspectRatio')) ||
-    (spec.rulesVersion === '2' && typeof r.preserveAspectRatio !== 'boolean') ||
+    (['2', '3'].includes(spec.rulesVersion) &&
+      typeof r.preserveAspectRatio !== 'boolean') ||
     (r.preserveAspectRatio &&
       (r.scaleX.min !== r.scaleY.min || r.scaleX.max !== r.scaleY.max))
   )

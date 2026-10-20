@@ -10,6 +10,17 @@ use tower::ServiceExt;
 const TOKEN: &str = "test-only-token-012345678901234567890123";
 
 #[tokio::test]
+async fn rules3_response_retains_its_reproducibility_version() {
+    let mut request = fixture("request-max-u64");
+    request["generation"]["rulesVersion"] = json!("3");
+    request["generation"]["rules"]["preserveAspectRatio"] = json!(true);
+    request["generation"]["rules"]["scaleY"] = request["generation"]["rules"]["scaleX"].clone();
+    let (status, response) = call("/v1/preview", request).await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(response["variant"]["rulesVersion"], "3");
+}
+
+#[tokio::test]
 async fn binary_pdf_matches_selected_reference_and_metadata_digest() {
     use sha2::{Digest, Sha256};
     let mut request = fixture("export-pdf");

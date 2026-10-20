@@ -72,7 +72,7 @@ async function aspectLockE2e(page) {
     (await firstRequest).postData(),
   ).generation;
   ensure(
-    firstGeneration.rulesVersion === "2" &&
+    firstGeneration.rulesVersion === "3" &&
       firstGeneration.rules.preserveAspectRatio === true,
     "request must carry the versioned lock",
   );
@@ -92,8 +92,8 @@ async function aspectLockE2e(page) {
   );
   ensure(
     accepted.length === 3 &&
-      accepted.every((row) => row.variant.rulesVersion === "2"),
-    "engine must return three accepted rules2 variants",
+      accepted.every((row) => row.variant.rulesVersion === "3"),
+    "engine must return three accepted rules3 variants",
   );
   for (const image of await page.locator(".gallery-grid img").all()) {
     await image.scrollIntoViewIfNeeded();
@@ -140,7 +140,7 @@ async function aspectLockE2e(page) {
     checks: [
       "default lock and bidirectional range edits",
       "keyboard unlock/relock with independent ranges",
-      "three real accepted rules2 previews",
+      "three real accepted rules3 previews",
       "saved lock preserved in complete PDF after edits",
       "desktop/mobile without horizontal overflow",
     ],

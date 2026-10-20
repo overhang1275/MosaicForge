@@ -99,7 +99,7 @@ test('aspect lock links either axis, supports unlocking and freezes the rule in 
   assert.deepEqual(settings.ranges.scaleX, { min: '1.4', max: '2.2' });
   ctx.editor.updateSettings({ count: '1' });
   await ctx.editor.generate();
-  assert.equal(ctx.sent[0].generation.rulesVersion, '2');
+  assert.equal(ctx.sent[0].generation.rulesVersion, '3');
   assert.equal(ctx.sent[0].generation.rules.preserveAspectRatio, true);
   ctx.editor.updateSettings({ preserveAspectRatio: false });
   settings = ctx.editor.getSnapshot().settings;

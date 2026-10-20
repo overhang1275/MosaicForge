@@ -72,6 +72,40 @@ fn cover_transform(tree: &usvg::Tree, boxes: &PageBoxes) -> Transform {
     Transform::from_row(scale, 0.0, 0.0, scale, tx, ty)
 }
 
+pub(super) fn physical_frame_is_covered(
+    template: &mosaicforge_core::template::Template,
+    job: &PdfJobSpec,
+    parameters: &mosaicforge_core::rules::TransformParameters,
+) -> Result<bool, EngineError> {
+    let source = mosaicforge_core::template::import_svg(template.normalized_svg.as_bytes())?;
+    let spec = &job.generation;
+    let crop = spec
+        .rules
+        .crop
+        .as_ref()
+        .map_or(source.view_box, |c| [c.x, c.y, c.width, c.height]);
+    let (w, h) = (
+        spec.output.width.get() as f64,
+        spec.output.height.get() as f64,
+    );
+    let viewport_scale = (w / crop[2]).max(h / crop[3]);
+    let viewport_x = (w - crop[2] * viewport_scale) / 2.0 - crop[0] * viewport_scale;
+    let viewport_y = (h - crop[3] * viewport_scale) / 2.0 - crop[1] * viewport_scale;
+    let boxes = page_boxes(job)?;
+    let trim = boxes.trim.map(f64::from);
+    let media = boxes.media.map(f64::from);
+    let scale = ((trim[2] - trim[0]) / w).max((trim[3] - trim[1]) / h);
+    let tx = (trim[0] + trim[2] - w * scale) / 2.0;
+    let ty = (trim[1] + trim[3] - h * scale) / 2.0;
+    let rectangle = [
+        ((media[0] - tx) / scale - viewport_x) / viewport_scale,
+        ((media[1] - ty) / scale - viewport_y) / viewport_scale,
+        (media[2] - media[0]) / scale / viewport_scale,
+        (media[3] - media[1]) / scale / viewport_scale,
+    ];
+    mosaicforge_core::constraints::frame_covers_rectangle(source.view_box, parameters, rectangle)
+}
+
 /// Input has the generation viewport but no added export background. Use the
 /// exact same trim-to-media transform as vector export, including bleed.
 pub(super) fn measure_artwork_coverage(

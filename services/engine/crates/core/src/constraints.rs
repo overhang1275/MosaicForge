@@ -19,6 +19,14 @@ pub struct Coverage {
     pub empty_corner_tiles: u16,
 }
 impl Coverage {
+    /// Rules3 permits original negative space; the separate frame fit stays mandatory.
+    pub fn rejection_reason_for_rules(&self, version: &str) -> Option<&'static str> {
+        if version == "3" {
+            (self.painted_pixels < 512).then_some("empty_viewport")
+        } else {
+            self.rejection_reason()
+        }
+    }
     pub fn rejection_reason(&self) -> Option<&'static str> {
         if self.painted_pixels < 512 {
             Some("empty_viewport")
@@ -30,6 +38,41 @@ impl Coverage {
             None
         }
     }
+}
+
+pub fn frame_covers_rectangle(
+    view_box: [f64; 4],
+    parameters: &TransformParameters,
+    rectangle: [f64; 4],
+) -> Result<bool, EngineError> {
+    let [a, b, c, d, e, f] = geometric_matrix(parameters, view_box)?;
+    let det = a * d - b * c;
+    if !det.is_finite()
+        || det == 0.0
+        || !rectangle.iter().all(|n| n.is_finite())
+        || rectangle[2] <= 0.0
+        || rectangle[3] <= 0.0
+    {
+        return Ok(false);
+    }
+    let [x, y, w, h] = view_box;
+    let epsilon = 1e-9 * w.max(h).max(1.0);
+    for px in [rectangle[0], rectangle[0] + rectangle[2]] {
+        for py in [rectangle[1], rectangle[1] + rectangle[3]] {
+            let ix = (d * (px - e) - c * (py - f)) / det;
+            let iy = (-b * (px - e) + a * (py - f)) / det;
+            if !ix.is_finite()
+                || !iy.is_finite()
+                || ix < x - epsilon
+                || ix > x + w + epsilon
+                || iy < y - epsilon
+                || iy > y + h + epsilon
+            {
+                return Ok(false);
+            }
+        }
+    }
+    Ok(true)
 }
 
 fn output_crop(source: &Template, spec: &GenerationSpec) -> Result<[f64; 4], EngineError> {
@@ -157,7 +200,9 @@ pub fn search_candidate(
             spec.output.width.get() as f64,
             spec.output.height.get() as f64,
         )?;
-        if let Some(rejection) = coverage.rejection_reason() {
+        if let Some(rejection) =
+            coverage.rejection_reason_for_rules(&spec.rules_version.to_string())
+        {
             reason = rejection;
         } else {
             return Ok(CandidateDecision {

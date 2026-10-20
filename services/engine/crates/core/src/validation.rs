@@ -88,12 +88,13 @@ pub fn validate_spec(spec: &GenerationSpec) -> Result<(), EngineError> {
     }
     let rules = &spec.rules;
     if (spec.rules_version.to_string() == "1" && rules.preserve_aspect_ratio.is_some())
-        || (spec.rules_version.to_string() == "2" && rules.preserve_aspect_ratio.is_none())
+        || (matches!(spec.rules_version.to_string().as_str(), "2" | "3")
+            && rules.preserve_aspect_ratio.is_none())
         || (rules.preserve_aspect_ratio == Some(true)
             && (rules.scale_x.min != rules.scale_y.min || rules.scale_x.max != rules.scale_y.max))
     {
         return Err(invalid(
-            "aspect lock requires rules2 and matching scale ranges",
+            "aspect lock requires rules2/3 and matching scale ranges",
         ));
     }
     for range in [

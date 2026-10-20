@@ -17,6 +17,46 @@ fn configured(rules: Value) -> GenerationSpec {
 }
 
 #[test]
+fn rules3_preserves_negative_space_and_requested_zoom_but_rejects_empty_or_uncovered_frames() {
+    let source = import_svg(br##"<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect x="45" width="10" height="100"/><rect y="45" width="100" height="10"/></svg>"##).unwrap();
+    let mut value = serde_json::to_value(configured(
+        json!({"scaleX":{"min":4,"max":4},"scaleY":{"min":4,"max":4}}),
+    ))
+    .unwrap();
+    value["templateHash"] = json!(source.hash);
+    value["rulesVersion"] = json!("3");
+    value["rules"]["preserveAspectRatio"] = json!(true);
+    let spec: GenerationSpec = serde_json::from_value(value.clone()).unwrap();
+    let accepted = search_candidate(&source, &spec, 0).unwrap();
+    assert!(
+        accepted.template.is_some(),
+        "original negative space is valid: {:?}",
+        accepted.reason
+    );
+    let p = accepted.parameters.unwrap();
+    assert_eq!((p.scale_x, p.scale_y), (4.0, 4.0));
+    value["rulesVersion"] = json!("2");
+    assert!(
+        search_candidate(&source, &serde_json::from_value(value.clone()).unwrap(), 0)
+            .unwrap()
+            .template
+            .is_none()
+    );
+    value["rulesVersion"] = json!("3");
+    value["rules"]["scaleX"] = json!({"min":1,"max":1});
+    value["rules"]["scaleY"] = json!({"min":1,"max":1});
+    value["rules"]["rotationDegrees"] = json!({"min":45,"max":45});
+    let uncovered =
+        search_candidate(&source, &serde_json::from_value(value.clone()).unwrap(), 0).unwrap();
+    assert_eq!(uncovered.reason, Some("frame_exceeds_scale_limits"));
+    let empty = import_svg(br##"<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="none"/></svg>"##).unwrap();
+    value["templateHash"] = json!(empty.hash);
+    value["rules"]["rotationDegrees"] = json!({"min":0,"max":0});
+    let decision = search_candidate(&empty, &serde_json::from_value(value).unwrap(), 0).unwrap();
+    assert_eq!(decision.reason, Some("empty_viewport"));
+}
+
+#[test]
 fn coverage_measures_visible_paint_not_bounding_boxes() {
     let full=import_svg(br##"<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="#123456"/></svg>"##).unwrap();
     let stats = measure_coverage(&full).unwrap();

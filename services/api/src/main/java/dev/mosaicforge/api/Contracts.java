@@ -203,7 +203,8 @@ final class Contracts {
     var rules = spec.path("rules");
     var lock = rules.path("preserveAspectRatio");
     if ((text(spec, "rulesVersion").equals("1") && !lock.isMissingNode())
-        || (text(spec, "rulesVersion").equals("2") && !lock.isBoolean())
+        || ((text(spec, "rulesVersion").equals("2") || text(spec, "rulesVersion").equals("3"))
+            && !lock.isBoolean())
         || (lock.isBoolean()
             && lock.asBoolean()
             && (rules.path("scaleX").path("min").asDouble()

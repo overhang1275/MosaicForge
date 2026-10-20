@@ -128,7 +128,18 @@ fn generate_pdf_indices<W: Write, F: FnMut(PdfPageRecord) -> Result<(), EngineEr
                 )?;
                 let coverage =
                     geometry::measure_artwork_coverage(viewport.normalized_svg.as_bytes(), job)?;
-                if coverage.rejection_reason().is_some() {
+                let version = spec.rules_version.to_string();
+                let uncovered_frame = version == "3"
+                    && !geometry::physical_frame_is_covered(
+                        template,
+                        job,
+                        exported
+                            .variant
+                            .parameters
+                            .as_ref()
+                            .ok_or(EngineError::RenderFailed("missing frame parameters"))?,
+                    )?;
+                if uncovered_frame || coverage.rejection_reason_for_rules(&version).is_some() {
                     return Err(EngineError::RenderFailed(
                         "physical PDF cover fails artwork coverage; adjust layout or rules",
                     ));

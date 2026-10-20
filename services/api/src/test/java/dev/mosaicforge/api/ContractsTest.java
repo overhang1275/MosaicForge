@@ -71,7 +71,16 @@ class ContractsTest {
     var generation = (tools.jackson.databind.node.ObjectNode) request.path("generation");
     var rules = (tools.jackson.databind.node.ObjectNode) generation.path("rules");
     assertTrue(contracts.valid(request, "generation-request", "export"));
+    generation.put("rulesVersion", "3");
+    assertFalse(contracts.valid(request, "generation-request", "export"));
+    rules.put("preserveAspectRatio", true);
+    rules.set("scaleY", rules.path("scaleX").deepCopy());
+    assertTrue(contracts.valid(request, "generation-request", "export"));
+    rules.remove("preserveAspectRatio");
+    assertFalse(contracts.valid(request, "generation-request", "export"));
+    rules.put("preserveAspectRatio", true);
     generation.put("rulesVersion", "2");
+    rules.remove("preserveAspectRatio");
     assertFalse(contracts.valid(request, "generation-request", "export"));
     rules.put("preserveAspectRatio", true);
     rules.set("scaleY", rules.path("scaleX").deepCopy());

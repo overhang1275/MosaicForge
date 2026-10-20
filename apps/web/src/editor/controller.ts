@@ -64,7 +64,7 @@ function snapshotFor(
       startIndex: index,
       count: 1,
       engineVersion: meta.engineVersion,
-      rulesVersion: '2',
+      rulesVersion: '3',
       rules: {
         ...ranges,
         preserveAspectRatio: settings.preserveAspectRatio,

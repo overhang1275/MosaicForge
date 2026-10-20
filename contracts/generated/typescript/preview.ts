@@ -77,7 +77,7 @@ export interface GenerationSpec {
   engineVersion: '0.1.0';
   output: Ref6;
   rules: Ref7;
-  rulesVersion: '1' | '2';
+  rulesVersion: '1' | '2' | '3';
   schemaVersion: '1';
   seed: Ref10;
   startIndex: Ref10;
@@ -138,7 +138,7 @@ export interface VariantResult {
   engineVersion: '0.1.0';
   index: Ref15;
   reason?: string | null;
-  rulesVersion: '1' | '2';
+  rulesVersion: '1' | '2' | '3';
   schemaVersion: '1';
   seed: Ref15;
   status: 'accepted' | 'rejected';
