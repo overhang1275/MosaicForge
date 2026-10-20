@@ -17,6 +17,19 @@ import tools.jackson.databind.node.ObjectNode;
 
 @EnabledIfEnvironmentVariable(named = "MOSAICFORGE_TEST_DB_URL", matches = ".+")
 class JobStoreTest {
+  @Test
+  void migrationAddsADurableProgressRevision() throws Exception {
+    String url = System.getenv("MOSAICFORGE_TEST_DB_URL"),
+        user = System.getenv("MOSAICFORGE_DB_USER"),
+        password = System.getenv("MOSAICFORGE_DB_PASSWORD");
+    new JdbcJobStore(url, user, password, Clock.systemUTC(), 2);
+    try (var connection = DriverManager.getConnection(url, user, password);
+        var columns =
+            connection.getMetaData().getColumns(null, "public", "mosaicforge_jobs", "revision")) {
+      assertTrue(columns.next(), "progress revision must persist in PostgreSQL");
+    }
+  }
+
   static final class MutableClock extends Clock {
     Instant now = Instant.parse("2026-10-20T00:00:00Z");
 
@@ -83,6 +96,7 @@ class JobStoreTest {
         assertEquals(job.id(), b.get().id());
       }
       final var id = job.id();
+      assertEquals(0, job.revision());
       assertEquals(1, store.outbox(100).stream().filter(n -> n.jobId().equals(id)).count());
       assertTrue(store.find(UUID.randomUUID(), id).isEmpty());
       request.put("requestedAcceptedCount", 1);
@@ -102,6 +116,7 @@ class JobStoreTest {
           () -> store.submit(owner, "foreign", JobRequests.canonical(request)));
       request.put("projectRevision", 1);
       var lease = store.claim(id, Duration.ofSeconds(5)).orElseThrow();
+      assertTrue(lease.job().revision() > job.revision());
       assertTrue(store.claim(id, Duration.ofSeconds(5)).isEmpty());
       clock.now = clock.now.plusSeconds(6);
       assertFalse(store.heartbeat(id, lease.fence(), Duration.ofSeconds(5)));
@@ -114,7 +129,13 @@ class JobStoreTest {
       String response = response(replacement, true);
       assertFalse(store.confirm(lease, response));
       assertTrue(store.confirm(replacement, response));
+      var confirmedRevision = store.find(owner, id).orElseThrow().revision();
+      assertTrue(confirmedRevision > replacement.job().revision());
       assertFalse(store.confirm(replacement, response));
+      assertEquals(confirmedRevision, store.find(owner, id).orElseThrow().revision());
+      assertEquals(
+          confirmedRevision,
+          new JdbcJobStore(url, user, password, clock, 2).find(owner, id).orElseThrow().revision());
       job = store.find(owner, id).orElseThrow();
       assertEquals(2, job.accepted());
       assertEquals(2, job.evaluated());

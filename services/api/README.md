@@ -110,6 +110,10 @@ are not included in3.3.
 revision submission, canonical idempotency, outbox delivery, claims, fenced
 heartbeats, ordered block confirmation, finite attempts, cancellation and
 reconciliation. Migration 2 is additive and preserves project migration 1.
+Migration 3 adds a durable monotonic progress revision, initially zero. Committed
+state/progress/lease updates increment it transactionally; duplicate or stale
+operations do not. Reopening the store preserves it. Values stay within the
+existing status contract's safe integer range.
 The pilot accepts at most 12 accepted variants and concurrency 1. Unsupported
 requests fail before insertion. Unsigned counters remain decimal strings.
 

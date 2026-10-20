@@ -14,6 +14,110 @@ import tools.jackson.databind.node.ObjectNode;
 @EnabledIfEnvironmentVariable(named = "MOSAICFORGE_TEST_ENGINE_URL", matches = ".+")
 class DurableStackTest {
   @Test
+  void largeBlockReceivesBusyBeforeBodyAndDefersWithoutChargingAttempt() throws Exception {
+    String url = System.getenv("MOSAICFORGE_TEST_DB_URL"),
+        user = System.getenv("MOSAICFORGE_DB_USER"),
+        password = System.getenv("MOSAICFORGE_DB_PASSWORD"),
+        token = System.getenv("MOSAICFORGE_ENGINE_TOKEN");
+    var origin = java.net.URI.create(System.getenv("MOSAICFORGE_TEST_ENGINE_URL"));
+    var engine = new HttpEngine(origin.toString(), token, 30000);
+    var clock = new JobStoreTest.MutableClock();
+    var owner = UUID.randomUUID();
+    String trace = "00-12345678901234567890123456789012-1234567890123456-01";
+    try (var queue =
+        new LettuceWorkNotifications(
+            System.getenv("MOSAICFORGE_TEST_VALKEY_URI"),
+            "mosaicforge:test:" + UUID.randomUUID(),
+            System.getenv("MOSAICFORGE_VALKEY_PASSWORD"))) {
+      var snapshot =
+          (ObjectNode)
+              Contracts.JSON.readTree(
+                  getClass().getResourceAsStream("/fixtures/preview/export-pdf.json"));
+      String svg = Files.readString(Path.of(System.getenv("MOSAICFORGE_TEST_SVG")));
+      assertTrue(svg.length() > 500000, "Regression requires the original large SVG");
+      snapshot.put("templateSvg", svg);
+      var generation = (ObjectNode) snapshot.path("job").path("generation");
+      generation.put("count", 1);
+      var projects = new JdbcProjectStore(url, user, password);
+      projects.ensureUser(owner);
+      var project = projects.create(owner, "busy-large-test");
+      projects.append(owner, project.id(), 0, Contracts.JSON.writeValueAsString(snapshot));
+      var request = Contracts.JSON.createObjectNode();
+      request.put("schemaVersion", "2");
+      request.put("projectId", project.id().toString());
+      request.put("projectRevision", 1);
+      request.set("generation", generation);
+      request.set("pdf", snapshot.path("job").path("pdf"));
+      request.put("requestedAcceptedCount", 1);
+      request.put("maxCandidates", 4);
+      request.putObject("execution").put("blockSize", 4).put("concurrency", 1);
+      var store = new JdbcJobStore(url, user, password, clock, 3);
+      var job = store.submit(owner, "busy", JobRequests.canonical(request));
+      var status = new java.util.concurrent.atomic.AtomicInteger();
+      EnginePort observed =
+          (path, bytes, parent, pdf) -> {
+            assertTrue(bytes.length > 500000);
+            var reply = engine.execute(path, bytes, parent, pdf);
+            status.set(reply.status());
+            return reply;
+          };
+      try (var held = new java.net.Socket(origin.getHost(), origin.getPort())) {
+        held.setSoTimeout(5000);
+        var output = held.getOutputStream();
+        String headers =
+            "POST /v1/inspect HTTP/1.1\r\nHost: "
+                + origin.getHost()
+                + ":"
+                + origin.getPort()
+                + "\r\nAuthorization: Bearer "
+                + token
+                + "\r\nContent-Type: application/json\r\nContent-Length: 1048576\r\n\r\n{";
+        output.write(headers.getBytes(java.nio.charset.StandardCharsets.US_ASCII));
+        output.flush();
+        int probe = 0;
+        for (int attempt = 0; attempt < 10 && probe != 429; attempt++)
+          probe =
+              engine
+                  .execute(
+                      "/v1/inspect",
+                      "{}".getBytes(java.nio.charset.StandardCharsets.US_ASCII),
+                      trace,
+                      false)
+                  .status();
+        assertEquals(429, probe, "Slow authenticated body must hold Rust admission gate");
+        assertFalse(new JobCoordinator(store, queue, observed).tick(job.id(), trace));
+        assertEquals(429, status.get(), "Large HTTP upload must preserve the early busy response");
+        var deferred = store.find(owner, job.id()).orElseThrow();
+        assertEquals("queued", deferred.state());
+        assertEquals(0, deferred.retries());
+        assertEquals(0, deferred.evaluated());
+        assertTrue(store.claim(job.id(), java.time.Duration.ofSeconds(5)).isEmpty());
+        clock.now = clock.now.plusSeconds(3);
+        assertTrue(store.claim(job.id(), java.time.Duration.ofSeconds(5)).isPresent());
+      }
+    } finally {
+      try (var c = DriverManager.getConnection(url, user, password)) {
+        c.setAutoCommit(false);
+        for (String sql :
+            new String[] {
+              "DELETE FROM mosaicforge_job_outbox WHERE job_id IN (SELECT id FROM mosaicforge_jobs WHERE owner_id=?)",
+              "DELETE FROM mosaicforge_job_blocks WHERE job_id IN (SELECT id FROM mosaicforge_jobs WHERE owner_id=?)",
+              "DELETE FROM mosaicforge_jobs WHERE owner_id=?",
+              "DELETE FROM mosaicforge_project_revisions WHERE project_id IN (SELECT id FROM mosaicforge_projects WHERE owner_id=?)",
+              "DELETE FROM mosaicforge_projects WHERE owner_id=?",
+              "DELETE FROM mosaicforge_users WHERE id=?"
+            }) {
+          try (var s = c.prepareStatement(sql)) {
+            s.setObject(1, owner);
+            s.executeUpdate();
+          }
+        }
+        c.commit();
+      }
+    }
+  }
+
+  @Test
   void realRustBlocksPersistExactlyTwelveAcrossControlRestart() throws Exception {
     String url = System.getenv("MOSAICFORGE_TEST_DB_URL"),
         user = System.getenv("MOSAICFORGE_DB_USER"),

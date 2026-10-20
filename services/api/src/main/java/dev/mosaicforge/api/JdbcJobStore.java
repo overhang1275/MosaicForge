@@ -40,6 +40,10 @@ final class JdbcJobStore implements JobStore {
                 "CREATE INDEX IF NOT EXISTS mosaicforge_job_outbox_pending ON mosaicforge_job_outbox(id) WHERE NOT delivered");
             s.execute(
                 "INSERT INTO mosaicforge_schema_versions(version) VALUES (2) ON CONFLICT DO NOTHING");
+            s.execute(
+                "ALTER TABLE mosaicforge_jobs ADD COLUMN IF NOT EXISTS revision bigint NOT NULL DEFAULT 0 CHECK (revision BETWEEN 0 AND 9007199254740991)");
+            s.execute(
+                "INSERT INTO mosaicforge_schema_versions(version) VALUES (3) ON CONFLICT DO NOTHING");
           }
           return null;
         });
@@ -87,7 +91,8 @@ final class JdbcJobStore implements JobStore {
         r.getInt("rejected"),
         r.getLong("fence"),
         r.getObject("block_id", UUID.class),
-        r.getInt("retries"));
+        r.getInt("retries"),
+        r.getLong("revision"));
   }
 
   private static Optional<Job> locked(Connection c, UUID id) throws SQLException {
@@ -256,7 +261,7 @@ final class JdbcJobStore implements JobStore {
           }
           try (var s =
               c.prepareStatement(
-                  "UPDATE mosaicforge_jobs SET state='running',fence=fence+1,retries=retries+1,lease_until=?,block_id=?,block_request=? WHERE id=?")) {
+                  "UPDATE mosaicforge_jobs SET revision=revision+1,state='running',fence=fence+1,retries=retries+1,lease_until=?,block_id=?,block_request=? WHERE id=?")) {
             s.setTimestamp(1, deadline(duration));
             s.setObject(2, block);
             s.setString(3, wire);
@@ -270,7 +275,7 @@ final class JdbcJobStore implements JobStore {
   private static void fail(Connection c, UUID id) throws SQLException {
     try (var s =
         c.prepareStatement(
-            "UPDATE mosaicforge_jobs SET state='failed',lease_until=NULL WHERE id=?")) {
+            "UPDATE mosaicforge_jobs SET revision=revision+1,state='failed',lease_until=NULL WHERE id=?")) {
       s.setObject(1, id);
       s.executeUpdate();
     }
@@ -296,7 +301,7 @@ final class JdbcJobStore implements JobStore {
         c -> {
           try (var s =
               c.prepareStatement(
-                  "UPDATE mosaicforge_jobs SET lease_until=? WHERE id=? AND fence=? AND state='running' AND lease_until>?")) {
+                  "UPDATE mosaicforge_jobs SET revision=revision+1,lease_until=? WHERE id=? AND fence=? AND state='running' AND lease_until>?")) {
             s.setTimestamp(1, deadline(duration));
             s.setObject(2, id);
             s.setLong(3, fence);
@@ -331,7 +336,7 @@ final class JdbcJobStore implements JobStore {
                       || result.path("nextCandidateIndex").isNull());
           try (var s =
               c.prepareStatement(
-                  "UPDATE mosaicforge_jobs SET next_index=?::numeric,evaluated=?,accepted=?,rejected=rejected+?,lease_until=NULL,block_id=NULL,block_request=NULL,retries=0,state=? WHERE id=?")) {
+                  "UPDATE mosaicforge_jobs SET revision=revision+1,next_index=?::numeric,evaluated=?,accepted=?,rejected=rejected+?,lease_until=NULL,block_id=NULL,block_request=NULL,retries=0,state=? WHERE id=?")) {
             s.setString(
                 1,
                 result.path("nextCandidateIndex").isNull()
@@ -358,7 +363,7 @@ final class JdbcJobStore implements JobStore {
           if (active(c, lease)) {
             try (var s =
                 c.prepareStatement(
-                    "UPDATE mosaicforge_jobs SET lease_until=NULL,state=CASE WHEN retries>=? THEN 'failed' ELSE state END WHERE id=?")) {
+                    "UPDATE mosaicforge_jobs SET revision=revision+1,lease_until=NULL,state=CASE WHEN retries>=? THEN 'failed' ELSE state END WHERE id=?")) {
               s.setInt(1, retryBudget);
               s.setObject(2, lease.job().id());
               s.executeUpdate();
@@ -377,7 +382,7 @@ final class JdbcJobStore implements JobStore {
           if (active(c, lease)) {
             try (var s =
                 c.prepareStatement(
-                    "UPDATE mosaicforge_jobs SET state='queued',fence=fence+1,retries=GREATEST(retries-1,0),lease_until=? WHERE id=?")) {
+                    "UPDATE mosaicforge_jobs SET revision=revision+1,state='queued',fence=fence+1,retries=GREATEST(retries-1,0),lease_until=? WHERE id=?")) {
               s.setTimestamp(1, deadline(delay));
               s.setObject(2, lease.job().id());
               s.executeUpdate();
@@ -394,7 +399,7 @@ final class JdbcJobStore implements JobStore {
         c -> {
           try (var s =
               c.prepareStatement(
-                  "UPDATE mosaicforge_jobs SET state='cancelled',lease_until=NULL WHERE id=? AND owner_id=? AND state IN ('queued','running','cancelling')")) {
+                  "UPDATE mosaicforge_jobs SET revision=revision+1,state='cancelled',lease_until=NULL WHERE id=? AND owner_id=? AND state IN ('queued','running','cancelling')")) {
             s.setObject(1, id);
             s.setObject(2, owner);
             s.executeUpdate();

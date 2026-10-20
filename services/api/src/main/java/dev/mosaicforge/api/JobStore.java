@@ -19,7 +19,8 @@ interface JobStore {
       int rejected,
       long fence,
       UUID blockId,
-      int retries) {}
+      int retries,
+      long revision) {}
 
   record Lease(Job job, String blockRequest, long fence) {}
 
