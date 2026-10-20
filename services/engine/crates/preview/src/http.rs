@@ -19,24 +19,36 @@ struct ServerState {
     token: String,
     host: String,
     gate: Arc<Semaphore>,
+    journal: Option<Arc<crate::durable::Journal>>,
 }
 
 pub fn valid_token(token: &str) -> bool {
     (32..=256).contains(&token.len()) && token.bytes().all(|b| b.is_ascii_graphic())
 }
 pub fn router(token: String, host: String) -> Router {
-    Router::new()
+    configured_router(token, host, None)
+}
+fn configured_router(
+    token: String,
+    host: String,
+    journal: Option<Arc<crate::durable::Journal>>,
+) -> Router {
+    let mut routes = Router::new()
         .route("/v1/inspect", any(handle))
         .route("/v1/preview", any(handle))
         .route("/v1/export", any(handle))
         .route("/v1/export-pdf", any(handle))
         .route("/v2/export-pdf-selection", any(handle))
-        .route("/v3/export-pdf-selection", any(handle))
-        .with_state(ServerState {
-            token,
-            host,
-            gate: Arc::new(Semaphore::new(1)),
-        })
+        .route("/v3/export-pdf-selection", any(handle));
+    if journal.is_some() {
+        routes = routes.route("/internal/v1/blocks", any(handle));
+    }
+    routes.with_state(ServerState {
+        token,
+        host,
+        gate: Arc::new(Semaphore::new(1)),
+        journal,
+    })
 }
 pub(crate) fn error(status: StatusCode, id: &str, code: &str) -> Response {
     json_response(
@@ -175,7 +187,15 @@ async fn handle_inner(state: ServerState, request: Request) -> Response {
     if path == "/v3/export-pdf-selection" {
         return crate::binary_pdf::respond(bytes, permit).await;
     }
-    match blocking(permit, move || crate::compute::execute(&path, &bytes)).await {
+    match blocking(permit, move || {
+        if path == "/internal/v1/blocks" {
+            return match state.journal.expect("configured journal route").execute(&bytes){
+                Ok(bytes)=>(200,bytes),
+                Err(e)=>(e.status,json!({"requestId":UNKNOWN_REQUEST,"code":e.code,"message":"Block operation could not be completed"}).to_string().into_bytes()),
+            };
+        }
+        crate::compute::execute(&path, &bytes)
+    }).await {
         Ok((status, bytes)) => json_response(
             StatusCode::from_u16(status).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR),
             bytes,
@@ -187,6 +207,15 @@ async fn handle_inner(state: ServerState, request: Request) -> Response {
         ),
     }
 }
+pub fn router_with_journal(
+    token: String,
+    host: String,
+    root: &std::path::Path,
+) -> std::io::Result<Router> {
+    let journal = crate::durable::Journal::open(root, crate::durable::JournalLimits::default())?;
+    Ok(configured_router(token, host, Some(Arc::new(journal))))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -215,6 +244,7 @@ mod tests {
             token: "test-token".into(),
             host: "127.0.0.1:4771".into(),
             gate,
+            journal: None,
         };
         let app = Router::new()
             .route("/v1/inspect", any(handle))

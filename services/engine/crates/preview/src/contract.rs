@@ -39,3 +39,11 @@ pub mod pdf_download_response {
     include!(concat!(env!("OUT_DIR"), "/pdf_download_response.rs"));
 }
 pub use pdf_download_response::PdfDownloadResponse;
+pub mod block_request {
+    include!(concat!(env!("OUT_DIR"), "/block_request.rs"));
+}
+pub mod block_response {
+    include!(concat!(env!("OUT_DIR"), "/block_response.rs"));
+}
+pub use block_request::BlockRequest;
+pub use block_response::BlockResponse;

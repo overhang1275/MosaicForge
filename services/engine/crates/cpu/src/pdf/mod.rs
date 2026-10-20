@@ -117,29 +117,7 @@ fn generate_pdf_indices<W: Write, F: FnMut(PdfPageRecord) -> Result<(), EngineEr
                 return Ok(None);
             }
             let page_number = if let Some(svg) = exported.artifact {
-                let candidate = exported
-                    .variant
-                    .template
-                    .as_ref()
-                    .ok_or(EngineError::RenderFailed("missing PDF candidate"))?;
-                let viewport = mosaicforge_core::template::prepare_viewport(
-                    candidate.normalized_svg.as_bytes(),
-                    &spec.output,
-                )?;
-                let coverage =
-                    geometry::measure_artwork_coverage(viewport.normalized_svg.as_bytes(), job)?;
-                let version = spec.rules_version.to_string();
-                let uncovered_frame = version == "3"
-                    && !geometry::physical_frame_is_covered(
-                        template,
-                        job,
-                        exported
-                            .variant
-                            .parameters
-                            .as_ref()
-                            .ok_or(EngineError::RenderFailed("missing frame parameters"))?,
-                    )?;
-                if uncovered_frame || coverage.rejection_reason_for_rules(&version).is_some() {
+                if physical_candidate_rejection(template, job, &exported.variant)?.is_some() {
                     return Err(EngineError::RenderFailed(
                         "physical PDF cover fails artwork coverage; adjust layout or rules",
                     ));
@@ -202,4 +180,35 @@ fn generate_pdf_indices<W: Write, F: FnMut(PdfPageRecord) -> Result<(), EngineEr
     };
     mosaicforge_core::pdf::validate_pdf_document_result(&result)?;
     Ok(Some(result))
+}
+
+/// Physical acceptance shared by the durable worker and the actual PDF exporter.
+/// Coverage excludes the export background and includes physical media/bleed.
+pub fn physical_candidate_rejection(
+    template: &Template,
+    job: &PdfJobSpec,
+    variant: &mosaicforge_core::generate::Variant,
+) -> Result<Option<&'static str>, EngineError> {
+    let Some(candidate) = variant.template.as_ref() else {
+        return Ok(Some("generation_rejected"));
+    };
+    let viewport = mosaicforge_core::template::prepare_viewport(
+        candidate.normalized_svg.as_bytes(),
+        &job.generation.output,
+    )?;
+    let coverage = geometry::measure_artwork_coverage(viewport.normalized_svg.as_bytes(), job)?;
+    let version = job.generation.rules_version.to_string();
+    if version == "3"
+        && !geometry::physical_frame_is_covered(
+            template,
+            job,
+            variant
+                .parameters
+                .as_ref()
+                .ok_or(EngineError::RenderFailed("missing frame parameters"))?,
+        )?
+    {
+        return Ok(Some("physical_frame_uncovered"));
+    }
+    Ok(coverage.rejection_reason_for_rules(&version))
 }

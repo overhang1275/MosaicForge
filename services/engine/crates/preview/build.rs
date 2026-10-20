@@ -19,19 +19,25 @@ fn main() {
         "selected-pdf-export-request",
         "selected-pdf-export-response",
         "pdf-download-response",
+        "block-request",
+        "block-response",
     ] {
         let schema = schema_bundle::bundle_schema(
             &root,
-            &root.join(format!(
-                "preview/v{}/{name}.schema.json",
-                if name == "pdf-download-response" {
-                    3
-                } else if name.starts_with("selected-") {
-                    2
-                } else {
-                    1
-                }
-            )),
+            &root.join(if name.starts_with("block-") {
+                format!("worker/v1/{name}.schema.json")
+            } else {
+                format!(
+                    "preview/v{}/{name}.schema.json",
+                    if name == "pdf-download-response" {
+                        3
+                    } else if name.starts_with("selected-") {
+                        2
+                    } else {
+                        1
+                    }
+                )
+            }),
         )
         .expect("local preview schema");
         let mut settings = typify::TypeSpaceSettings::default();

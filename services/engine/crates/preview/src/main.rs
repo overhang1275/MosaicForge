@@ -22,7 +22,14 @@ async fn run() -> Result<(), ()> {
     let host = format!("127.0.0.1:{port}");
     let listener = tokio::net::TcpListener::bind(&host).await.map_err(|_| ())?;
     eprintln!("MosaicForge preview listening on {host}");
-    axum::serve(listener, router(token, host))
+    let app = match std::env::var_os("MOSAICFORGE_JOURNAL_DIR") {
+        Some(root) => {
+            mosaicforge_preview::http::router_with_journal(token, host, std::path::Path::new(&root))
+                .map_err(|_| ())?
+        }
+        None => router(token, host),
+    };
+    axum::serve(listener, app)
         .with_graceful_shutdown(async {
             let _ = tokio::signal::ctrl_c().await;
         })

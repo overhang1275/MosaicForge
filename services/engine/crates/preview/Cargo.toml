@@ -14,6 +14,7 @@ mosaicforge-core = { path = "../core" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 sha2 = "0.10"
+uuid = { version = "1", features = ["v4"] }
 base64 = "=0.22.1"
 regress = "0.10"
 futures-core = "=0.3.34"
