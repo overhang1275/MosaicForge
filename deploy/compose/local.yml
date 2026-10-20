@@ -15,11 +15,38 @@ services:
       MOSAICFORGE_DB_USER: "mosaicforge"
       MOSAICFORGE_DB_PASSWORD: "${MOSAICFORGE_DB_PASSWORD:?Run node scripts/local-compose.mjs first}"
       MOSAICFORGE_LOCAL_USER_ID: "${MOSAICFORGE_LOCAL_USER_ID:?Run node scripts/local-compose.mjs first}"
+      MOSAICFORGE_VALKEY_URI: "redis://valkey:6379"
+      MOSAICFORGE_VALKEY_PASSWORD: "${MOSAICFORGE_VALKEY_PASSWORD:?Run node scripts/local-compose.mjs first}"
+      MOSAICFORGE_JOURNAL_DIR: "/app/journal"
+    volumes:
+      - engine-journal:/app/journal
     depends_on:
       postgres:
         condition: service_healthy
     restart: unless-stopped
     stop_grace_period: 10s
+  valkey:
+    image: valkey/valkey:8.1.10-alpine@sha256:081c2f5cb575efc901aa80ff9cdbd1ec6a301682fd35e1ebb4b0990a4a4a8507
+    environment:
+      MOSAICFORGE_VALKEY_PASSWORD: "${MOSAICFORGE_VALKEY_PASSWORD:?Run node scripts/local-compose.mjs first}"
+    command:
+      [
+        "sh",
+        "-c",
+        'exec valkey-server --appendonly yes --requirepass "$$MOSAICFORGE_VALKEY_PASSWORD"',
+      ]
+    volumes:
+      - valkey-data:/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "REDISCLI_AUTH=$$MOSAICFORGE_VALKEY_PASSWORD valkey-cli ping | grep -q PONG",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    restart: unless-stopped
   postgres:
     image: postgres:18-bookworm@sha256:afc7e2d441324c0388fa80c3d24f733b4194a4eb7f47dd8ee2b08eb1a24a647c
     environment:
@@ -36,3 +63,5 @@ services:
     restart: unless-stopped
 volumes:
   postgres-data:
+  valkey-data:
+  engine-journal:

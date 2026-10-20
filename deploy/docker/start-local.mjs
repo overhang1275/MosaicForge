@@ -18,6 +18,7 @@ const database = {};
 for (const key of Object.keys(common)) {
   if (
     key.startsWith("MOSAICFORGE_DB_") ||
+    key.startsWith("MOSAICFORGE_VALKEY_") ||
     key === "MOSAICFORGE_LOCAL_USER_ID" ||
     key === "MOSAICFORGE_PERSISTENCE_ENABLED"
   ) {
@@ -25,6 +26,8 @@ for (const key of Object.keys(common)) {
     delete common[key];
   }
 }
+const journalDirectory = common.MOSAICFORGE_JOURNAL_DIR;
+delete common.MOSAICFORGE_JOURNAL_DIR;
 const engineToken = randomBytes(32).toString("hex");
 const apiToken = randomBytes(32).toString("hex");
 const children = [
@@ -33,6 +36,9 @@ const children = [
       ...common,
       MOSAICFORGE_ENGINE_TOKEN: engineToken,
       MOSAICFORGE_ENGINE_PORT: "4771",
+      ...(journalDirectory
+        ? { MOSAICFORGE_JOURNAL_DIR: journalDirectory }
+        : {}),
     },
     stdio: "inherit",
   }),

@@ -27,6 +27,27 @@ export async function ensureLocalEnvironment(path) {
     );
 }
 
+export async function ensureValkeyEnvironment(path) {
+  await mkdir(dirname(path), { recursive: true });
+  try {
+    await writeFile(
+      path,
+      `MOSAICFORGE_VALKEY_PASSWORD=${randomBytes(32).toString("hex")}\n`,
+      { flag: "wx", mode: 0o600 },
+    );
+  } catch (error) {
+    if (error.code !== "EEXIST") throw error;
+  }
+  if (
+    !/^MOSAICFORGE_VALKEY_PASSWORD=[0-9a-f]{64}\r?\n$/.test(
+      await readFile(path, "utf8"),
+    )
+  )
+    throw new Error(
+      "Invalid existing local Valkey configuration; it was not overwritten.",
+    );
+}
+
 if (
   process.argv[1] &&
   import.meta.url === pathToFileURL(resolve(process.argv[1])).href
@@ -34,6 +55,8 @@ if (
   const root = fileURLToPath(new URL("../", import.meta.url));
   const environment = join(root, "state/local-db.env");
   await ensureLocalEnvironment(environment);
+  const valkeyEnvironment = join(root, "state/local-valkey.env");
+  await ensureValkeyEnvironment(valkeyEnvironment);
   const windowsDocker = join(
     process.env.ProgramFiles ?? "C:/Program Files",
     "Docker/Docker/resources/bin/docker.exe",
@@ -49,6 +72,8 @@ if (
       "compose",
       "--env-file",
       environment,
+      "--env-file",
+      valkeyEnvironment,
       "-f",
       join(root, "deploy/compose/local.yml"),
       ...(args.length ? args : ["up", "-d", "--build", "--wait"]),

@@ -63,9 +63,13 @@ See [the Java service](services/api/README.md) and [future job contracts](docs/j
 The local launcher creates `state/local-db.env` once with a random database
 password and stable local owner ID; it never prints or overwrites existing
 credentials. Keep this ignored file and the PostgreSQL volume when updating.
-PostgreSQL has no host port. Node24 is required for the helper; its equivalent
-Compose command is `docker compose --env-file state/local-db.env -f deploy/compose/local.yml`.
-Asynchronous workers and individual user login remain later phases.
+It also creates `state/local-valkey.env` once for the separate internal queue
+credential. Keep that file, the Valkey volume and the private engine journal volume.
+PostgreSQL and Valkey have no host ports. Node24 is required for the helper; its equivalent
+Compose command is `docker compose --env-file state/local-db.env --env-file state/local-valkey.env -f deploy/compose/local.yml`.
+Durable block/control components are being introduced incrementally; public
+asynchronous submission stays disabled until final PDF publication is complete.
+Individual user login remains a later phase.
 
 If port 3000 is occupied, choose another port without stopping unrelated services:
 

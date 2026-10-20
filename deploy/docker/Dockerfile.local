@@ -36,6 +36,7 @@ COPY --from=engine-build /build/mosaicforge-preview /app/mosaicforge-preview
 COPY --from=web-build --chown=node:node /build/apps/web/.next/standalone/ /app/
 COPY --chown=node:node deploy/docker/start-local.mjs deploy/docker/healthcheck.mjs /app/
 COPY --chown=node:node LICENSE /app/LICENSE
+RUN mkdir -p /app/journal && chown node:node /app/journal && chmod 700 /app/journal
 USER node
 EXPOSE 3000
 HEALTHCHECK --interval=15s --timeout=8s --start-period=45s CMD ["node", "/app/healthcheck.mjs"]
