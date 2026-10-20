@@ -1,7 +1,6 @@
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { compile } from 'json-schema-to-typescript';
 import { bundleSchema, schemaNames } from './schema.mjs';
-import { jobSchema } from './jobs.mjs';
 const root = new URL('../../', import.meta.url);
 const operations = JSON.parse(
   await readFile(new URL('contracts/api/v1/operations.json', root), 'utf8'),
@@ -48,7 +47,7 @@ const rootSchema = bundleSchema('common', {
     $ref: `../../jobs/v1/${name}.schema.json`,
   })),
 });
-for (const [name, definition] of Object.entries(rootSchema.definitions))
+for (const name of Object.keys(rootSchema.definitions))
   if (['GenerationSpec', 'PdfLayout'].includes(name))
     rootSchema.definitions[name] = { tsType: `import('./preview').${name}` };
 await output(
@@ -85,16 +84,36 @@ const paths = Object.fromEntries(
           },
         },
         responses: {
-          200: {
-            description: 'Engine-authoritative JSON envelope',
-            content: {
-              'application/json': {
-                schema: {
-                  $ref: `../preview/${op.response.startsWith('selected-') ? 'v2' : 'v1'}/${op.response}.schema.json`,
+          200: op.binary
+            ? {
+                description:
+                  'Complete binary PDF; x-mosaicforge-result is JSON metadata matching preview/v3/pdf-download-response.schema.json',
+                headers: {
+                  'x-mosaicforge-result': {
+                    required: true,
+                    schema: { type: 'string' },
+                  },
+                  'Content-Length': {
+                    required: true,
+                    schema: { type: 'integer', minimum: 8 },
+                  },
+                },
+                content: {
+                  'application/pdf': {
+                    schema: { type: 'string', format: 'binary' },
+                  },
+                },
+              }
+            : {
+                description: 'Engine-authoritative JSON envelope',
+                content: {
+                  'application/json': {
+                    schema: {
+                      $ref: `../preview/${op.response.startsWith('selected-') ? 'v2' : 'v1'}/${op.response}.schema.json`,
+                    },
+                  },
                 },
               },
-            },
-          },
           default: errorResponse,
         },
       },

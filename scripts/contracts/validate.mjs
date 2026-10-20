@@ -91,10 +91,32 @@ export function validateFixture(value, schemaName, operation) {
       'export',
       'export-pdf',
       'export-pdf-selection',
+      'export-pdf-download',
     ].includes(operation)
   )
     return false;
   if (!validators[schemaName]?.(value)) return false;
+  if (schemaName === 'pdf-download-response') {
+    const d = value.document,
+      indices = value.variantIndices;
+    return (
+      u64(d.seed) &&
+      u64(d.startIndex) &&
+      d.count >= 1 &&
+      d.count <= 12 &&
+      d.count === d.requestedCount &&
+      d.count === d.acceptedCount &&
+      d.count === d.pageCount &&
+      d.rejectedCount === 0 &&
+      d.status === 'completed' &&
+      indices.length === d.count &&
+      indices[0] === d.startIndex &&
+      indices.every(
+        (index, i) =>
+          u64(index) && (i === 0 || BigInt(index) > BigInt(indices[i - 1])),
+      )
+    );
+  }
   if (schemaName.startsWith('selected-pdf-export-')) {
     const request = schemaName.endsWith('request');
     const indices = value.variantIndices;
@@ -109,7 +131,9 @@ export function validateFixture(value, schemaName, operation) {
       )
     )
       return false;
-    const { schemaVersion, variantIndices, ...legacy } = value;
+    const legacy = { ...value };
+    delete legacy.schemaVersion;
+    delete legacy.variantIndices;
     return validateFixture(
       legacy,
       request ? 'pdf-export-request' : 'pdf-export-response',

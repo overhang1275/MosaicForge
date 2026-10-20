@@ -83,7 +83,7 @@ export const browserPorts: EditorPorts = {
     return await response.blob();
   },
   exportPdf: async (request, signal) => {
-    const response = await post('export-pdf-selection', request, signal);
+    const response = await post('export-pdf-download', request, signal);
     if (
       response.headers.get('content-type')?.split(';')[0] !== 'application/pdf'
     ) {

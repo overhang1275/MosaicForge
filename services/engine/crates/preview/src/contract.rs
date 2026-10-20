@@ -35,3 +35,7 @@ pub mod selected_pdf_export_response {
 }
 pub use selected_pdf_export_request::SelectedPdfExportRequest;
 pub use selected_pdf_export_response::SelectedPdfExportResponse;
+pub mod pdf_download_response {
+    include!(concat!(env!("OUT_DIR"), "/pdf_download_response.rs"));
+}
+pub use pdf_download_response::PdfDownloadResponse;

@@ -15,11 +15,14 @@ export const schemaNames = [
   'error',
   'selected-pdf-export-request',
   'selected-pdf-export-response',
+  'pdf-download-response',
 ];
 export const schemaReference = (name) =>
-  name.startsWith('selected-')
-    ? `../v2/${name}.schema.json`
-    : `${name}.schema.json`;
+  name === 'pdf-download-response'
+    ? '../v3/pdf-download-response.schema.json'
+    : name.startsWith('selected-')
+      ? `../v2/${name}.schema.json`
+      : `${name}.schema.json`;
 
 function localReference(source, ref) {
   const [file, fragment = ''] = ref.split('#');

@@ -9,7 +9,8 @@ export type PreviewMessage =
   | PdfExportResponse
   | PreviewError
   | SelectedPdfExportRequest
-  | SelectedPdfExportResponse;
+  | SelectedPdfExportResponse
+  | PdfDownloadResponse;
 export type RequestId = string;
 export type Ref3 = string;
 export type Ref10 = string;
@@ -221,4 +222,10 @@ export interface SelectedPdfExportResponse {
 export interface Ref24 {
   base64: string;
   mimeType: 'application/pdf';
+}
+export interface PdfDownloadResponse {
+  document: PdfDocumentResult;
+  requestId: RequestId;
+  schemaVersion: '3';
+  variantIndices: Ref25;
 }

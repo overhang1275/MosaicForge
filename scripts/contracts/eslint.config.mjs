@@ -4,7 +4,13 @@ export default [
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',
-      globals: { Buffer: 'readonly', process: 'readonly', URL: 'readonly' },
+      globals: {
+        Buffer: 'readonly',
+        process: 'readonly',
+        URL: 'readonly',
+        console: 'readonly',
+        structuredClone: 'readonly',
+      },
     },
     rules: {
       'no-undef': 'error',

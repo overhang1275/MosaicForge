@@ -18,12 +18,19 @@ fn main() {
         "error",
         "selected-pdf-export-request",
         "selected-pdf-export-response",
+        "pdf-download-response",
     ] {
         let schema = schema_bundle::bundle_schema(
             &root,
             &root.join(format!(
                 "preview/v{}/{name}.schema.json",
-                if name.starts_with("selected-") { 2 } else { 1 }
+                if name == "pdf-download-response" {
+                    3
+                } else if name.starts_with("selected-") {
+                    2
+                } else {
+                    1
+                }
             )),
         )
         .expect("local preview schema");

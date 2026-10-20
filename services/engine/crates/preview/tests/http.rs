@@ -10,6 +10,54 @@ use tower::ServiceExt;
 const TOKEN: &str = "test-only-token-012345678901234567890123";
 
 #[tokio::test]
+async fn binary_pdf_matches_selected_reference_and_metadata_digest() {
+    use sha2::{Digest, Sha256};
+    let mut request = fixture("export-pdf");
+    request["schemaVersion"] = json!("2");
+    request["variantIndices"] = json!(["0", "2", "18446744073709551615"]);
+    let (_, legacy) = call("/v2/export-pdf-selection", request.clone()).await;
+    let response = router(TOKEN.into(), "127.0.0.1:4771".into())
+        .oneshot(
+            Request::post("/v3/export-pdf-selection")
+                .header("host", "127.0.0.1:4771")
+                .header("authorization", format!("Bearer {TOKEN}"))
+                .header("content-type", "application/json")
+                .body(Body::from(serde_json::to_vec(&request).unwrap()))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(response.headers()["content-type"], "application/pdf");
+    let metadata = response.headers()["x-mosaicforge-result"].to_str().unwrap();
+    assert!(metadata.is_ascii());
+    let metadata: Value = serde_json::from_str(metadata).unwrap();
+    assert_eq!(metadata["schemaVersion"], "3");
+    assert_eq!(metadata["requestId"], request["requestId"]);
+    assert_eq!(metadata["variantIndices"], request["variantIndices"]);
+    assert_eq!(metadata["document"], legacy["document"]);
+    let length: usize = response.headers()["content-length"]
+        .to_str()
+        .unwrap()
+        .parse()
+        .unwrap();
+    let bytes = to_bytes(response.into_body(), 17 * 1024 * 1024)
+        .await
+        .unwrap();
+    assert_eq!(bytes.len(), length);
+    assert_eq!(
+        metadata["document"]["documentHash"],
+        format!("{:x}", Sha256::digest(&bytes))
+    );
+    assert_eq!(
+        bytes.as_ref(),
+        STANDARD
+            .decode(legacy["artifact"]["base64"].as_str().unwrap())
+            .unwrap()
+    );
+}
+
+#[tokio::test]
 async fn selected_pdf_exports_gaps_and_rejects_unsafe_or_invalid_pages_without_artifact() {
     let mut request = fixture("export-pdf");
     request["schemaVersion"] = json!("2");

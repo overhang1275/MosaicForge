@@ -1,6 +1,6 @@
 # Local control API
 
-Java 21 and Spring Boot. Phase 3.2 implements the five synchronous operations in
+Java 21 and Spring Boot. Phase 3.2 implements the synchronous operations in
 [the generated OpenAPI](../../contracts/openapi/control-v1.json), plus loopback
 `GET /health`. It calls Rust through the framework-free `EnginePort` boundary.
 There are no job, database, user or queue implementations yet; the separate
@@ -31,13 +31,21 @@ Origin headers are rejected. `/health` carries no secrets and requires no token.
 
 One operation at a time; additional requests get 429 before reading their bodies.
 Requests are capped at 32 MiB and SVG text at 5 MiB decoded UTF-8. Responses are
-capped at 16 MiB while receiving. Upload has a 30-second absolute deadline, engine
+capped at 16 MiB while receiving for legacy JSON operations. The additive
+`POST /v3/export-pdf-selection` accepts the v2 selection request and downloads
+`application/pdf` with ASCII JSON metadata in `x-mosaicforge-result`. Java spools
+the upstream body in bounded chunks to a private temporary file, capped at 1 GiB,
+and checks its actual Content-Length, SHA256, PDF signature, complete page counts
+and request/selection identity before publishing any PDF bytes. The temporary file
+is deleted on success, transport failure, timeout and downstream disconnect.
+The v1/v2 JSON endpoints retain their original limits and behavior.
+Upload has a 30-second absolute deadline, engine
 calls have a 30-second deadline (120 seconds for PDF); a client closing its request
 does not promise to interrupt already executing Rust work. The interactive
 contracts retain their existing bounds: one variant per call, up to twelve PDF
-pages and 512-pixel preview/export dimensions. Large job artifacts need a later
-streamed transport; accepting a million in the future job schema is not measured
-capacity.
+pages and 512-pixel preview/export dimensions. The binary PDF transport remains a
+local synchronous operation; accepting a million in the future job schema is not
+measured capacity.
 
 Requests and replies are validated against bundled offline schemas and semantic
 rules. The API preserves artifact bytes, request IDs and exact u64 strings. It

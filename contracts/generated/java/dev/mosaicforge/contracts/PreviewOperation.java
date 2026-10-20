@@ -5,7 +5,8 @@ public enum PreviewOperation {
   PREVIEW("/v1/preview", "generation-request", "generation-response", false),
   EXPORT("/v1/export", "generation-request", "generation-response", false),
   EXPORT_PDF("/v1/export-pdf", "pdf-export-request", "pdf-export-response", true),
-  EXPORT_PDF_SELECTION("/v2/export-pdf-selection", "selected-pdf-export-request", "selected-pdf-export-response", true);
+  EXPORT_PDF_SELECTION("/v2/export-pdf-selection", "selected-pdf-export-request", "selected-pdf-export-response", true),
+  EXPORT_PDF_DOWNLOAD("/v3/export-pdf-selection", "selected-pdf-export-request", "pdf-download-response", true);
   public final String path, requestSchema, responseSchema;
   public final boolean pdf;
   PreviewOperation(String path, String requestSchema, String responseSchema, boolean pdf) { this.path=path; this.requestSchema=requestSchema; this.responseSchema=responseSchema; this.pdf=pdf; }

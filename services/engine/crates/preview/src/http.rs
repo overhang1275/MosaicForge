@@ -31,13 +31,14 @@ pub fn router(token: String, host: String) -> Router {
         .route("/v1/export", any(handle))
         .route("/v1/export-pdf", any(handle))
         .route("/v2/export-pdf-selection", any(handle))
+        .route("/v3/export-pdf-selection", any(handle))
         .with_state(ServerState {
             token,
             host,
             gate: Arc::new(Semaphore::new(1)),
         })
 }
-fn error(status: StatusCode, id: &str, code: &str) -> Response {
+pub(crate) fn error(status: StatusCode, id: &str, code: &str) -> Response {
     json_response(
         status,
         json!({"requestId":id,"code":code,"message":"Preview request could not be completed"})
@@ -171,6 +172,9 @@ async fn handle_inner(state: ServerState, request: Request) -> Response {
         Err(_) => return error(StatusCode::BAD_REQUEST, UNKNOWN_REQUEST, "invalid_request"),
     };
     // The blocking closure owns the permit even if its HTTP future is dropped.
+    if path == "/v3/export-pdf-selection" {
+        return crate::binary_pdf::respond(bytes, permit).await;
+    }
     match blocking(permit, move || crate::compute::execute(&path, &bytes)).await {
         Ok((status, bytes)) => json_response(
             StatusCode::from_u16(status).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR),

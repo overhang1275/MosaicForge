@@ -3,5 +3,6 @@
   "preview":{"path":"/v1/preview","request":"generation-request","response":"generation-response","pdf":false},
   "export":{"path":"/v1/export","request":"generation-request","response":"generation-response","pdf":false},
   "export-pdf":{"path":"/v1/export-pdf","request":"pdf-export-request","response":"pdf-export-response","pdf":true},
-  "export-pdf-selection":{"path":"/v2/export-pdf-selection","request":"selected-pdf-export-request","response":"selected-pdf-export-response","pdf":true}
+  "export-pdf-selection":{"path":"/v2/export-pdf-selection","request":"selected-pdf-export-request","response":"selected-pdf-export-response","pdf":true},
+  "export-pdf-download":{"path":"/v3/export-pdf-selection","request":"selected-pdf-export-request","response":"pdf-download-response","pdf":true,"binary":true}
 }

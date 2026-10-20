@@ -29,6 +29,13 @@ export const controlOperations = {
     "request": "selected-pdf-export-request",
     "response": "selected-pdf-export-response",
     "pdf": true
+  },
+  "export-pdf-download": {
+    "path": "/v3/export-pdf-selection",
+    "request": "selected-pdf-export-request",
+    "response": "pdf-download-response",
+    "pdf": true,
+    "binary": true
   }
 } as const;
 export type ControlOperation = keyof typeof controlOperations;

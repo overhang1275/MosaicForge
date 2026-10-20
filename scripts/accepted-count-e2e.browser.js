@@ -95,11 +95,11 @@ async function acceptedCountE2e(page) {
   });
   const requestPromise = page.waitForRequest(
     (request) =>
-      new URL(request.url()).pathname === "/api/export-pdf-selection",
+      new URL(request.url()).pathname === "/api/export-pdf-download",
   );
   const responsePromise = page.waitForResponse(
     (response) =>
-      new URL(response.url()).pathname === "/api/export-pdf-selection",
+      new URL(response.url()).pathname === "/api/export-pdf-download",
   );
   const downloadPromise = page.waitForEvent("download");
   await pdfButton.click();
@@ -119,11 +119,11 @@ async function acceptedCountE2e(page) {
   await page.getByLabel("Semilla", { exact: true }).fill("999");
   const replayRequest = page.waitForRequest(
     (request) =>
-      new URL(request.url()).pathname === "/api/export-pdf-selection",
+      new URL(request.url()).pathname === "/api/export-pdf-download",
   );
   const replayResponse = page.waitForResponse(
     (response) =>
-      new URL(response.url()).pathname === "/api/export-pdf-selection",
+      new URL(response.url()).pathname === "/api/export-pdf-download",
   );
   const replayDownload = page.waitForEvent("download");
   await pdfButton.click();

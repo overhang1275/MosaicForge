@@ -6,6 +6,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -129,6 +134,10 @@ class Gateway {
         return;
       }
       id = Contracts.text(input, "requestId");
+      if (operation == PreviewOperation.EXPORT_PDF_DOWNLOAD) {
+        download(response, operation, input, bytes, trace, id);
+        return;
+      }
       var reply = engine.execute(operation.path, bytes, trace, operation.pdf);
       JsonNode output;
       try {
@@ -178,6 +187,76 @@ class Gateway {
           .addKeyValue("status", response.getStatus())
           .addKeyValue("durationMs", (System.nanoTime() - started) / 1000000)
           .log("control.request");
+    }
+  }
+
+  private void download(
+      HttpServletResponse response,
+      PreviewOperation operation,
+      JsonNode input,
+      byte[] bytes,
+      String trace,
+      String id)
+      throws IOException, InterruptedException, TimeoutException {
+    try (var reply = engine.download(operation.path, bytes, trace)) {
+      if (reply.status() != 200) {
+        JsonNode error;
+        try {
+          error = Contracts.JSON.readTree(Files.readAllBytes(reply.body()));
+        } catch (RuntimeException invalid) {
+          throw new IOException("Invalid engine error", invalid);
+        }
+        var code = Contracts.text(error, "code");
+        var outputId = Contracts.text(error, "requestId");
+        if (!reply.contentType().split(";", 2)[0].trim().equalsIgnoreCase("application/json")
+            || !contracts.valid(error, "error", operationName(operation))
+            || ERROR_STATUS.getOrDefault(code, 0) != reply.status()
+            || (!id.equals(outputId) && !UNKNOWN_ID.equals(outputId)))
+          throw new IOException("Invalid engine error");
+        failure(response, reply.status(), id, code);
+        return;
+      }
+      JsonNode metadata;
+      try {
+        metadata = Contracts.JSON.readTree(reply.metadata());
+      } catch (RuntimeException invalid) {
+        throw new IOException("Invalid PDF metadata", invalid);
+      }
+      if (!reply.contentType().equalsIgnoreCase("application/pdf")
+          || !reply.metadata().matches("[\\x20-\\x7e]+")
+          || !contracts.valid(metadata, operation.responseSchema, operationName(operation))
+          || !correlates(input, metadata, operation)) throw new IOException("Invalid PDF metadata");
+      var digest = sha256();
+      try (var file = Files.newInputStream(reply.body())) {
+        byte[] magic = file.readNBytes(8);
+        if (!new String(magic, StandardCharsets.US_ASCII).equals("%PDF-1.7"))
+          throw new IOException("Invalid PDF signature");
+        digest.update(magic);
+        byte[] buffer = new byte[8192];
+        int count;
+        while ((count = file.read(buffer)) != -1) digest.update(buffer, 0, count);
+      }
+      if (!HexFormat.of()
+          .formatHex(digest.digest())
+          .equals(Contracts.text(metadata.path("document"), "documentHash")))
+        throw new IOException("Invalid PDF digest");
+      response.setStatus(200);
+      response.setContentType("application/pdf");
+      response.setHeader("x-mosaicforge-result", reply.metadata());
+      response.setHeader(
+          "Content-Disposition", "attachment; filename=\"mosaicforge-selection.pdf\"");
+      response.setContentLengthLong(Files.size(reply.body()));
+      try (var file = Files.newInputStream(reply.body())) {
+        file.transferTo(response.getOutputStream());
+      }
+    }
+  }
+
+  private static MessageDigest sha256() {
+    try {
+      return MessageDigest.getInstance("SHA-256");
+    } catch (NoSuchAlgorithmException impossible) {
+      throw new IllegalStateException(impossible);
     }
   }
 
@@ -238,7 +317,8 @@ class Gateway {
       return false;
     if (operation.pdf)
       return spec.path("count").equals(result.path("count"))
-          && (operation != PreviewOperation.EXPORT_PDF_SELECTION
+          && ((operation != PreviewOperation.EXPORT_PDF_SELECTION
+                  && operation != PreviewOperation.EXPORT_PDF_DOWNLOAD)
               || input.path("variantIndices").equals(output.path("variantIndices")));
     if (!spec.path("rulesVersion").equals(result.path("rulesVersion"))) return false;
     return output.path("artifact").isMissingNode()

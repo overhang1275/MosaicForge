@@ -74,6 +74,29 @@ final class Contracts {
     try {
       if (!schemas.containsKey(schema) || !schemas.get(schema).validate(value).isEmpty())
         return false;
+      if (schema.equals("pdf-download-response")) {
+        var document = value.path("document");
+        var indices = value.path("variantIndices");
+        int count = document.path("count").asInt();
+        if (count < 1
+            || count > 12
+            || indices.size() != count
+            || !indices.get(0).equals(document.path("startIndex"))
+            || !u64(document.path("seed"))
+            || !text(document, "documentHash").matches("[0-9a-f]{64}")
+            || count != document.path("requestedCount").asInt()
+            || count != document.path("acceptedCount").asInt()
+            || count != document.path("pageCount").asInt()
+            || document.path("rejectedCount").asInt() != 0
+            || !text(document, "status").equals("completed")) return false;
+        BigInteger previous = BigInteger.valueOf(-1);
+        for (var index : indices) {
+          if (!u64(index) || new BigInteger(index.asString()).compareTo(previous) <= 0)
+            return false;
+          previous = new BigInteger(index.asString());
+        }
+        return true;
+      }
       if (schema.startsWith("selected-pdf-export-")) {
         var request = schema.endsWith("request");
         var spec = request ? value.path("job").path("generation") : value.path("document");

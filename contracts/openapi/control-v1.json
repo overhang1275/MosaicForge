@@ -221,6 +221,64 @@
         }
       }
     },
+    "/v3/export-pdf-selection": {
+      "post": {
+        "operationId": "export_pdf_download",
+        "security": [
+          {
+            "serviceToken": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "../preview/v2/selected-pdf-export-request.schema.json"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Complete binary PDF; x-mosaicforge-result is JSON metadata matching preview/v3/pdf-download-response.schema.json",
+            "headers": {
+              "x-mosaicforge-result": {
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Content-Length": {
+                "required": true,
+                "schema": {
+                  "type": "integer",
+                  "minimum": 8
+                }
+              }
+            },
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Validated and sanitized error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../preview/v1/error.schema.json"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/health": {
       "get": {
         "operationId": "health",

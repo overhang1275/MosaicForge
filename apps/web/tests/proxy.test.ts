@@ -60,6 +60,73 @@ test('valid busy error is sanitized and returned with new correlation', async ()
 const origin = 'http://127.0.0.1:3000';
 const token = 'test-only-token-012345678901234567890123';
 
+test('binary PDF streams beyond the old JSON response cap and fails on wrong digest', async () => {
+  const original = await fixture('export-pdf');
+  const input = {
+    ...original,
+    schemaVersion: '2',
+    variantIndices: ['0', '1', '2'],
+  };
+  const bytes = Buffer.alloc(17 * 1024 * 1024, 32);
+  bytes.write('%PDF-1.7');
+  const output = await fixture('accepted-pdf');
+  for (const mode of [
+    'ok',
+    'hash',
+    'indices',
+    'requestId',
+    'pages',
+    'length',
+  ]) {
+    const srv = await upstream((req, res) => {
+      let body = '';
+      req.on('data', (c) => {
+        body += c;
+      });
+      req.on('end', () => {
+        const metadata = {
+          schemaVersion: '3',
+          requestId: JSON.parse(body).requestId,
+          document: {
+            ...output.document,
+            documentHash:
+              mode === 'hash'
+                ? '0'.repeat(64)
+                : createHash('sha256').update(bytes).digest('hex'),
+          },
+          variantIndices:
+            mode === 'indices' ? ['0', '1', '3'] : ['0', '1', '2'],
+        };
+        if (mode === 'requestId')
+          metadata.requestId = '00000000-0000-0000-0000-000000000000';
+        if (mode === 'pages') metadata.document.pageCount = 2;
+        res.writeHead(200, {
+          'content-type': 'application/pdf',
+          'content-length': mode === 'length' ? bytes.length - 1 : bytes.length,
+          'x-mosaicforge-result': JSON.stringify(metadata),
+        });
+        res.end(bytes);
+      });
+    });
+    try {
+      const result = await createProxy({ engineUrl: srv.url, token, origin })(
+        request(input),
+        'export-pdf-download',
+      );
+      if (['indices', 'requestId', 'pages'].includes(mode))
+        assert.equal(result.status, 502);
+      else if (mode === 'hash' || mode === 'length')
+        await assert.rejects(result.arrayBuffer());
+      else {
+        assert.equal(result.status, 200);
+        assert.deepEqual(Buffer.from(await result.arrayBuffer()), bytes);
+      }
+    } finally {
+      await srv.close();
+    }
+  }
+});
+
 test('generation replies must retain the requested rules version', async () => {
   const input = await fixture('request-max-u64');
   input.generation.rulesVersion = '2';

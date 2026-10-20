@@ -91,6 +91,14 @@ This compatibility development launcher talks directly to Rust. The integrated J
 
 The interface currently uses Spanish labels. PDF export requires every sample in the saved series to be accepted; an error never downloads a partial document. Editing controls afterward does not change that saved series. SVG/PNG downloads are secondary options.
 
+The editor uses a binary PDF download instead of the legacy JSON/base64 transport.
+Rust and Java prepare/verify the completed document on private temporary disk;
+Next streams it with length and SHA256 checks. The current local disk quota is
+1 GiB per PDF, with a 120-second request deadline and the existing 12-sample UI.
+The browser still receives a Blob before saving. Million-page jobs require the
+later durable-artifact/native-download flow; this change does not establish
+million-page capacity or reduce the intrinsic size of unique vector artwork.
+
 The editor supports **1–12 samples per series** and previews up to **512 × 512 px**. The CLI supports **1–10,000 variants per job**. One million variants is a roadmap objective, not a verified current capability.
 
 The web sample count targets accepted variants. Rejected candidates are replaced in deterministic index order, with up to ten attempts per requested variant. If the target cannot be completed, the series fails explicitly and cannot be exported as a complete PDF. The CLI v1 continues to count candidates.

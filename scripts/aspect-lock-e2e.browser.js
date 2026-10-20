@@ -103,11 +103,11 @@ async function aspectLockE2e(page) {
   await x.getByLabel("Máximo", { exact: true }).fill("2.4");
   const pdfRequest = page.waitForRequest(
     (request) =>
-      new URL(request.url()).pathname === "/api/export-pdf-selection",
+      new URL(request.url()).pathname === "/api/export-pdf-download",
   );
   const pdfResponse = page.waitForResponse(
     (response) =>
-      new URL(response.url()).pathname === "/api/export-pdf-selection",
+      new URL(response.url()).pathname === "/api/export-pdf-download",
     { timeout: 120000 },
   );
   const download = page.waitForEvent("download", { timeout: 120000 });

@@ -159,6 +159,30 @@ pub fn validate_selected_pdf_export_response(
             && indices.windows(2).all(|pair| pair[0] < pair[1]),
     )
 }
+pub fn validate_pdf_download_response(response: &PdfDownloadResponse) -> Result<(), EngineError> {
+    mosaicforge_core::pdf::validate_pdf_document_result(&response.document)?;
+    let document = &response.document;
+    let indices = response
+        .variant_indices
+        .iter()
+        .map(|index| {
+            index
+                .parse::<u64>()
+                .map_err(|_| EngineError::InvalidSpec("invalid PDF index"))
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+    require(
+        document.count <= 12
+            && document.page_count == document.count
+            && document.rejected_count == 0
+            && document.status.to_string() == "completed"
+            && document.document_hash.is_some()
+            && indices.len() as i64 == document.count
+            && indices.first().map(u64::to_string).as_deref()
+                == Some(document.start_index.as_str())
+            && indices.windows(2).all(|pair| pair[0] < pair[1]),
+    )
+}
 pub fn validate_pdf_export_response(response: &PdfExportResponse) -> Result<(), EngineError> {
     mosaicforge_core::pdf::validate_pdf_document_result(&response.document)?;
     let r = &response.document;

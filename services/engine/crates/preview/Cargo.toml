@@ -16,6 +16,7 @@ serde_json = "1"
 sha2 = "0.10"
 base64 = "=0.22.1"
 regress = "0.10"
+futures-core = "=0.3.34"
 
 [build-dependencies]
 typify = { version = "0.8", default-features = false }

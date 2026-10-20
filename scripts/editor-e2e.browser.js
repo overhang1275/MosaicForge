@@ -100,7 +100,7 @@ async function editorE2e(page) {
   checks.push("real import, three previews, seed change, regenerate");
   await page.getByLabel("Semilla", { exact: true }).fill("2028");
   const pdfRequest = page.waitForRequest(
-    (r) => new URL(r.url()).pathname === "/api/export-pdf-selection",
+    (r) => new URL(r.url()).pathname === "/api/export-pdf-download",
   );
   const downloadPromise = page.waitForEvent("download");
   await pdfButton.click();

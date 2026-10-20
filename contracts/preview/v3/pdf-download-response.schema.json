@@ -1,0 +1,13 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PdfDownloadResponse",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "requestId", "document", "variantIndices"],
+  "properties": {
+    "schemaVersion": { "const": "3" },
+    "requestId": { "$ref": "../v1/common.schema.json#/definitions/RequestId" },
+    "document": { "$ref": "../../engine/pdf/v1/result.schema.json" },
+    "variantIndices": { "$ref": "../v2/selected-pdf-export-request.schema.json#/properties/variantIndices" }
+  }
+}

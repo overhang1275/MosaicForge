@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { pdfStream } from './pdf-stream.ts';
 import {
   controlOperations,
   type ControlOperation,
@@ -204,7 +205,8 @@ export function createProxy(config: ProxyConfig) {
           envelope,
           operation === 'inspect'
             ? 'inspect-request'
-            : operation === 'export-pdf-selection'
+            : operation === 'export-pdf-selection' ||
+                operation === 'export-pdf-download'
               ? 'selected-pdf-export-request'
               : operation === 'export-pdf'
                 ? 'pdf-export-request'
@@ -245,6 +247,19 @@ export function createProxy(config: ProxyConfig) {
           cache: 'no-store',
         },
       );
+      if (
+        operation === 'export-pdf-download' &&
+        response.ok &&
+        response.headers.get('content-type')?.split(';')[0] ===
+          'application/pdf'
+      ) {
+        try {
+          return pdfStream(response, input as SelectedPdfExportRequest, id);
+        } catch {
+          await response.body?.cancel();
+          return error(502, id, 'engine_unavailable');
+        }
+      }
       if (!isJson(response.headers)) {
         await response.body?.cancel();
         return error(502, id, 'engine_unavailable');
