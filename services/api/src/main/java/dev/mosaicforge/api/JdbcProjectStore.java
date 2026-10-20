@@ -65,7 +65,7 @@ final class JdbcProjectStore implements ProjectStore {
                 statement.executeQuery(
                     "SELECT version FROM mosaicforge_schema_versions ORDER BY version DESC")) {
               if (rows.next()) {
-                if (rows.getInt(1) != 1)
+                if (rows.getInt(1) < 1 || rows.getInt(1) > 2)
                   throw new IllegalStateException("Unsupported database schema version");
                 return null;
               }

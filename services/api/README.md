@@ -103,3 +103,43 @@ create` exercises the mounted API and saves test project identity locally;
 after API/DB restarts, run it with `read` to verify durable immutable data.
 It never prints credentials. Project management UI and individual-user login
 are not included in3.3.
+
+## Internal durable jobs (3.4.1 and 3.4.3)
+
+`JobStore` and `JdbcJobStore` provide authoritative transactions for immutable
+revision submission, canonical idempotency, outbox delivery, claims, fenced
+heartbeats, ordered block confirmation, finite attempts, cancellation and
+reconciliation. Migration 2 is additive and preserves project migration 1.
+The pilot accepts at most 12 accepted variants and concurrency 1. Unsupported
+requests fail before insertion. Unsigned counters remain decimal strings.
+
+`JobCoordinator` is explicitly constructed and invoked; it has no Spring bean,
+scheduler or public routes. Call `dispatchOutbox`, `tick(jobId, traceparent)`,
+`consume(traceparent)` and `reconcile` in bounded steps. Reaching the target leaves
+the job `running` awaiting the future finalizer, with no published artifacts.
+Worker429 delays eligibility by two seconds without charging an execution failure;
+old fences cannot renew or confirm after deferral. Crashed claims consume attempts.
+Block requests are persisted as exact canonical UTF-8 JSON bytes; replacement
+leases reuse the same block ID and bytes. Responses validate schemas, request
+hash, contiguous indices, acceptance reasons, counters, stop point and record hash.
+
+`LettuceWorkNotifications` uses a capped advisory Valkey stream; polling reads at
+most100 records and acknowledgment deletes the entry. PostgreSQL reconciliation
+recovers lost/trimmed notifications. Operations have two-second deadlines and a
+bounded client request queue. Lettuce is Boot-managed and MIT licensed, verified
+from the resolved artifact POM and its official repository LICENSE. Its official
+[connection documentation](https://redis.github.io/lettuce/user-guide/connecting-redis/)
+describes client/connection lifecycle and timeouts.
+
+Run real durable integration tests with a separate `MOSAICFORGE_TEST_DB_URL` and
+`MOSAICFORGE_DB_USER`/`MOSAICFORGE_DB_PASSWORD`. Set
+`MOSAICFORGE_TEST_VALKEY_URI=redis://valkey:6379` and provide
+`MOSAICFORGE_VALKEY_PASSWORD` separately for queue tests. Use
+`./mvnw -Dtest=JobStoreTest,JobRequestsTest,WorkNotificationsTest test`.
+`DurableStackTest` additionally requires `MOSAICFORGE_TEST_ENGINE_URL` (loopback),
+`MOSAICFORGE_ENGINE_TOKEN`, and `MOSAICFORGE_TEST_SVG` pointing to test.svg. It
+inspects that SVG with real Rust, generates12 accepted candidates at seed2026,
+reopens the Java store and verifies totals remain exact after duplicate notices.
+Tests delete only their own owner-scoped database rows. Tests without their
+required environment variables are explicitly skipped. Full publication,
+downloads and automatic scheduling remain gated on3.4.4/5.

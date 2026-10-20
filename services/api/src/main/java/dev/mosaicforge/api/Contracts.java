@@ -45,6 +45,10 @@ final class Contracts {
     load(registry, "error");
     for (var name :
         new String[] {
+          "durable-job-request", "durable-job-status", "block-request", "block-response"
+        }) load(registry, name);
+    for (var name :
+        new String[] {
           "create-request",
           "revision-request",
           "me-response",
