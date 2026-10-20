@@ -106,3 +106,33 @@ PDF inspection command:
 UI review uses the existing design direction and the applicable form/keyboard/
 focus checks from [Vercel Web Interface Guidelines](https://raw.githubusercontent.com/vercel-labs/web-interface-guidelines/main/command.md).
 This is a focused review, not a full WCAG certification.
+
+### User-reported regression: original SVG, seed 2026, nine variants
+
+On 2026-10-19, the user's existing browser tab still ran the old editor:
+it showed rules1, no proportional-scale checkbox, five rejected candidates
+among nine cards, and a completed-series message. Reloading that tab loaded
+the deployed rules2 editor. No production code changes were needed for this
+reproduction.
+
+- [x] ~~Reproduce with the original `test.svg`, seed2026, nine variants.~~
+- [x] ~~Confirm nine accepted, decodable PNG previews in the refreshed editor.~~
+- [x] ~~Export all nine SVGs and measure their geometric transforms.~~
+  All nine had equal column norms (`scaleX == scaleY`) and zero column dot
+  product, checked with an absolute threshold of `1e-10`.
+- [x] ~~Download and independently inspect the complete vector PDF.~~
+  HTTP200, nine rendered pages, 100×100mm, no Image XObjects.
+
+The PDF contains 9731218 bytes, SHA-256
+`83d5820e81038ed7e733255b681bd7d8360526961fe595f4bba899f0eb7c66db`.
+Evidence: `out/aspect/repro-nine.log`, `repro-nine.png`, `repro-nine.pdf`,
+and `repro-nine-inspection/inspection.json`.
+
+The existing preview transport buffers PDFs and caps their size at
+`12 * 1024 * 1024 - 64 * 1024` bytes (12517376 bytes), leaving room for JSON
+metadata and base64 in the 16MiB response. This is an implementation limit,
+not a PDF-format page limit. Streaming large exports remains outstanding.
+This successful nine-candidate run did not exercise technical-request retries;
+the current editor still stops on transport/decode errors and bounds rejected
+candidates at ten times the requested count. It does not guarantee completion
+for every possible configuration or service failure.
