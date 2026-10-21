@@ -6,7 +6,8 @@ Java 21 and Spring Boot. Phase 3.2 implements the synchronous operations in
 Phase3.3 adds PostgreSQL-backed local ownership, projects and immutable revisions
 through [the projects OpenAPI](../../contracts/openapi/projects-v1.json).
 The configured local owner is derived from server configuration, never request
-fields. Individual login, asynchronous jobs and queues remain later work.
+fields. Phase3.4 adds opt-in durable jobs, finalization and streaming downloads.
+Individual login remains later work.
 
 ## Build and run
 
@@ -98,13 +99,13 @@ password and prevents the prior local owner from being selected automatically.
 
 Real DB tests require `MOSAICFORGE_TEST_DB_URL` pointing to a separate test
 database and the DB user/password variables above. Without that variable the
-two PostgreSQL integration tests are explicitly skipped. `scripts/projects-smoke.mjs
+PostgreSQL integration tests are explicitly skipped. `scripts/projects-smoke.mjs
 create` exercises the mounted API and saves test project identity locally;
 after API/DB restarts, run it with `read` to verify durable immutable data.
 It never prints credentials. Project management UI and individual-user login
 are not included in3.3.
 
-## Internal durable jobs (3.4.1 and 3.4.3)
+## Durable jobs (3.4)
 
 `JobStore` and `JdbcJobStore` provide authoritative transactions for immutable
 revision submission, canonical idempotency, outbox delivery, claims, fenced
@@ -117,15 +118,53 @@ existing status contract's safe integer range.
 The pilot accepts at most 12 accepted variants and concurrency 1. Unsupported
 requests fail before insertion. Unsigned counters remain decimal strings.
 
-`JobCoordinator` is explicitly constructed and invoked; it has no Spring bean,
-scheduler or public routes. Call `dispatchOutbox`, `tick(jobId, traceparent)`,
-`consume(traceparent)` and `reconcile` in bounded steps. Reaching the target leaves
-the job `running` awaiting the future finalizer, with no published artifacts.
-Worker429 delays eligibility by two seconds without charging an execution failure;
-old fences cannot renew or confirm after deferral. Crashed claims consume attempts.
-Block requests are persisted as exact canonical UTF-8 JSON bytes; replacement
-leases reuse the same block ID and bytes. Responses validate schemas, request
-hash, contiguous indices, acceptance reasons, counters, stop point and record hash.
+Enable the complete runner with `MOSAICFORGE_JOBS_ENABLED=true`, persistence enabled,
+`MOSAICFORGE_VALKEY_URI` and `MOSAICFORGE_VALKEY_PASSWORD`. The source default is off;
+missing required dependencies prevent startup. PostgreSQL remains authoritative;
+Valkey notifications are advisory. One coordinator polls at most10 database jobs
+per cycle, consumes bounded notifications and reconciles cancelled jobs. A broker
+outage does not prevent database polling. Shutdown closes the runner and broker
+resources.
+
+Migration4 adds an immutable finalization request, stable artifact collection UUID,
+sealed metadata and durable cancellation delivery state. Finalization can claim
+only after exactly the target has been accepted. Its60-second fenced lease renews
+every15seconds; replacement leases replay the same request bytes and artifact ID.
+At mostfive finalization attempts use bounded backoff. Committed block references
+are read in100-row pages, ordered by candidate start, with at most4095 references.
+No accepted-index array is assembled. Worker identity, exact wire hash, page count,
+digests and positive size limits are checked before metadata and `succeeded` are
+committed together. Cancellation and expired fences cannot publish a result;
+terminal states are immutable. Public status maps internal finalization to
+`running` and contains bounded counters/references, never SVG or record arrays.
+
+The authenticated public endpoints are `POST /v2/jobs`, `GET /v2/jobs/{id}`,
+`POST /v2/jobs/{id}/cancel` and `GET/HEAD /v2/jobs/{id}/artifacts/{pdf|manifest}`.
+Submission requires an `Idempotency-Key` of16–128 visible ASCII characters, a
+JSON body capped at2MiB and the shared absolute30-second upload deadline. A replay
+returns the same job; changed requests return409. Unknown/foreign jobs return404.
+Cancellation persists first and retries its private Rust marker when transport or
+response validation fails. A succeeded job remains downloadable after a late
+cancel request.
+
+Downloads require owned succeeded metadata and stream in8192-byte chunks through
+two admission slots, without a whole-file byte array or browser Blob. PDF and
+NDJSON members share one collection UUID and have distinct typed routes. Strong
+quoted SHA256 ETags, Content-Length and single-byte-range Content-Range values are
+checked against persisted metadata; `Range`, `If-Range` and HEAD are supported.
+A full download verifies SHA256 and holds its final byte until EOF/length checks
+complete. Malformed/unsatisfiable ranges return416 with `Content-Range: bytes */N`
+and a sanitized JSON error. Combined collection metadata is capped at1GiB. Rust
+serves only sealed, verified collections; temporary output is never downloadable.
+
+Worker429 during block generation delays eligibility by two seconds without
+charging an execution failure; old fences cannot renew or confirm after deferral.
+Crashed claims consume attempts. Block requests persist as exact canonical UTF-8
+JSON bytes; replacement leases reuse the same block ID and bytes. Responses
+validate schemas, identity, contiguous indices, acceptance reasons, counters,
+stop point and record hash. The local principal and pilot limits remain one
+server-configured owner, target<=12 and concurrency1; no individual login or
+million-variant capacity is claimed.
 
 `LettuceWorkNotifications` uses a capped advisory Valkey stream; polling reads at
 most100 records and acknowledgment deletes the entry. PostgreSQL reconciliation
@@ -145,5 +184,23 @@ Run real durable integration tests with a separate `MOSAICFORGE_TEST_DB_URL` and
 inspects that SVG with real Rust, generates12 accepted candidates at seed2026,
 reopens the Java store and verifies totals remain exact after duplicate notices.
 Tests delete only their own owner-scoped database rows. Tests without their
-required environment variables are explicitly skipped. Full publication,
-downloads and automatic scheduling remain gated on3.4.4/5.
+required environment variables are explicitly skipped.
+
+## Durable pilot API
+
+Enable `MOSAICFORGE_JOBS_ENABLED=true` together with persistence and the private
+`MOSAICFORGE_VALKEY_URI` / `MOSAICFORGE_VALKEY_PASSWORD`. Docker Compose enables
+these automatically without publishing a database, queue or API port.
+The bounded runner reconciles PostgreSQL independently of advisory notifications.
+
+`POST /v2/jobs` requires a stable16–128 character Idempotency-Key and an owned
+project revision. `GET /v2/jobs/{id}` reports bounded counters and artifact IDs;
+`POST /v2/jobs/{id}/cancel` is idempotent. `GET/HEAD
+/v2/jobs/{id}/artifacts/{pdf|manifest}` serves only complete succeeded artifacts,
+with SHA-256 ETags, byte ranges and If-Range. Java streams rather than buffering
+the full PDF. Fenced finalization claims retain stable wire bytes/artifact IDs
+across restart; success and metadata association commit together.
+
+Current limits remain12 accepted pages and one worker, under the server-configured
+local principal. There is no individual login or million-page capacity claim.
+See ADR0013 and `docs/verification/phase-3.4.4-6.md` for checks and limitations.

@@ -142,6 +142,25 @@ class JobStoreTest {
       assertNull(job.nextIndex());
       assertEquals("running", job.state());
       assertTrue(store.claim(id, Duration.ofSeconds(5)).isEmpty());
+      var finalLease = store.claimFinal(id, Duration.ofSeconds(5)).orElseThrow();
+      assertTrue(store.claimFinal(id, Duration.ofSeconds(5)).isEmpty());
+      clock.now = clock.now.plusSeconds(6);
+      var finalReplacement =
+          new JdbcJobStore(url, user, password, clock, 2)
+              .claimFinal(id, Duration.ofSeconds(5))
+              .orElseThrow();
+      assertEquals(finalLease.artifactId(), finalReplacement.artifactId());
+      assertEquals(finalLease.request(), finalReplacement.request());
+      String sealed = sealed(finalReplacement);
+      assertFalse(store.completeFinal(finalLease, sealed));
+      assertTrue(store.completeFinal(finalReplacement, sealed));
+      assertEquals("succeeded", store.find(owner, id).orElseThrow().state());
+      assertEquals(2, store.artifact(owner, id).orElseThrow().pages());
+      long doneRevision = store.find(owner, id).orElseThrow().revision();
+      store.cancel(owner, id);
+      assertFalse(store.completeFinal(finalReplacement, sealed));
+      assertEquals(doneRevision, store.find(owner, id).orElseThrow().revision());
+      assertTrue(store.artifact(UUID.randomUUID(), id).isEmpty());
       var deferred = store.submit(owner, "deferred", wire);
       var deferredLease = store.claim(deferred.id(), Duration.ofSeconds(5)).orElseThrow();
       store.defer(deferredLease, Duration.ofSeconds(2));
@@ -186,6 +205,17 @@ class JobStoreTest {
       store.cancel(owner, cancelled.id());
       assertFalse(store.confirm(cancelLease, response(cancelLease, true)));
       assertEquals("cancelled", store.find(owner, cancelled.id()).orElseThrow().state());
+      var cancelledFinal = store.submit(owner, "cancel-final", wire);
+      var acceptedLease = store.claim(cancelledFinal.id(), Duration.ofSeconds(5)).orElseThrow();
+      assertTrue(store.confirm(acceptedLease, response(acceptedLease, true)));
+      var cancelledFinalLease =
+          store.claimFinal(cancelledFinal.id(), Duration.ofSeconds(5)).orElseThrow();
+      store.cancel(owner, cancelledFinal.id());
+      assertFalse(store.completeFinal(cancelledFinalLease, sealed(cancelledFinalLease)));
+      assertTrue(store.artifact(owner, cancelledFinal.id()).isEmpty());
+      assertTrue(store.cancelled(100).contains(cancelledFinal.id()));
+      store.cancellationDelivered(cancelledFinal.id());
+      assertFalse(store.cancelled(100).contains(cancelledFinal.id()));
       var retry = store.submit(owner, "retry", wire);
       var first = store.claim(retry.id(), Duration.ofSeconds(5)).orElseThrow();
       store.retry(first);
@@ -255,6 +285,23 @@ class JobStoreTest {
         c.commit();
       }
     }
+  }
+
+  static String sealed(JobStore.FinalLease lease) {
+    var response = Contracts.JSON.createObjectNode();
+    response
+        .put("schemaVersion", "1")
+        .put("jobId", lease.job().id().toString())
+        .put("artifactId", lease.artifactId().toString())
+        .put("requestHash", JobRequests.hash(lease.request()))
+        .put("documentConfigurationHash", "a".repeat(64))
+        .put("pageCount", lease.job().accepted())
+        .put("sha256", "b".repeat(64))
+        .put("bytes", "200")
+        .put("manifestSha256", "c".repeat(64))
+        .put("manifestBytes", "100")
+        .put("selectionSha256", "d".repeat(64));
+    return JobRequests.canonical(response);
   }
 
   static String response(JobStore.Lease lease, boolean accepted) {

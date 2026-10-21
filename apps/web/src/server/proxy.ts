@@ -27,8 +27,8 @@ export interface ProxyConfig {
 const MAX_BODY = 32 * 1024 * 1024,
   MAX_RESPONSE = 16 * 1024 * 1024;
 const UNKNOWN_REQUEST = '00000000-0000-0000-0000-000000000000';
-class BodyLimit extends Error {}
-function localAddress(value: string): URL {
+export class BodyLimit extends Error {}
+export function localAddress(value: string): URL {
   const url = new URL(value);
   if (
     url.protocol !== 'http:' ||
@@ -71,7 +71,7 @@ function error(
     },
   );
 }
-async function bounded(
+export async function bounded(
   body: ReadableStream<Uint8Array> | null,
   headers: Headers,
   limit: number,
@@ -111,7 +111,7 @@ async function bounded(
     reader.releaseLock();
   }
 }
-function isJson(headers: Headers): boolean {
+export function isJson(headers: Headers): boolean {
   return (
     headers.get('content-type')?.split(';')[0]?.trim().toLowerCase() ===
     'application/json'
@@ -130,7 +130,7 @@ const errorStatus: Partial<Record<PreviewError['code'], number>> = {
   timeout: 504,
 };
 
-function traceContext(value: string | null): string {
+export function traceContext(value: string | null): string {
   if (
     value &&
     /^00-[0-9a-f]{32}-[0-9a-f]{16}-[0-9a-f]{2}$/.test(value) &&

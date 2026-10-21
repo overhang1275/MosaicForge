@@ -44,6 +44,12 @@ final class JdbcJobStore implements JobStore {
                 "ALTER TABLE mosaicforge_jobs ADD COLUMN IF NOT EXISTS revision bigint NOT NULL DEFAULT 0 CHECK (revision BETWEEN 0 AND 9007199254740991)");
             s.execute(
                 "INSERT INTO mosaicforge_schema_versions(version) VALUES (3) ON CONFLICT DO NOTHING");
+            s.execute(
+                "ALTER TABLE mosaicforge_jobs ADD COLUMN IF NOT EXISTS artifact_id uuid, ADD COLUMN IF NOT EXISTS final_request text, ADD COLUMN IF NOT EXISTS artifact_metadata jsonb, ADD COLUMN IF NOT EXISTS cancel_delivered boolean NOT NULL DEFAULT false");
+            s.execute(
+                "CREATE INDEX IF NOT EXISTS mosaicforge_job_blocks_order ON mosaicforge_job_blocks(job_id, ((response->>'startIndex')::numeric))");
+            s.execute(
+                "INSERT INTO mosaicforge_schema_versions(version) VALUES (4) ON CONFLICT DO NOTHING");
           }
           return null;
         });
@@ -301,7 +307,7 @@ final class JdbcJobStore implements JobStore {
         c -> {
           try (var s =
               c.prepareStatement(
-                  "UPDATE mosaicforge_jobs SET revision=revision+1,lease_until=? WHERE id=? AND fence=? AND state='running' AND lease_until>?")) {
+                  "UPDATE mosaicforge_jobs SET revision=revision+1,lease_until=? WHERE id=? AND fence=? AND state IN ('running','finalizing') AND lease_until>?")) {
             s.setTimestamp(1, deadline(duration));
             s.setObject(2, id);
             s.setLong(3, fence);
@@ -349,8 +355,7 @@ final class JdbcJobStore implements JobStore {
             s.setObject(6, job.id());
             s.executeUpdate();
           }
-          if (!exhausted && accepted < request.path("requestedAcceptedCount").asInt())
-            notify(c, job.id());
+          if (!exhausted) notify(c, job.id());
           return true;
         });
   }
@@ -399,7 +404,7 @@ final class JdbcJobStore implements JobStore {
         c -> {
           try (var s =
               c.prepareStatement(
-                  "UPDATE mosaicforge_jobs SET revision=revision+1,state='cancelled',lease_until=NULL WHERE id=? AND owner_id=? AND state IN ('queued','running','cancelling')")) {
+                  "UPDATE mosaicforge_jobs SET revision=revision+1,state='cancelled',fence=fence+1,lease_until=NULL WHERE id=? AND owner_id=? AND state IN ('queued','running','finalizing','cancelling')")) {
             s.setObject(1, id);
             s.setObject(2, owner);
             s.executeUpdate();
@@ -451,7 +456,7 @@ final class JdbcJobStore implements JobStore {
           var ids = new ArrayList<UUID>();
           try (var s =
               c.prepareStatement(
-                  "SELECT id FROM mosaicforge_jobs WHERE state IN ('queued','running') AND (lease_until IS NULL OR lease_until<=?) AND accepted<(request->>'requestedAcceptedCount')::integer ORDER BY id LIMIT ? FOR UPDATE SKIP LOCKED")) {
+                  "SELECT id FROM mosaicforge_jobs WHERE state IN ('queued','running','finalizing') AND (lease_until IS NULL OR lease_until<=?) ORDER BY id LIMIT ? FOR UPDATE SKIP LOCKED")) {
             s.setTimestamp(1, Timestamp.from(clock.instant()));
             s.setInt(2, limit);
             try (var r = s.executeQuery()) {
@@ -460,6 +465,230 @@ final class JdbcJobStore implements JobStore {
           }
           for (var id : ids) notify(c, id);
           return ids.size();
+        });
+  }
+
+  @Override
+  public Optional<FinalLease> claimFinal(UUID id, Duration duration) {
+    return tx(
+        c -> {
+          var found = locked(c, id);
+          if (found.isEmpty()) return Optional.empty();
+          var job = found.get();
+          var request = Contracts.JSON.readTree(job.request());
+          if (!List.of("running", "finalizing").contains(job.state())
+              || job.accepted() != request.path("requestedAcceptedCount").asInt())
+            return Optional.empty();
+          UUID artifact;
+          String wire;
+          try (var s =
+              c.prepareStatement(
+                  "SELECT lease_until,artifact_id,final_request FROM mosaicforge_jobs WHERE id=?")) {
+            s.setObject(1, id);
+            try (var r = s.executeQuery()) {
+              r.next();
+              if (r.getTimestamp(1) != null
+                  && r.getTimestamp(1).toInstant().isAfter(clock.instant()))
+                return Optional.empty();
+              artifact = r.getObject(2, UUID.class);
+              wire = r.getString(3);
+            }
+          }
+          if (job.retries() >= retryBudget) {
+            fail(c, id);
+            return Optional.empty();
+          }
+          if (artifact == null) {
+            artifact = UUID.randomUUID();
+            var body = Contracts.JSON.createObjectNode();
+            body.put("schemaVersion", "1")
+                .put("jobId", id.toString())
+                .put("artifactId", artifact.toString());
+            body.set("templateSvg", Contracts.JSON.readTree(job.snapshot()).path("templateSvg"));
+            var pdf = body.putObject("job");
+            pdf.put("schemaVersion", "1");
+            pdf.set("generation", request.path("generation"));
+            pdf.set("pdf", request.path("pdf"));
+            body.set("requestedAcceptedCount", request.path("requestedAcceptedCount"));
+            var blocks = body.putArray("blocks");
+            // Fetch compact committed references only, in bounded pages; never load record arrays.
+            int offset = 0;
+            while (true) {
+              int rows = 0;
+              try (var s =
+                  c.prepareStatement(
+                      "SELECT block_id,response->>'requestHash',response->>'recordsSha256' FROM mosaicforge_job_blocks WHERE job_id=? ORDER BY (response->>'startIndex')::numeric LIMIT 100 OFFSET ?")) {
+                s.setObject(1, id);
+                s.setInt(2, offset);
+                try (var r = s.executeQuery()) {
+                  while (r.next()) {
+                    if (blocks.size() >= 4095) {
+                      fail(c, id);
+                      return Optional.empty();
+                    }
+                    blocks
+                        .addObject()
+                        .put("blockId", r.getObject(1).toString())
+                        .put("requestHash", r.getString(2))
+                        .put("recordsSha256", r.getString(3));
+                    rows++;
+                  }
+                }
+              }
+              offset += rows;
+              if (rows < 100) break;
+            }
+            if (blocks.isEmpty()) {
+              fail(c, id);
+              return Optional.empty();
+            }
+            wire = JobRequests.canonical(body);
+            if (!new Contracts().valid(body, "finalize-request", "finalize"))
+              throw new IllegalStateException("Invalid finalization request");
+          }
+          try (var s =
+              c.prepareStatement(
+                  "UPDATE mosaicforge_jobs SET revision=revision+1,state='finalizing',fence=fence+1,retries=retries+1,lease_until=?,artifact_id=?,final_request=? WHERE id=?")) {
+            s.setTimestamp(1, deadline(duration));
+            s.setObject(2, artifact);
+            s.setString(3, wire);
+            s.setObject(4, id);
+            s.executeUpdate();
+          }
+          return Optional.of(
+              new FinalLease(locked(c, id).orElseThrow(), artifact, wire, job.fence() + 1));
+        });
+  }
+
+  private boolean finalActive(Connection c, FinalLease lease) throws SQLException {
+    try (var s =
+        c.prepareStatement(
+            "SELECT 1 FROM mosaicforge_jobs WHERE id=? AND fence=? AND artifact_id=? AND final_request=? AND state='finalizing' AND lease_until>?")) {
+      s.setObject(1, lease.job().id());
+      s.setLong(2, lease.fence());
+      s.setObject(3, lease.artifactId());
+      s.setString(4, lease.request());
+      s.setTimestamp(5, Timestamp.from(clock.instant()));
+      try (var r = s.executeQuery()) {
+        return r.next();
+      }
+    }
+  }
+
+  @Override
+  public boolean completeFinal(FinalLease lease, String response) {
+    Finalization.validate(lease.request(), response);
+    return tx(
+        c -> {
+          var job = locked(c, lease.job().id()).orElseThrow();
+          if (!finalActive(c, lease)
+              || job.accepted()
+                  != Contracts.JSON.readTree(job.request()).path("requestedAcceptedCount").asInt())
+            return false;
+          try (var s =
+              c.prepareStatement(
+                  "UPDATE mosaicforge_jobs SET revision=revision+1,state='succeeded',artifact_metadata=?::jsonb,lease_until=NULL WHERE id=?")) {
+            s.setString(1, response);
+            s.setObject(2, job.id());
+            s.executeUpdate();
+            return true;
+          }
+        });
+  }
+
+  @Override
+  public void retryFinal(FinalLease lease, Duration delay) {
+    tx(
+        c -> {
+          locked(c, lease.job().id());
+          if (finalActive(c, lease)) {
+            try (var s =
+                c.prepareStatement(
+                    "UPDATE mosaicforge_jobs SET revision=revision+1,lease_until=?,state=CASE WHEN retries>=? THEN 'failed' ELSE state END WHERE id=?")) {
+              s.setTimestamp(1, deadline(delay));
+              s.setInt(2, retryBudget);
+              s.setObject(3, lease.job().id());
+              s.executeUpdate();
+            }
+            notify(c, lease.job().id());
+          }
+          return null;
+        });
+  }
+
+  @Override
+  public Optional<Artifact> artifact(UUID owner, UUID id) {
+    return tx(
+        c -> {
+          try (var s =
+              c.prepareStatement(
+                  "SELECT artifact_id,artifact_metadata FROM mosaicforge_jobs WHERE id=? AND owner_id=? AND state='succeeded' AND artifact_metadata IS NOT NULL")) {
+            s.setObject(1, id);
+            s.setObject(2, owner);
+            try (var r = s.executeQuery()) {
+              if (!r.next()) return Optional.empty();
+              var m = Contracts.JSON.readTree(r.getString(2));
+              return Optional.of(
+                  new Artifact(
+                      r.getObject(1, UUID.class),
+                      m.path("pageCount").asInt(),
+                      Contracts.text(m, "sha256"),
+                      Long.parseLong(Contracts.text(m, "bytes")),
+                      Contracts.text(m, "manifestSha256"),
+                      Long.parseLong(Contracts.text(m, "manifestBytes"))));
+            }
+          }
+        });
+  }
+
+  @Override
+  public List<UUID> pending(int limit) {
+    bounded(limit);
+    return tx(
+        c -> {
+          var ids = new ArrayList<UUID>();
+          try (var s =
+              c.prepareStatement(
+                  "SELECT id FROM mosaicforge_jobs WHERE state IN ('queued','running','finalizing') AND (lease_until IS NULL OR lease_until<=?) ORDER BY id LIMIT ?")) {
+            s.setTimestamp(1, Timestamp.from(clock.instant()));
+            s.setInt(2, limit);
+            try (var r = s.executeQuery()) {
+              while (r.next()) ids.add(r.getObject(1, UUID.class));
+            }
+          }
+          return List.copyOf(ids);
+        });
+  }
+
+  @Override
+  public List<UUID> cancelled(int limit) {
+    bounded(limit);
+    return tx(
+        c -> {
+          var ids = new ArrayList<UUID>();
+          try (var s =
+              c.prepareStatement(
+                  "SELECT id FROM mosaicforge_jobs WHERE state='cancelled' AND NOT cancel_delivered ORDER BY id LIMIT ?")) {
+            s.setInt(1, limit);
+            try (var r = s.executeQuery()) {
+              while (r.next()) ids.add(r.getObject(1, UUID.class));
+            }
+          }
+          return List.copyOf(ids);
+        });
+  }
+
+  @Override
+  public void cancellationDelivered(UUID id) {
+    tx(
+        c -> {
+          try (var s =
+              c.prepareStatement(
+                  "UPDATE mosaicforge_jobs SET cancel_delivered=true WHERE id=? AND state='cancelled'")) {
+            s.setObject(1, id);
+            s.executeUpdate();
+          }
+          return null;
         });
   }
 }

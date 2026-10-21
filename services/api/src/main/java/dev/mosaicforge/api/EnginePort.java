@@ -7,6 +7,24 @@ import java.util.concurrent.TimeoutException;
 
 /** The actual HTTP boundary to the CPU engine; no persistence or queue abstraction yet. */
 interface EnginePort {
+  record Stream(
+      int status,
+      String contentType,
+      String etag,
+      String contentRange,
+      long length,
+      java.io.InputStream body)
+      implements AutoCloseable {
+    public void close() throws IOException {
+      body.close();
+    }
+  }
+
+  default Stream stream(String path, String method, String range, String ifRange, String trace)
+      throws IOException, InterruptedException, TimeoutException {
+    throw new IOException("Artifact stream unavailable");
+  }
+
   record Reply(int status, String contentType, byte[] body) {}
 
   record Download(int status, String contentType, String metadata, Path body)

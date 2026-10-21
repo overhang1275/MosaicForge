@@ -48,3 +48,11 @@ Fuentes de implementación: [Next.js standalone](https://nextjs.org/docs/app/api
 PDF toma la serie completa guardada, aunque después se editen los controles; todas las muestras deben estar aceptadas. El tamaño predeterminado es 100 × 100 mm, sin sangrado. La ruta exige generación SVG, invoca el exportador vectorial Rust y nunca usa los PNG de previsualización para construir páginas. Fallos o rechazos no descargan un documento parcial.
 
 Docker ejecuta ambos procesos con compilaciones de producción: [instrucciones y puertos](../../docs/docker-local.md). No recompilar sobre el standalone que un proceso local está sirviendo en Windows; detener primero o usar el despliegue Docker para actualizar la imagen.
+
+## Proxies de proyectos y trabajos durables (3.4.5)
+
+`/api/projects` permite GET (cursor UUID y limit 1–100) y POST; `/api/projects/me` consulta `/v1/me`. Las rutas con UUID permiten consultar proyectos, guardar revisiones y leer una revisión positiva. `/api/jobs` permite POST con `Idempotency-Key` estable de 16–128 caracteres ASCII visibles; `/api/jobs/{uuid}` consulta estado y `/cancel` permite POST sin cuerpo.
+
+Estas rutas usan exclusivamente `MOSAICFORGE_API_URL` (por defecto `http://127.0.0.1:4772`), `MOSAICFORGE_API_TOKEN` privado y `MOSAICFORGE_WEB_ORIGIN`. Las escrituras requieren Origin coincidente con Host. Las lecturas nativas GET/HEAD pueden omitir Origin si Sec-Fetch-Site es same-origin o none. Las rutas y consultas están cerradas; ningún parámetro elige un destino arbitrario. Los validadores generados verifican JSON de entrada y salida; el cuerpo original se conserva para que Java detecte claves duplicadas.
+
+`/api/jobs/{uuid}/artifacts/pdf` y `/manifest` sirven descargas nativas GET/HEAD de hasta 1 GiB mediante streams con contrapresión. Admiten un rango de bytes y If-Range acotados. Se verifican MIME, ETag, tamaño e intervalo; un GET completo comprueba SHA-256 y retiene el último byte hasta EOF. Un cuerpo incompleto o corrupto interrumpe la descarga. La desconexión cancela el stream upstream y el plazo máximo es 120 s. Los errores JSON se validan y sustituyen por mensajes locales; un 416 conserva Content-Range. La interfaz de trabajos y SSE quedan para 3.5.

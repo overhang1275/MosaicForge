@@ -50,6 +50,27 @@ final class HttpEngine implements EnginePort {
   }
 
   @Override
+  public Stream stream(String path, String method, String range, String ifRange, String trace)
+      throws IOException, InterruptedException, TimeoutException {
+    var builder =
+        HttpRequest.newBuilder(origin.resolve(path))
+            .timeout(Duration.ofSeconds(120))
+            .header("Authorization", "Bearer " + token)
+            .header("traceparent", trace)
+            .method(method, HttpRequest.BodyPublishers.noBody());
+    if (range != null) builder.header("Range", range);
+    if (ifRange != null) builder.header("If-Range", ifRange);
+    var response = client.send(builder.build(), HttpResponse.BodyHandlers.ofInputStream());
+    return new Stream(
+        response.statusCode(),
+        response.headers().firstValue("Content-Type").orElse(""),
+        response.headers().firstValue("ETag").orElse(""),
+        response.headers().firstValue("Content-Range").orElse(""),
+        response.headers().firstValueAsLong("Content-Length").orElse(-1),
+        response.body());
+  }
+
+  @Override
   public Download download(String path, byte[] request, String trace)
       throws IOException, InterruptedException, TimeoutException {
     Path file =

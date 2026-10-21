@@ -26,6 +26,25 @@ interface JobStore {
 
   record Notice(long id, UUID jobId) {}
 
+  record FinalLease(Job job, UUID artifactId, String request, long fence) {}
+
+  record Artifact(
+      UUID id, int pages, String sha256, long bytes, String manifestSha256, long manifestBytes) {}
+
+  Optional<FinalLease> claimFinal(UUID id, Duration duration);
+
+  boolean completeFinal(FinalLease lease, String response);
+
+  void retryFinal(FinalLease lease, Duration delay);
+
+  Optional<Artifact> artifact(UUID owner, UUID id);
+
+  List<UUID> pending(int limit);
+
+  List<UUID> cancelled(int limit);
+
+  void cancellationDelivered(UUID id);
+
   Job submit(UUID owner, String key, String request);
 
   Optional<Job> find(UUID owner, UUID id);

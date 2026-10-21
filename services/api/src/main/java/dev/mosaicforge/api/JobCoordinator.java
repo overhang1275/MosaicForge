@@ -63,8 +63,12 @@ final class JobCoordinator {
   }
 
   int consume(String trace) {
+    return consume(trace, 100);
+  }
+
+  int consume(String trace, int limit) {
     int count = 0;
-    for (var message : notifications.poll(100)) {
+    for (var message : notifications.poll(limit)) {
       tick(message.jobId(), trace);
       notifications.acknowledge(message.id());
       count++;
