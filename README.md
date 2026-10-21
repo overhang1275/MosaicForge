@@ -59,7 +59,7 @@ Open **http://127.0.0.1:3000**. Use this exact host because the proxy validates 
 
 The image runs web → Java → Rust with distinct server-only service credentials.
 Only the web port is published; Java 4772 and Rust 4771 stay on container loopback.
-See [the Java service](services/api/README.md) and [future job contracts](docs/job-contract-v1.md).
+See [the Java service](services/api/README.md) and [durable job API](contracts/openapi/jobs-v2.json).
 The local launcher creates `state/local-db.env` once with a random database
 password and stable local owner ID; it never prints or overwrites existing
 credentials. Keep this ignored file and the PostgreSQL volume when updating.
@@ -67,8 +67,8 @@ It also creates `state/local-valkey.env` once for the separate internal queue
 credential. Keep that file, the Valkey volume and the private engine journal volume.
 PostgreSQL and Valkey have no host ports. Node24 is required for the helper; its equivalent
 Compose command is `docker compose --env-file state/local-db.env --env-file state/local-valkey.env -f deploy/compose/local.yml`.
-Durable block/control components are being introduced incrementally; public
-asynchronous submission stays disabled until final PDF publication is complete.
+The durable pilot enables asynchronous submission and sealed PDF publication
+through the BFF API. Durable editor controls remain the next phase.
 Individual user login remains a later phase.
 
 If port 3000 is occupied, choose another port without stopping unrelated services:
@@ -105,8 +105,9 @@ The editor uses a binary PDF download instead of the legacy JSON/base64 transpor
 Rust and Java prepare/verify the completed document on private temporary disk;
 Next streams it with length and SHA256 checks. The current local disk quota is
 1 GiB per PDF, with a 120-second request deadline and the existing 12-sample UI.
-The browser still receives a Blob before saving. Million-page jobs require the
-later durable-artifact/native-download flow; this change does not establish
+The current editor still receives a Blob before saving. The separate durable
+API already supports native streamed artifact downloads, while its editor UI
+and large-scale capacity validation remain future work. This does not establish
 million-page capacity or reduce the intrinsic size of unique vector artwork.
 
 The editor supports **1–12 samples per series** and previews up to **512 × 512 px**. The CLI supports **1–10,000 variants per job**. One million variants is a roadmap objective, not a verified current capability.
@@ -149,6 +150,14 @@ The launchers configure internal addresses and the token automatically. Never ex
 
 The web proxy exposes `POST /api/inspect`, `/api/preview`, `/api/export`, and the legacy `/api/export-pdf`. Accepted-series export uses `/api/export-pdf-selection` and the private Rust `/v2/export-pdf-selection` route with explicit accepted indices. Shared schemas are the source of truth; generated types and validators are intentionally versioned.
 
+The Docker pilot also exposes asynchronous jobs through `/api/projects` and
+`/api/jobs`. A job snapshots an owned project revision, evaluates ordered bounded
+blocks, then seals one complete vector PDF and its manifest. Status, cancellation
+and native GET/HEAD downloads with byte ranges survive client disconnection.
+The current pilot accepts up to12 pages with one worker; the editor's durable-job
+controls and history are a separate next step. See [worker protocol](contracts/worker/v1/README.md)
+and [artifact design](docs/adr/0013-sealed-vector-job-artifacts.md).
+
 - [Preview/export contracts](contracts/preview/v1/README.md)
 - [Generation schema](contracts/engine/v1/generation.schema.json)
 - [PDF job schema](contracts/engine/pdf/v1/job.schema.json)
@@ -157,13 +166,19 @@ The web proxy exposes `POST /api/inspect`, `/api/preview`, `/api/export`, and th
 
 ## Deployment and security
 
-Docker packages Rust and Next.js together, keeps the engine private, and publishes only the web on host loopback. Health checks and process restarts are provided. Persistent storage and multiuser access control are not implemented; this configuration is for local testing, not an Internet-facing service.
+Docker packages Rust, Java and Next.js together, keeps the engine/API private,
+and publishes only the web on host loopback. PostgreSQL stores projects and job
+state; authenticated private Valkey notifications supplement database recovery.
+Named volumes retain the database, queue and Rust journal/artifacts. Credentials
+are generated once in ignored local state. The current server-configured local
+principal does not provide individual login or production multiuser isolation.
+This configuration is for local testing, not an Internet-facing service.
 
 ```sh
-docker compose -f deploy/compose/local.yml ps
-docker compose -f deploy/compose/local.yml logs --tail 100
-docker compose -f deploy/compose/local.yml restart
-docker compose -f deploy/compose/local.yml down
+node scripts/local-compose.mjs ps
+node scripts/local-compose.mjs logs --tail 100
+node scripts/local-compose.mjs restart
+node scripts/local-compose.mjs down
 ```
 
 Rerun `up -d --build --wait` to update code. See [Docker deployment](docs/docker-local.md).
@@ -182,7 +197,10 @@ The importer rejects scripts, external resources, embedded images, fonts, and un
 | PDF export fails        | All web samples must be accepted and physical page coverage must pass. JSON responses are capped at 16 MiB.                |
 | Windows file-lock error | Stop the process serving the affected executable or standalone directory before rebuilding.                                |
 
-PDF output is vector RGB. PDF/X, CMYK conversion, printer/RIP integration, and automatic resume are not implemented. Cancellation is cooperative; a running stage may finish before stopping.
+PDF output is vector RGB. PDF/X, CMYK conversion and printer/RIP integration are
+not implemented. Durable jobs rebuild an interrupted PDF from committed blocks;
+they do not append to a truncated PDF. Cancellation is cooperative; a running
+stage may finish before stopping.
 
 ## Development and testing
 
@@ -221,9 +239,9 @@ Keep changes focused, test changed behavior, and document compatibility changes.
 
 ## Roadmap
 
-- Extend accepted-target generation and explicit PDF selections to asynchronous large jobs.
-- Add asynchronous jobs and bounded processing for larger workloads.
-- Add durable projects, user permissions and job recovery to the Java control plane.
+- Connect durable jobs, progress and paginated history to the editor.
+- Measure and extend bounded processing and PDF limits for larger workloads.
+- Add individual authentication and production multiuser authorization.
 - Consider CUDA only where end-to-end measurements demonstrate a benefit.
 - Consider optional Python/ML analysis only if rule-based validation is insufficient.
 
@@ -233,7 +251,9 @@ Keep changes focused, test changed behavior, and document compatibility changes.
 
 **Can it generate one million variants today?** That scale is not implemented or verified. Current limits are listed above.
 
-**Are GPU, cloud services, or a database required?** No. The current application runs locally on CPU.
+**Are GPU, cloud services, or a database required?** CPU and local storage are
+sufficient for the CLI. The durable Docker pilot uses private PostgreSQL and
+Valkey; no GPU or cloud service is required.
 
 ## License and maintainers
 

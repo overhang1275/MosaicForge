@@ -20,7 +20,8 @@ for (const key of Object.keys(common)) {
     key.startsWith("MOSAICFORGE_DB_") ||
     key.startsWith("MOSAICFORGE_VALKEY_") ||
     key === "MOSAICFORGE_LOCAL_USER_ID" ||
-    key === "MOSAICFORGE_PERSISTENCE_ENABLED"
+    key === "MOSAICFORGE_PERSISTENCE_ENABLED" ||
+    key.startsWith("MOSAICFORGE_JOBS_")
   ) {
     database[key] = common[key];
     delete common[key];

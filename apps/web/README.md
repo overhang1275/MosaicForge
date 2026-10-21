@@ -47,7 +47,7 @@ Fuentes de implementación: [Next.js standalone](https://nextjs.org/docs/app/api
 
 PDF toma la serie completa guardada, aunque después se editen los controles; todas las muestras deben estar aceptadas. El tamaño predeterminado es 100 × 100 mm, sin sangrado. La ruta exige generación SVG, invoca el exportador vectorial Rust y nunca usa los PNG de previsualización para construir páginas. Fallos o rechazos no descargan un documento parcial.
 
-Docker ejecuta ambos procesos con compilaciones de producción: [instrucciones y puertos](../../docs/docker-local.md). No recompilar sobre el standalone que un proceso local está sirviendo en Windows; detener primero o usar el despliegue Docker para actualizar la imagen.
+Docker ejecuta web, Java y Rust con compilaciones de producción: [instrucciones y puertos](../../docs/docker-local.md). No recompilar sobre el standalone que un proceso local está sirviendo en Windows; detener primero o usar el despliegue Docker para actualizar la imagen.
 
 ## Proxies de proyectos y trabajos durables (3.4.5)
 

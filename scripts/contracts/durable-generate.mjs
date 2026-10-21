@@ -121,7 +121,7 @@ await output(
     {
       openapi: '3.1.0',
       info: { title: 'MosaicForge durable jobs', version: '2' },
-      'x-implemented': false,
+      'x-implemented': true,
       security: [{ serviceToken: [] }],
       components: {
         securitySchemes: { serviceToken: { type: 'http', scheme: 'bearer' } },

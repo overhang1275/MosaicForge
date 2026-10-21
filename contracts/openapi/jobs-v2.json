@@ -4,7 +4,7 @@
     "title": "MosaicForge durable jobs",
     "version": "2"
   },
-  "x-implemented": false,
+  "x-implemented": true,
   "security": [
     {
       "serviceToken": []

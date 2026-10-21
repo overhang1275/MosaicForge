@@ -11,6 +11,7 @@ services:
     environment:
       MOSAICFORGE_WEB_ORIGIN: "http://127.0.0.1:${MOSAICFORGE_HTTP_PORT:-3000}"
       MOSAICFORGE_PERSISTENCE_ENABLED: "true"
+      MOSAICFORGE_JOBS_ENABLED: "true"
       MOSAICFORGE_DB_URL: "jdbc:postgresql://postgres:5432/mosaicforge"
       MOSAICFORGE_DB_USER: "mosaicforge"
       MOSAICFORGE_DB_PASSWORD: "${MOSAICFORGE_DB_PASSWORD:?Run node scripts/local-compose.mjs first}"
@@ -22,6 +23,8 @@ services:
       - engine-journal:/app/journal
     depends_on:
       postgres:
+        condition: service_healthy
+      valkey:
         condition: service_healthy
     restart: unless-stopped
     stop_grace_period: 10s
